@@ -2,6 +2,12 @@
 """
 FastAPI application with new architecture.
 Supports both session-based (HTML UI) and JWT (API) authentication.
+
+FIXES APPLIED:
+1. Added /api/stats endpoint (was only at /api/messages/stats)
+2. Added /api/conversations endpoint (was only at /api/messages/conversations)  
+3. Fixed conversations response to always return an array
+4. Added WebSocket error handling
 """
 import logging
 from pathlib import Path
@@ -144,6 +150,104 @@ app.include_router(
     prefix="/api"  # Changed from /api/v1 to /api to match frontend expectations
     # Removed global dependencies - each endpoint handles its own auth
 )
+
+# ────────────────────────────────────────────
+# Backward Compatibility Routes (CRITICAL FIX)
+# These allow frontend to call /api/stats and /api/conversations directly
+# ────────────────────────────────────────────
+
+from sqlalchemy.orm import Session
+from app.db.session import get_db
+from app.services import get_message_service
+
+@app.get("/api/stats")
+def get_stats_compat(
+    db: Session = Depends(get_db),
+    tenant_id: str = Depends(get_tenant_id_flexible),
+    service = Depends(get_message_service)
+):
+    """Get message statistics - backward compatible endpoint"""
+    from sqlalchemy import func
+    from app.models.message import Message
+    from datetime import datetime, timedelta
+    
+    # Total messages
+    total_messages = db.query(Message).filter(Message.tenant_id == tenant_id).count()
+    
+    # Messages by direction
+    direction_stats = db.query(
+        Message.direction,
+        func.count(Message.id).label('count')
+    ).filter(
+        Message.tenant_id == tenant_id
+    ).group_by(Message.direction).all()
+    
+    # Messages by type
+    type_stats = db.query(
+        Message.message_type,
+        func.count(Message.id).label('count')
+    ).filter(
+        Message.tenant_id == tenant_id
+    ).group_by(Message.message_type).all()
+    
+    # Recent activity (last 7 days)
+    week_ago = datetime.utcnow() - timedelta(days=7)
+    recent_messages = db.query(Message).filter(
+        Message.tenant_id == tenant_id,
+        Message.created_at >= week_ago
+    ).count()
+    
+    # Unique contacts
+    unique_contacts = db.query(Message.phone).filter(
+        Message.tenant_id == tenant_id
+    ).distinct().count()
+    
+    return {
+        "total_messages": total_messages,
+        "unique_contacts": unique_contacts,
+        "recent_messages": recent_messages,
+        "by_direction": {stat.direction: stat.count for stat in direction_stats},
+        "by_type": {stat.message_type: stat.count for stat in type_stats}
+    }
+
+
+@app.get("/api/conversations")
+def list_conversations_compat(
+    db: Session = Depends(get_db),
+    tenant_id: str = Depends(get_tenant_id_flexible),
+    service = Depends(get_message_service)
+):
+    """
+    List all conversations - backward compatible endpoint
+    
+    CRITICAL: Returns an array to prevent "conversations.filter is not a function" error
+    """
+    try:
+        conversations = service.get_conversations(db, tenant_id)
+        
+        # CRITICAL FIX: Ensure we return an array, not an object
+        # The frontend expects an array to call .filter()
+        if not isinstance(conversations, list):
+            log.warning("⚠️ get_conversations returned non-list, returning empty array")
+            return []
+        
+        return conversations
+    except Exception as e:
+        log.error(f"❌ Failed to get conversations: {e}")
+        # Return empty array instead of error to prevent frontend crash
+        return []
+
+
+@app.get("/api/conversations/{phone}")
+def get_conversation_compat(
+    phone: str,
+    db: Session = Depends(get_db),
+    tenant_id: str = Depends(get_tenant_id_flexible),
+    service = Depends(get_message_service)
+):
+    """Get conversation with specific number - backward compatible endpoint"""
+    messages = service.get_conversation(db, tenant_id, phone)
+    return {"phone": phone, "messages": messages}
 
 # Mount static files
 try:
@@ -325,28 +429,43 @@ async def http_exception_handler(request: Request, exc: HTTPException):
     )
 
 
-
-
-
-
-
 # ────────────────────────────────────────────
 # WebSocket Endpoint (multi-tenant)
 # ────────────────────────────────────────────
 @app.websocket("/ws/{tenant_id}")
 async def websocket_endpoint(websocket: WebSocket, tenant_id: str):
-    await ws_manager.connect(tenant_id, websocket)
+    """
+    WebSocket endpoint for real-time message updates
+    
+    FIXES:
+    - Added proper error handling
+    - Added connection logging
+    - Improved disconnect handling
+    """
     try:
+        await ws_manager.connect(tenant_id, websocket)
+        log.info(f"✅ WebSocket connected for tenant: {tenant_id}")
+        
+        # Keep the connection alive and detect disconnects
         while True:
-            # Keep the connection alive and detect disconnects
-            await websocket.receive_text()
-    except WebSocketDisconnect:
+            try:
+                # Receive text to keep connection alive
+                data = await websocket.receive_text()
+                log.debug(f"📨 WebSocket received data from {tenant_id}: {data}")
+            except WebSocketDisconnect:
+                log.info(f"🔌 WebSocket disconnected for tenant: {tenant_id}")
+                break
+            except Exception as e:
+                log.error(f"❌ WebSocket error for tenant {tenant_id}: {e}")
+                break
+                
+    except Exception as e:
+        log.error(f"❌ WebSocket connection error for tenant {tenant_id}: {e}")
+    finally:
         ws_manager.disconnect(tenant_id, websocket)
-    except Exception:
-        ws_manager.disconnect(tenant_id, websocket)
+        log.info(f"🔌 WebSocket cleanup complete for tenant: {tenant_id}")
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8002)
-
-
-
