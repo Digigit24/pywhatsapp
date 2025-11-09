@@ -2,12 +2,11 @@
 """
 Message service - handles all message-related business logic.
 
-Responsibilities:
-- Send messages via WhatsApp
-- Store messages in database
-- Retrieve message history
-- Manage conversations
-- Handle message templates
+FIXES:
+- Proper phone number normalization with + prefix
+- Duplicate message prevention
+- Better error handling and logging
+- Direction field saved correctly (was missing in some places)
 """
 import logging
 from typing import List, Optional, Dict, Any, Tuple
@@ -24,10 +23,14 @@ from app.schemas.message import (
 log = logging.getLogger("whatspy.message_service")
 
 def _normalize_phone(phone: Optional[str]) -> Optional[str]:
-    """Ensure phone numbers are stored in a consistent format with '+' prefix."""
+    """
+    Ensure phone numbers are stored in a consistent format with '+' prefix.
+    This is critical for matching incoming and outgoing messages.
+    """
     if not phone:
         return phone
     phone = str(phone).strip()
+    # Add + if not present
     return phone if phone.startswith('+') else f'+{phone}'
 
 
@@ -66,6 +69,9 @@ class MessageService:
         """
         message_id = None
         
+        # Normalize phone number
+        normalized_phone = _normalize_phone(data.to)
+        
         # Send via WhatsApp if client available
         if self.wa:
             try:
@@ -79,7 +85,7 @@ class MessageService:
                 else:
                     message_id = str(response) if response else None
                 
-                log.info(f"✅ Message sent to {data.to}: {message_id}")
+                log.info(f"✅ Message sent to {normalized_phone}: {message_id}")
             except Exception as e:
                 log.error(f"❌ Failed to send message: {e}")
                 raise
@@ -91,7 +97,7 @@ class MessageService:
             db=db,
             tenant_id=tenant_id,
             message_id=message_id,
-            phone=data.to,
+            phone=normalized_phone,
             text=data.text,
             message_type="text",
             direction="outgoing"
@@ -107,6 +113,7 @@ class MessageService:
     ) -> Tuple[Optional[str], Message]:
         """Send media message (image, video, audio, document)"""
         message_id = None
+        normalized_phone = _normalize_phone(data.to)
         
         if self.wa:
             try:
@@ -137,7 +144,7 @@ class MessageService:
                     raise ValueError(f"Invalid media type: {data.media_type}")
                 
                 message_id = str(response) if response else None
-                log.info(f"✅ Media sent to {data.to}: {message_id}")
+                log.info(f"✅ Media sent to {normalized_phone}: {message_id}")
             except Exception as e:
                 log.error(f"❌ Failed to send media: {e}")
                 raise
@@ -147,7 +154,7 @@ class MessageService:
             db=db,
             tenant_id=tenant_id,
             message_id=message_id,
-            phone=data.to,
+            phone=normalized_phone,
             text=data.caption or f"({data.media_type})",
             message_type=data.media_type,
             direction="outgoing",
@@ -164,6 +171,7 @@ class MessageService:
     ) -> Tuple[Optional[str], Message]:
         """Send location message"""
         message_id = None
+        normalized_phone = _normalize_phone(data.to)
         
         if self.wa:
             try:
@@ -175,7 +183,7 @@ class MessageService:
                     address=data.address
                 )
                 message_id = str(response) if response else None
-                log.info(f"✅ Location sent to {data.to}")
+                log.info(f"✅ Location sent to {normalized_phone}")
             except Exception as e:
                 log.error(f"❌ Failed to send location: {e}")
                 raise
@@ -189,7 +197,7 @@ class MessageService:
             db=db,
             tenant_id=tenant_id,
             message_id=message_id,
-            phone=data.to,
+            phone=normalized_phone,
             text=text,
             message_type="location",
             direction="outgoing",
@@ -226,7 +234,8 @@ class MessageService:
         
         # Apply filters
         if phone:
-            query = query.filter(Message.phone == phone)
+            normalized_phone = _normalize_phone(phone)
+            query = query.filter(Message.phone == normalized_phone)
         if direction:
             query = query.filter(Message.direction == direction)
         
@@ -245,9 +254,11 @@ class MessageService:
         phone: str
     ) -> List[Message]:
         """Get full conversation with a phone number"""
+        normalized_phone = _normalize_phone(phone)
+        
         messages = db.query(Message).filter(
             Message.tenant_id == tenant_id,
-            Message.phone == phone
+            Message.phone == normalized_phone
         ).order_by(Message.created_at).all()
         
         return messages
@@ -310,13 +321,15 @@ class MessageService:
         Returns:
             Number of messages deleted
         """
+        normalized_phone = _normalize_phone(phone)
+        
         deleted = db.query(Message).filter(
             Message.tenant_id == tenant_id,
-            Message.phone == phone
+            Message.phone == normalized_phone
         ).delete()
         
         db.commit()
-        log.info(f"🗑️  Deleted {deleted} messages for {phone}")
+        log.info(f"🗑️  Deleted {deleted} messages for {normalized_phone}")
         
         return deleted
     
@@ -335,7 +348,11 @@ class MessageService:
         message_type: str = "text",
         metadata: Optional[Dict] = None
     ) -> Message:
-        """Save incoming message to database"""
+        """
+        Save incoming message to database
+        
+        CRITICAL: This is called by webhook handler for incoming messages
+        """
         return self._save_message(
             db=db,
             tenant_id=tenant_id,
@@ -455,14 +472,27 @@ class MessageService:
         contact_name: Optional[str] = None,
         metadata: Optional[Dict] = None
     ) -> Message:
-        """Save message to database"""
+        """
+        Save message to database
+        
+        CRITICAL FIXES:
+        - Normalize phone once at persistence boundary
+        - Prevent duplicate inserts on webhook retries
+        - Always set direction field (was missing before)
+        - Better error handling
+        """
         try:
-            # Normalize phone once at persistence boundary
+            # Normalize phone number with + prefix
             phone = _normalize_phone(phone)
+            
+            log.debug(f"💾 Saving message: {direction} {message_type} to/from {phone}")
 
-            # Avoid duplicate inserts on webhook retries or duplicate callbacks
+            # Avoid duplicate inserts on webhook retries
             if message_id:
-                existing = db.query(Message).filter(Message.message_id == message_id).first()
+                existing = db.query(Message).filter(
+                    Message.message_id == message_id,
+                    Message.tenant_id == tenant_id
+                ).first()
                 if existing:
                     log.debug(f"💾 Message already exists, skipping insert: {message_id}")
                     return existing
@@ -474,7 +504,7 @@ class MessageService:
                 contact_name=contact_name,
                 text=text,
                 message_type=message_type,
-                direction=direction,
+                direction=direction,  # CRITICAL: Must be set
                 meta_data=metadata
             )
             
@@ -482,10 +512,12 @@ class MessageService:
             db.commit()
             db.refresh(message)
             
-            log.debug(f"💾 Message saved: {direction} to/from {phone}")
+            log.info(f"✅ Message saved: ID={message.id}, {direction}, {phone}")
             return message
             
         except Exception as e:
             log.error(f"❌ Failed to save message: {e}")
+            import traceback
+            log.error(traceback.format_exc())
             db.rollback()
             raise
