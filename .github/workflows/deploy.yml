@@ -27,4 +27,5 @@ jobs:
             set -e
             cd /home/ubuntu/whatspy
             git config --global --add safe.directory /home/ubuntu/whatspy
+            chmod +x deploy.sh
             ./deploy.sh main
