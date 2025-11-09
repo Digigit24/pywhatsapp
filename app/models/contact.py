@@ -7,8 +7,11 @@ from app.models.base import BaseModel
 
 class Contact(BaseModel):
     __tablename__ = "contacts"
+    __table_args__ = (
+        UniqueConstraint('tenant_id', 'phone', name='uq_tenant_phone'),
+    )
     
-    phone = Column(String(50), index=True, nullable=False)
+    phone = Column(String(50), index=True, nullable=False, unique=True)
     name = Column(String(255), nullable=True)
     profile_pic_url = Column(String(500), nullable=True)
     status = Column(String(500), nullable=True)
