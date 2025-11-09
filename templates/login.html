@@ -237,6 +237,17 @@
           >
         </div>
 
+        <div class="form-group">
+          <label for="tenant_id">TENANT ID</label>
+          <input
+            type="text"
+            id="tenant_id"
+            name="tenant_id"
+            placeholder="e.g. bc531d42-ac91-41df-817e-26c339af6b3a"
+            autocomplete="off"
+           value="{{ tenant_id | default('') }}">
+        </div>
+
         <div class="remember-me">
           <input type="checkbox" id="remember" name="remember" value="true">
           <label for="remember" style="margin-bottom: 0;">Remember me</label>

@@ -88,10 +88,12 @@ async def get_current_user_flexible(
     # Try session authentication (for HTML UI)
     username = request.session.get("username")
     if username:
+        # Use tenant from session if available; fallback to default
+        session_tenant = request.session.get("tenant_id") or "bc531d42-ac91-41df-817e-26c339af6b3a"
         return {
             "auth_type": "session",
             "username": username,
-            "tenant_id": "bc531d42-ac91-41df-817e-26c339af6b3a",  # Default tenant for session users
+            "tenant_id": session_tenant,
             "user_id": username
         }
     

@@ -99,20 +99,20 @@ app.add_middleware(
 @app.middleware("http")
 async def add_default_tenant_header(request: Request, call_next):
     """
-    Development middleware to add default tenant ID header.
-    This helps with testing when no JWT token is provided.
+    Development middleware to add tenant ID header for API calls without JWT.
+    Uses session tenant if available, otherwise falls back to default.
     """
-    # Only add default tenant for API routes if no auth header present
+    # Only add tenant header for API routes if no auth header present
     if request.url.path.startswith("/api/") and not request.headers.get("authorization"):
         # Create a mutable copy of headers
         mutable_headers = dict(request.headers)
-        # Add default tenant ID for development
-        if "x-tenant-id" not in mutable_headers:
-            mutable_headers["x-tenant-id"] = "bc531d42-ac91-41df-817e-26c339af6b3a"
-        
-        # Create new request with updated headers
+        # Prefer existing header if provided; else use session tenant; else default
+        if "x-tenant-id" not in mutable_headers or not mutable_headers.get("x-tenant-id"):
+            tenant_from_session = request.session.get("tenant_id") if hasattr(request, "session") else None
+            mutable_headers["x-tenant-id"] = tenant_from_session or "bc531d42-ac91-41df-817e-26c339af6b3a"
+        # Apply updated headers to the request
         request._headers = mutable_headers
-    
+
     response = await call_next(request)
     return response
 
@@ -196,16 +196,42 @@ def index(request: Request, username: str = Depends(optional_auth_session)):
 @app.get("/login", include_in_schema=False)
 def login_page(request: Request):
     """Login page"""
-    return jinja_templates.TemplateResponse("login.html", {"request": request, "error": None})
+    # If already logged in, go to chat
+    if request.session.get("username"):
+        return RedirectResponse(url="/chat", status_code=303)
+
+    # Extract error from query string and map to friendly message
+    error_param = request.query_params.get("error")
+    error_msg = None
+    if error_param == "Invalid":
+        error_msg = "Invalid username or password"
+    elif error_param:
+        error_msg = error_param
+
+    # Prefill tenant from session (if any) to help the user
+    tenant_id = request.session.get("tenant_id", "bc531d42-ac91-41df-817e-26c339af6b3a")
+
+    return jinja_templates.TemplateResponse("login.html", {
+        "request": request,
+        "error": error_msg,
+        "tenant_id": tenant_id
+    })
 
 @app.post("/login", include_in_schema=False)
-async def login(request: Request, username: str = Form(...), password: str = Form(...)):
+async def login(request: Request, username: str = Form(...), password: str = Form(...), tenant_id: str = Form(None)):
     """Login"""
     user = authenticate_user(username, password)
     if not user:
         return RedirectResponse(url="/login?error=Invalid", status_code=303)
     
+    # Persist username in session
     request.session["username"] = user["username"]
+    # Persist tenant id from form if provided; else keep existing or set default
+    if tenant_id and tenant_id.strip():
+        request.session["tenant_id"] = tenant_id.strip()
+    else:
+        request.session.setdefault("tenant_id", "bc531d42-ac91-41df-817e-26c339af6b3a")
+
     return RedirectResponse(url="/chat", status_code=303)
 
 @app.get("/logout", include_in_schema=False)
@@ -218,10 +244,11 @@ def logout(request: Request):
 @app.get("/chat", include_in_schema=False)
 def chat_ui(request: Request, username: str = Depends(require_auth_session)):
     """Chat interface"""
+    tenant_id = request.session.get("tenant_id", "bc531d42-ac91-41df-817e-26c339af6b3a")
     return jinja_templates.TemplateResponse("chat.html", {
         "request": request,
         "username": username,
-        "tenant_id": "bc531d42-ac91-41df-817e-26c339af6b3a"
+        "tenant_id": tenant_id
     })
 
 @app.get("/dashboard", include_in_schema=False)
