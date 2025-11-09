@@ -92,6 +92,50 @@ app.add_middleware(
 )
 
 # ────────────────────────────────────────────
+# CORS hardening middleware (preflight short-circuit + echo Origin)
+# Ensures Access-Control headers even when upstream proxies interfere
+# ────────────────────────────────────────────
+@app.middleware("http")
+async def cors_short_circuit_and_echo_origin(request: Request, call_next):
+    # 1) Short-circuit OPTIONS preflights for /api/* with proper headers
+    if request.method == "OPTIONS" and request.url.path.startswith("/api/"):
+        origin = request.headers.get("origin")
+        req_headers = request.headers.get("access-control-request-headers", "*")
+
+        allow_origin = ""
+        try:
+            # Use same allow-list as CORSMiddleware and explicit preflight handler below
+            if origin and (origin in ALLOWED_ORIGINS or _LOCAL_ORIGIN_RE.match(origin)):  # defined later in file
+                allow_origin = origin
+        except Exception:
+            pass
+
+        from fastapi import Response
+        headers = {
+            "Access-Control-Allow-Origin": allow_origin or "*",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": req_headers or "*",
+            "Access-Control-Max-Age": "86400",
+            "Vary": "Origin",
+        }
+        if allow_origin:
+            headers["Access-Control-Allow-Credentials"] = "true"
+
+        return Response(status_code=204, headers=headers)
+
+    # 2) For normal requests, echo back Origin so browsers see ACAO on every response
+    response = await call_next(request)
+    origin = request.headers.get("origin")
+    try:
+        if origin and (origin in ALLOWED_ORIGINS or _LOCAL_ORIGIN_RE.match(origin)):
+            response.headers.setdefault("Access-Control-Allow-Origin", origin)
+            response.headers.setdefault("Vary", "Origin")
+            response.headers.setdefault("Access-Control-Allow-Credentials", "true")
+    except Exception:
+        # Never fail request on CORS header manipulation
+        pass
+    return response
+# ────────────────────────────────────────────
 # Default Tenant Middleware
 # ────────────────────────────────────────────
 
@@ -460,3 +504,43 @@ async def http_exception_handler(request: Request, exc: HTTPException):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8002)
+# ────────────────────────────────────────────
+# CORS: robust preflight handler (behind proxies)
+# ────────────────────────────────────────────
+import re
+
+ALLOWED_ORIGINS = {
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "https://whatsapp.dglinkup.com",
+}
+_LOCAL_ORIGIN_RE = re.compile(r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$")
+
+@app.options("/api/{path:path}", include_in_schema=False)
+async def cors_preflight_all(path: str, request: Request):
+    """Explicit CORS preflight to ensure Access-Control headers even behind proxies"""
+    from fastapi import Response
+
+    origin = request.headers.get("origin")
+    req_headers = request.headers.get("access-control-request-headers", "*")
+
+    # Prefer echoing back the Origin when present (required if credentials are used)
+    allow_origin = ""
+    if origin:
+        if origin in ALLOWED_ORIGINS or _LOCAL_ORIGIN_RE.match(origin):
+            allow_origin = origin
+
+    headers = {
+        "Access-Control-Allow-Origin": allow_origin or "*",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers": req_headers or "*",
+        "Access-Control-Max-Age": "86400",
+        "Vary": "Origin",
+    }
+    # Only advertise credentials when we echo a specific Origin (not "*")
+    if allow_origin:
+        headers["Access-Control-Allow-Credentials"] = "true"
+
+    return Response(status_code=204, headers=headers)
