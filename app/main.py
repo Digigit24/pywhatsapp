@@ -57,7 +57,7 @@ app.add_middleware(
         "http://127.0.0.1:3000",
         "http://localhost:5173",  # Vite default port
         "http://127.0.0.1:5173",
-        "https://yourdomain.com",  # Add your production domain
+        "https://whatsapp.dglinkup.com",  # Add your production domain
     ],
     # Also accept any localhost/127.0.0.1 with any port (dev convenience)
     allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
