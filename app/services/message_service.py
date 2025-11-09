@@ -7,6 +7,7 @@ FIXES:
 - Duplicate message prevention
 - Better error handling and logging
 - Direction field saved correctly (was missing in some places)
+- ✅ WebSocket broadcasting for incoming messages
 """
 import logging
 from typing import List, Optional, Dict, Any, Tuple
@@ -304,7 +305,8 @@ class MessageService:
                 "last_message": msg.text or f"({msg.message_type})",
                 "last_timestamp": msg.created_at.isoformat() if msg.created_at else None,
                 "unread_count": 0,  # TODO: Implement read status
-                "message_count": msg_count
+                "message_count": msg_count,
+                "direction": msg.direction
             })
         
         return result
@@ -349,11 +351,12 @@ class MessageService:
         metadata: Optional[Dict] = None
     ) -> Message:
         """
-        Save incoming message to database
+        Save incoming message to database and broadcast via WebSocket
         
         CRITICAL: This is called by webhook handler for incoming messages
+        ✅ NOW BROADCASTS TO WEBSOCKET CLIENTS
         """
-        return self._save_message(
+        saved_message = self._save_message(
             db=db,
             tenant_id=tenant_id,
             message_id=message_id,
@@ -364,6 +367,42 @@ class MessageService:
             direction="incoming",
             metadata=metadata
         )
+        
+        # ✅ BROADCAST TO WEBSOCKET CLIENTS
+        try:
+            from app.ws.manager import notify_clients_sync
+            
+            log.info(f"📢 Broadcasting incoming message to tenant {tenant_id}: {phone}")
+            
+            notify_clients_sync(tenant_id, {
+                "event": "message_incoming",
+                "data": {
+                    "phone": phone,
+                    "name": contact_name or phone,
+                    "contact_name": contact_name,
+                    "message": {
+                        "id": message_id,
+                        "message_id": message_id,
+                        "type": message_type,
+                        "text": text or "",
+                        "message_text": text or "",
+                        "timestamp": saved_message.created_at.isoformat() if saved_message.created_at else datetime.utcnow().isoformat(),
+                        "created_at": saved_message.created_at.isoformat() if saved_message.created_at else datetime.utcnow().isoformat(),
+                        "direction": "incoming",
+                        "metadata": metadata
+                    }
+                }
+            })
+            
+            log.info(f"✅ WebSocket broadcast successful for incoming message")
+            
+        except Exception as ws_err:
+            log.error(f"❌ WebSocket broadcast failed for incoming message: {ws_err}")
+            import traceback
+            log.error(traceback.format_exc())
+        
+        return saved_message
+    
     def save_outgoing_message(
         self,
         db: Session,
@@ -511,7 +550,7 @@ class MessageService:
             # Normalize phone number with + prefix
             phone = _normalize_phone(phone)
             
-            log.debug(f"💾 Saving message: {direction} {message_type} to/from {phone}")
+            log.info(f"💾 Saving message: {direction} {message_type} to/from {phone}")
 
             # Avoid duplicate inserts on webhook retries
             if message_id:
@@ -547,7 +586,3 @@ class MessageService:
             log.error(traceback.format_exc())
             db.rollback()
             raise
-
-
-
-        #fvdf
