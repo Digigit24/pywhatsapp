@@ -269,11 +269,6 @@ except:
 # Public routes
 # ────────────────────────────────────────────
 
-@app.options("/api/{path:path}", include_in_schema=False)
-async def cors_preflight(path: str, request: Request):
-    """CORS preflight handler"""
-    from fastapi import Response
-    return Response(status_code=204)
 
 @app.get("/healthz", tags=["System"])
 def health():

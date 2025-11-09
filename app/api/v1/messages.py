@@ -89,6 +89,7 @@ def list_messages(
     return messages
 
 @router.get("/conversations")
+@router.get("/conversations/")
 def list_conversations(
     db: Session = Depends(get_db),
     tenant_id: str = Depends(get_tenant_id_flexible),
@@ -98,6 +99,7 @@ def list_conversations(
     return service.get_conversations(db, tenant_id)
 
 @router.get("/conversations/{phone}", response_model=ConversationDetail)
+@router.get("/conversations/{phone}/", response_model=ConversationDetail)
 def get_conversation(
     phone: str,
     db: Session = Depends(get_db),
