@@ -38,6 +38,10 @@ MAX_BUFFER: int = int(os.getenv("MESSAGE_BUFFER", "200"))
 LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
 
 # ────────────────────────────────────────────
+# Tenant / Multi-tenant
+# ────────────────────────────────────────────
+DEFAULT_TENANT_ID: str = os.getenv("TENANT_ID") or os.getenv("DEFAULT_TENANT_ID") or "bc531d42-ac91-41df-817e-26c339af6b3a"
+# ────────────────────────────────────────────
 # Database Configuration
 # ────────────────────────────────────────────
 DB_USER = os.getenv("DB_USER", "postgres")

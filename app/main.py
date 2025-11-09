@@ -15,7 +15,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from app.core.config import (
     PHONE_ID, TOKEN, VERIFY_TOKEN, CALLBACK_URL,
     SESSION_SECRET_KEY, SESSION_MAX_AGE, JWT_SECRET_KEY,
-    MAX_BUFFER, VALIDATE_UPDATES
+    MAX_BUFFER, VALIDATE_UPDATES, DEFAULT_TENANT_ID
 )
 from app.db.session import init_db, test_db_connection
 from app.core.security import authenticate_user
@@ -109,7 +109,7 @@ async def add_default_tenant_header(request: Request, call_next):
         # Prefer existing header if provided; else use session tenant; else default
         if "x-tenant-id" not in mutable_headers or not mutable_headers.get("x-tenant-id"):
             tenant_from_session = request.session.get("tenant_id") if hasattr(request, "session") else None
-            mutable_headers["x-tenant-id"] = tenant_from_session or "bc531d42-ac91-41df-817e-26c339af6b3a"
+            mutable_headers["x-tenant-id"] = tenant_from_session or DEFAULT_TENANT_ID
         # Apply updated headers to the request
         request._headers = mutable_headers
 
@@ -209,7 +209,7 @@ def login_page(request: Request):
         error_msg = error_param
 
     # Prefill tenant from session (if any) to help the user
-    tenant_id = request.session.get("tenant_id", "bc531d42-ac91-41df-817e-26c339af6b3a")
+    tenant_id = request.session.get("tenant_id", DEFAULT_TENANT_ID)
 
     return jinja_templates.TemplateResponse("login.html", {
         "request": request,
@@ -230,7 +230,7 @@ async def login(request: Request, username: str = Form(...), password: str = For
     if tenant_id and tenant_id.strip():
         request.session["tenant_id"] = tenant_id.strip()
     else:
-        request.session.setdefault("tenant_id", "bc531d42-ac91-41df-817e-26c339af6b3a")
+        request.session.setdefault("tenant_id", DEFAULT_TENANT_ID)
 
     return RedirectResponse(url="/chat", status_code=303)
 
@@ -244,7 +244,7 @@ def logout(request: Request):
 @app.get("/chat", include_in_schema=False)
 def chat_ui(request: Request, username: str = Depends(require_auth_session)):
     """Chat interface"""
-    tenant_id = request.session.get("tenant_id", "bc531d42-ac91-41df-817e-26c339af6b3a")
+    tenant_id = request.session.get("tenant_id", DEFAULT_TENANT_ID)
     return jinja_templates.TemplateResponse("chat.html", {
         "request": request,
         "username": username,

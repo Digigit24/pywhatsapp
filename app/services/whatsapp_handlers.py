@@ -7,6 +7,7 @@ from app.models.contact import Contact
 from app.models.webhook import WebhookLog
 from datetime import datetime
 import json
+from app.core.config import DEFAULT_TENANT_ID
 
 log = logging.getLogger("whatspy.handlers")
 from app.ws.manager import notify_clients_sync
@@ -20,7 +21,7 @@ def extract_tenant_id_from_webhook(message):
     2. Request headers
     3. Webhook metadata
     """
-    tenant_id = "bc531d42-ac91-41df-817e-26c339af6b3a"  # Default tenant from middleware
+    tenant_id = DEFAULT_TENANT_ID  # Default tenant from configuration/middleware
     
     # Try to extract from message metadata if available
     if hasattr(message, 'metadata') and message.metadata:

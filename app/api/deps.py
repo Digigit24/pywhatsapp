@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from app.db.session import get_db
 from app.core.jwt_auth import JWTAuth
+from app.core.config import DEFAULT_TENANT_ID
 
 # Security scheme (optional to allow both auth methods)
 security = HTTPBearer(auto_error=False)
@@ -77,7 +78,7 @@ async def get_current_user_flexible(
             return {
                 "auth_type": "jwt",
                 "user_id": JWTAuth.get_user_id(payload),
-                "tenant_id": JWTAuth.get_tenant_id(payload) or "default",
+                "tenant_id": JWTAuth.get_tenant_id(payload) or DEFAULT_TENANT_ID,
                 "username": payload.get("email") or payload.get("username"),
                 "payload": payload
             }
@@ -89,7 +90,7 @@ async def get_current_user_flexible(
     username = request.session.get("username")
     if username:
         # Use tenant from session if available; fallback to default
-        session_tenant = request.session.get("tenant_id") or "bc531d42-ac91-41df-817e-26c339af6b3a"
+        session_tenant = request.session.get("tenant_id") or DEFAULT_TENANT_ID
         return {
             "auth_type": "session",
             "username": username,
@@ -135,7 +136,7 @@ async def get_tenant_id_flexible(
     
     # Fallback to default
     if not tenant_id:
-        tenant_id = "bc531d42-ac91-41df-817e-26c339af6b3a"
+        tenant_id = DEFAULT_TENANT_ID
     
     return tenant_id
 

@@ -17,8 +17,35 @@ let wsAttempts = 0;
 let wsTimer = null;
 
 function getTenantId() {
-  return document.body.getAttribute('data-tenant-id') || 'default';
+  return document.body.getAttribute('data-tenant-id') || (window.DEFAULT_TENANT_ID || 'bc531d42-ac91-41df-817e-26c339af6b3a');
 }
+
+/**
+ * Automatically inject X-Tenant-Id header into all /api* fetch requests.
+ * This ensures multi-tenant endpoints work from the Jinja UI without JWT.
+ */
+(function patchFetchForTenant() {
+  const originalFetch = window.fetch.bind(window);
+  window.fetch = async function(input, init = {}) {
+    try {
+      const url = typeof input === 'string' ? input : (input && input.url) || '';
+      if (url && url.startsWith('/api')) {
+        const opts = { ...init };
+        const headers = new Headers(opts.headers || {});
+        const tenantId = getTenantId();
+        if (tenantId && !headers.has('x-tenant-id')) {
+          headers.set('x-tenant-id', tenantId);
+        }
+        opts.headers = headers;
+        return originalFetch(input, opts);
+      }
+      return originalFetch(input, init);
+    } catch (e) {
+      // In case of any error, fall back to original fetch
+      return originalFetch(input, init);
+    }
+  };
+})();
 
 function connectWebSocket() {
   const tenantId = getTenantId();
