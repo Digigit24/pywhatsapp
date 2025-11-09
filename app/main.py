@@ -139,8 +139,8 @@ else:
 # Include API routes with correct prefix
 app.include_router(
     api_router,
-    prefix="/api",  # Changed from /api/v1 to /api to match frontend expectations
-    dependencies=[Depends(require_auth_flexible)]
+    prefix="/api"  # Changed from /api/v1 to /api to match frontend expectations
+    # Removed global dependencies - each endpoint handles its own auth
 )
 
 # Mount static files
