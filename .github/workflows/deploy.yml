@@ -27,5 +27,5 @@ jobs:
             set -e
             cd /home/ubuntu/whatspy
             git config --global --add safe.directory /home/ubuntu/whatspy
-            
-            ./deploy.sh main
+            git pull origin main
+           
