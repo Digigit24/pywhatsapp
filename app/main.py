@@ -8,6 +8,7 @@ FIXES APPLIED:
 2. Single unified CORS handler
 3. Fixed session access in middleware
 4. Proper WebSocket CORS handling
+5. ✅ Better WebSocket broadcasting with proper logging
 """
 import logging
 import re
@@ -229,11 +230,16 @@ def get_stats(
         Message.tenant_id == tenant_id
     ).distinct().count()
     
+    # Build proper response
+    by_direction = {stat.direction: stat.count for stat in direction_stats}
+    
     return {
         "total_messages": total_messages,
+        "incoming_messages": by_direction.get("incoming", 0),
+        "outgoing_messages": by_direction.get("outgoing", 0),
         "unique_contacts": unique_contacts,
         "recent_messages": recent_messages,
-        "by_direction": {stat.direction: stat.count for stat in direction_stats},
+        "by_direction": by_direction,
         "by_type": {stat.message_type: stat.count for stat in type_stats}
     }
 
@@ -280,31 +286,54 @@ def send_text_message(
     Frontend expects this exact route: /api/send/text
     """
     try:
+        log.info(f"📤 Sending message to {data.to}: {data.text[:50]}...")
+        
         msg_id, saved = service.send_text_message(db, tenant_id, data)
+
+        log.info(f"✅ Message sent and saved: {msg_id}")
 
         # Broadcast to tenant websocket clients
         try:
             from app.ws.manager import notify_clients_sync
-            notify_clients_sync(tenant_id, {
+            
+            payload = {
                 "event": "message_outgoing",
                 "data": {
                     "phone": data.to,
-                    "name": None,
+                    "name": saved.contact_name or data.to,
+                    "contact_name": saved.contact_name,
                     "message": {
                         "id": msg_id,
+                        "message_id": msg_id,
                         "type": "text",
                         "text": data.text,
-                        "timestamp": datetime.utcnow().isoformat(),
+                        "message_text": data.text,
+                        "timestamp": saved.created_at.isoformat() if saved.created_at else datetime.utcnow().isoformat(),
+                        "created_at": saved.created_at.isoformat() if saved.created_at else datetime.utcnow().isoformat(),
                         "direction": "outgoing"
                     }
                 }
-            })
+            }
+            
+            log.info(f"📢 Broadcasting outgoing message to tenant {tenant_id}")
+            notify_clients_sync(tenant_id, payload)
+            log.info(f"✅ WebSocket broadcast successful")
+            
         except Exception as ws_err:
-            log.debug(f"WS notify failed: {ws_err}")
+            log.error(f"❌ WebSocket broadcast failed: {ws_err}")
+            import traceback
+            log.error(traceback.format_exc())
 
-        return MessageSendResponse(message_id=msg_id, phone=data.to, text=data.text)
+        return MessageSendResponse(
+            message_id=msg_id, 
+            phone=data.to, 
+            text=data.text,
+            timestamp=saved.created_at.isoformat() if saved.created_at else datetime.utcnow().isoformat()
+        )
     except Exception as e:
         log.error(f"❌ Failed to send message: {e}")
+        import traceback
+        log.error(traceback.format_exc())
         raise HTTPException(500, f"Failed to send message: {str(e)}")
 
 
@@ -322,6 +351,8 @@ except:
 def health():
     """Health check endpoint"""
     db_ok = test_db_connection()
+    ws_connections = ws_manager.connection_count()
+    
     return {
         "status": "ok" if db_ok else "degraded",
         "phone_id_ok": bool(PHONE_ID),
@@ -330,6 +361,7 @@ def health():
         "database_ok": db_ok,
         "jwt_enabled": bool(JWT_SECRET_KEY),
         "buffer_size": MAX_BUFFER,
+        "websocket_connections": ws_connections
     }
 
 @app.get("/", include_in_schema=False)
@@ -444,7 +476,7 @@ async def websocket_endpoint(websocket: WebSocket, tenant_id: str):
     """WebSocket endpoint for real-time message updates"""
     try:
         await ws_manager.connect(tenant_id, websocket)
-        log.info(f"✅ WebSocket connected for tenant: {tenant_id}")
+        log.info(f"✅ WebSocket connected for tenant: {tenant_id} (Total: {ws_manager.connection_count(tenant_id)})")
         
         # Keep connection alive
         while True:
@@ -456,6 +488,7 @@ async def websocket_endpoint(websocket: WebSocket, tenant_id: str):
                 # Handle ping/pong
                 if data == "ping":
                     await websocket.send_text("pong")
+                    log.debug(f"🏓 Pong sent to {tenant_id}")
                     
             except WebSocketDisconnect:
                 log.info(f"🔌 WebSocket disconnected for tenant: {tenant_id}")
@@ -468,7 +501,7 @@ async def websocket_endpoint(websocket: WebSocket, tenant_id: str):
         log.error(f"❌ WebSocket connection error for tenant {tenant_id}: {e}")
     finally:
         ws_manager.disconnect(tenant_id, websocket)
-        log.info(f"🔌 WebSocket cleanup complete for tenant: {tenant_id}")
+        log.info(f"🔌 WebSocket cleanup complete for tenant: {tenant_id} (Remaining: {ws_manager.connection_count(tenant_id)})")
 
 
 # ────────────────────────────────────────────
