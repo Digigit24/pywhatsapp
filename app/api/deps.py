@@ -91,7 +91,7 @@ async def get_current_user_flexible(
         return {
             "auth_type": "session",
             "username": username,
-            "tenant_id": "default",  # Default tenant for session users
+            "tenant_id": "bc531d42-ac91-41df-817e-26c339af6b3a",  # Default tenant for session users
             "user_id": username
         }
     
@@ -133,7 +133,7 @@ async def get_tenant_id_flexible(
     
     # Fallback to default
     if not tenant_id:
-        tenant_id = "default"
+        tenant_id = "bc531d42-ac91-41df-817e-26c339af6b3a"
     
     return tenant_id
 
