@@ -11,6 +11,17 @@ let autoRefreshInterval = null;
 let statsInterval = null;
 let contactsToImport = [];
 
+// Unread counters (per phone), persisted in localStorage
+let unreadCounts = {};
+try {
+  unreadCounts = JSON.parse(localStorage.getItem('unreadCounts') || '{}') || {};
+} catch (_) { unreadCounts = {}; }
+function saveUnreadCounts() {
+  try { localStorage.setItem('unreadCounts', JSON.stringify(unreadCounts)); } catch (_) {}
+}
+
+// WebSocket heartbeat handle
+let wsHeartbeat = null;
 // WebSocket realtime updates (multi-tenant)
 let ws = null;
 let wsAttempts = 0;
@@ -51,15 +62,29 @@ function connectWebSocket() {
   const tenantId = getTenantId();
   if (!tenantId) return;
 
+  // Avoid duplicate connections; keep a single persistent WS
+  if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) {
+    return;
+  }
+
   const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
   const url = `${protocol}://${location.host}/ws/${tenantId}`;
 
-  try { if (ws) ws.close(); } catch (e) {}
+  // Cleanup any old timers
+  if (wsHeartbeat) { clearInterval(wsHeartbeat); wsHeartbeat = null; }
+
+  // Close old socket only if it's still open (we shouldn't be reconnecting otherwise)
+  try { if (ws && ws.readyState === WebSocket.OPEN) ws.close(); } catch (e) {}
 
   ws = new WebSocket(url);
 
   ws.onopen = () => {
     wsAttempts = 0;
+    // Heartbeat ping to keep the connection alive (backend responds to "ping")
+    if (wsHeartbeat) { clearInterval(wsHeartbeat); }
+    wsHeartbeat = setInterval(() => {
+      try { if (ws && ws.readyState === WebSocket.OPEN) ws.send('ping'); } catch (e) {}
+    }, 25000);
   };
 
   ws.onmessage = (event) => {
@@ -71,8 +96,12 @@ function connectWebSocket() {
     }
   };
 
-  ws.onclose = () => scheduleReconnect();
+  ws.onclose = () => {
+    if (wsHeartbeat) { clearInterval(wsHeartbeat); wsHeartbeat = null; }
+    scheduleReconnect();
+  };
   ws.onerror = () => {
+    if (wsHeartbeat) { clearInterval(wsHeartbeat); wsHeartbeat = null; }
     try { ws.close(); } catch (e) {}
   };
 }
@@ -90,6 +119,16 @@ function handleWsEvent(payload) {
   if (!data) return;
 
   if (event === 'message_incoming' || event === 'message_outgoing') {
+    const phone = data.phone;
+
+    // Track unread count for incoming messages when chat is not active
+    if (event === 'message_incoming') {
+      if (!currentChat || phone !== currentChat) {
+        unreadCounts[phone] = (unreadCounts[phone] || 0) + 1;
+        saveUnreadCounts();
+      }
+    }
+
     const msg = {
       id: data.message?.id || null,
       type: data.message?.type || 'text',
@@ -99,13 +138,30 @@ function handleWsEvent(payload) {
     };
 
     // If currently viewing this chat, append live
-    if (currentChat && data.phone === currentChat) {
+    if (currentChat && phone === currentChat) {
       currentMessages.push(msg);
       renderMessages(true);
     }
 
-    // Refresh conversation previews and stats
-    loadConversations();
+    // If this phone is not in conversations yet (new chat), inject a temporary preview immediately
+    if (!conversations.some(c => c.phone === phone)) {
+      conversations.unshift({
+        phone,
+        name: data.name || phone,
+        last_message: msg.text || `(${msg.type})`,
+        last_timestamp: msg.timestamp || new Date().toISOString()
+      });
+      const sb = document.getElementById('searchBox');
+      renderConversations(sb ? sb.value : '');
+    }
+
+    // Debounced refresh from server to reconcile new chat
+    if (window.__convRefreshTimer) clearTimeout(window.__convRefreshTimer);
+    window.__convRefreshTimer = setTimeout(() => {
+      loadConversations();
+    }, 600);
+
+    // Refresh stats (cheap)
     loadStats();
   }
 }
@@ -283,9 +339,9 @@ function renderConversations(filter = '') {
     return;
   }
 
-  const filtered = conversations.filter(conv => 
-    conv.name.toLowerCase().includes(filter.toLowerCase()) ||
-    conv.phone.includes(filter)
+  const filtered = conversations.filter(conv =>
+    (conv.name || '').toLowerCase().includes(filter.toLowerCase()) ||
+    (conv.phone || '').includes(filter)
   );
 
   listEl.innerHTML = filtered.map(conv => `
@@ -297,7 +353,7 @@ function renderConversations(filter = '') {
       </div>
       <div class="conversation-preview">
         ${escapeHtml(conv.last_message || 'No messages')}
-        ${conv.message_count > 0 ? `<span class="unread-badge">${conv.message_count}</span>` : ''}
+        ${(unreadCounts[conv.phone] || 0) > 0 ? `<span class="unread-badge">🔔 ${(unreadCounts[conv.phone] || 0)}</span>` : ''}
       </div>
     </div>
   `).join('');
@@ -380,6 +436,15 @@ async function openChat(phone, name) {
   // Highlight active conversation
   if (currentTab === 'chats') {
     renderConversations(document.getElementById('searchBox').value);
+  }
+
+  // Reset unread count for this chat
+  if (unreadCounts[phone]) {
+    unreadCounts[phone] = 0;
+    saveUnreadCounts();
+    if (currentTab === 'chats') {
+      renderConversations(document.getElementById('searchBox').value);
+    }
   }
   
   // Load messages
@@ -908,6 +973,7 @@ statsInterval = setInterval(loadStats, 30000);
 window.addEventListener('beforeunload', () => {
   if (autoRefreshInterval) clearInterval(autoRefreshInterval);
   if (statsInterval) clearInterval(statsInterval);
+  if (wsHeartbeat) clearInterval(wsHeartbeat);
   try { if (ws) ws.close(); } catch (e) {}
   if (wsTimer) clearTimeout(wsTimer);
 });
