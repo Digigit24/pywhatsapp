@@ -1,6 +1,6 @@
 # app/models/contact.py
 """Contact model with assigned_to field"""
-from sqlalchemy import Column, String, Text, Boolean, JSON, Integer, ForeignKey
+from sqlalchemy import Column, String, Text, Boolean, JSON, Integer, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
 from app.models.base import BaseModel
 
