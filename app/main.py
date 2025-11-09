@@ -4,16 +4,16 @@ FastAPI application with unified architecture.
 Supports both session-based (HTML UI) and JWT (API) authentication.
 
 FIXES APPLIED:
-1. Merged legacy and new API routes into single endpoints
-2. Fixed /api/send/text endpoint (was returning 405)
-3. Fixed incoming message handling with tenant from .env
-4. Fixed WebSocket connection handling
-5. Ensured all routes return proper data types
+1. Proper middleware order (CORS before Session causes issues)
+2. Single unified CORS handler
+3. Fixed session access in middleware
+4. Proper WebSocket CORS handling
 """
 import logging
+import re
 from pathlib import Path
 from fastapi import FastAPI, Request, Depends, Form, HTTPException, WebSocket, WebSocketDisconnect
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -56,16 +56,24 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# CORS
+# ────────────────────────────────────────────
+# CORS Configuration
+# ────────────────────────────────────────────
+ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "https://whatsapp.dglinkup.com",
+]
+
+# Local origin regex for dynamic ports
+LOCAL_ORIGIN_RE = re.compile(r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$")
+
+# Add CORS middleware FIRST (before other middlewares)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "https://whatsapp.dglinkup.com",
-    ],
+    allow_origins=ALLOWED_ORIGINS,
     allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
@@ -82,7 +90,7 @@ app.add_middleware(
     max_age=86400,
 )
 
-# Session middleware
+# Session middleware AFTER CORS
 app.add_middleware(
     SessionMiddleware,
     secret_key=SESSION_SECRET_KEY,
@@ -92,62 +100,59 @@ app.add_middleware(
 )
 
 # ────────────────────────────────────────────
-# CORS hardening middleware (preflight short-circuit + echo Origin)
-# Ensures Access-Control headers even when upstream proxies interfere
+# Explicit OPTIONS handler for preflight
 # ────────────────────────────────────────────
-@app.middleware("http")
-async def cors_short_circuit_and_echo_origin(request: Request, call_next):
-    # 1) Short-circuit OPTIONS preflights for /api/* with proper headers
-    if request.method == "OPTIONS" and request.url.path.startswith("/api/"):
-        origin = request.headers.get("origin")
-        req_headers = request.headers.get("access-control-request-headers", "*")
-
-        allow_origin = ""
-        try:
-            # Use same allow-list as CORSMiddleware and explicit preflight handler below
-            if origin and (origin in ALLOWED_ORIGINS or _LOCAL_ORIGIN_RE.match(origin)):  # defined later in file
-                allow_origin = origin
-        except Exception:
-            pass
-
-        from fastapi import Response
-        headers = {
-            "Access-Control-Allow-Origin": allow_origin or "*",
-            "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": req_headers or "*",
-            "Access-Control-Max-Age": "86400",
-            "Vary": "Origin",
-        }
-        if allow_origin:
-            headers["Access-Control-Allow-Credentials"] = "true"
-
-        return Response(status_code=204, headers=headers)
-
-    # 2) For normal requests, echo back Origin so browsers see ACAO on every response
-    response = await call_next(request)
+@app.options("/api/{path:path}", include_in_schema=False)
+async def cors_preflight_all(path: str, request: Request):
+    """Explicit CORS preflight to ensure Access-Control headers"""
     origin = request.headers.get("origin")
-    try:
-        if origin and (origin in ALLOWED_ORIGINS or _LOCAL_ORIGIN_RE.match(origin)):
-            response.headers.setdefault("Access-Control-Allow-Origin", origin)
-            response.headers.setdefault("Vary", "Origin")
-            response.headers.setdefault("Access-Control-Allow-Credentials", "true")
-    except Exception:
-        # Never fail request on CORS header manipulation
-        pass
-    return response
+    req_headers = request.headers.get("access-control-request-headers", "*")
+
+    # Echo back the Origin if it's allowed
+    allow_origin = ""
+    if origin:
+        if origin in ALLOWED_ORIGINS or LOCAL_ORIGIN_RE.match(origin):
+            allow_origin = origin
+
+    headers = {
+        "Access-Control-Allow-Origin": allow_origin or "*",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers": req_headers or "*",
+        "Access-Control-Max-Age": "86400",
+        "Vary": "Origin",
+    }
+    
+    if allow_origin:
+        headers["Access-Control-Allow-Credentials"] = "true"
+
+    return Response(status_code=204, headers=headers)
+
 # ────────────────────────────────────────────
 # Default Tenant Middleware
 # ────────────────────────────────────────────
-
 @app.middleware("http")
 async def add_default_tenant_header(request: Request, call_next):
     """Add tenant ID header for API calls without JWT"""
     if request.url.path.startswith("/api/") and not request.headers.get("authorization"):
-        mutable_headers = dict(request.headers)
-        if "x-tenant-id" not in mutable_headers or not mutable_headers.get("x-tenant-id"):
-            tenant_from_session = request.session.get("tenant_id") if hasattr(request, "session") else None
-            mutable_headers["x-tenant-id"] = tenant_from_session or DEFAULT_TENANT_ID
-        request._headers = mutable_headers
+        # For OPTIONS requests, skip session access
+        if request.method != "OPTIONS":
+            try:
+                # Only access session if SessionMiddleware is available
+                tenant_from_session = None
+                if hasattr(request.state, "session"):
+                    tenant_from_session = request.state.session.get("tenant_id")
+                elif hasattr(request, "_session"):
+                    tenant_from_session = request._session.get("tenant_id")
+                
+                # Create mutable headers dict
+                mutable_headers = dict(request.headers)
+                if "x-tenant-id" not in mutable_headers or not mutable_headers.get("x-tenant-id"):
+                    mutable_headers["x-tenant-id"] = tenant_from_session or DEFAULT_TENANT_ID
+                
+                # This is a workaround - modifying headers
+                request._headers = mutable_headers
+            except Exception as e:
+                log.debug(f"Could not access session: {e}")
 
     response = await call_next(request)
     return response
@@ -313,7 +318,6 @@ except:
 # Public routes
 # ────────────────────────────────────────────
 
-
 @app.get("/healthz", tags=["System"])
 def health():
     """Health check endpoint"""
@@ -432,19 +436,12 @@ async def verify_jwt(
     }
 
 # ────────────────────────────────────────────
-# WebSocket Endpoint (FIXED)
+# WebSocket Endpoint
 # ────────────────────────────────────────────
 
 @app.websocket("/ws/{tenant_id}")
 async def websocket_endpoint(websocket: WebSocket, tenant_id: str):
-    """
-    WebSocket endpoint for real-time message updates
-    
-    FIXES:
-    - Proper connection handling
-    - Error handling with reconnection support
-    - Logging for debugging
-    """
+    """WebSocket endpoint for real-time message updates"""
     try:
         await ws_manager.connect(tenant_id, websocket)
         log.info(f"✅ WebSocket connected for tenant: {tenant_id}")
@@ -456,7 +453,7 @@ async def websocket_endpoint(websocket: WebSocket, tenant_id: str):
                 data = await websocket.receive_text()
                 log.debug(f"📨 WebSocket received from {tenant_id}: {data}")
                 
-                # Optional: Handle ping/pong or other client messages
+                # Handle ping/pong
                 if data == "ping":
                     await websocket.send_text("pong")
                     
@@ -504,43 +501,3 @@ async def http_exception_handler(request: Request, exc: HTTPException):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8002)
-# ────────────────────────────────────────────
-# CORS: robust preflight handler (behind proxies)
-# ────────────────────────────────────────────
-import re
-
-ALLOWED_ORIGINS = {
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "https://whatsapp.dglinkup.com",
-}
-_LOCAL_ORIGIN_RE = re.compile(r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$")
-
-@app.options("/api/{path:path}", include_in_schema=False)
-async def cors_preflight_all(path: str, request: Request):
-    """Explicit CORS preflight to ensure Access-Control headers even behind proxies"""
-    from fastapi import Response
-
-    origin = request.headers.get("origin")
-    req_headers = request.headers.get("access-control-request-headers", "*")
-
-    # Prefer echoing back the Origin when present (required if credentials are used)
-    allow_origin = ""
-    if origin:
-        if origin in ALLOWED_ORIGINS or _LOCAL_ORIGIN_RE.match(origin):
-            allow_origin = origin
-
-    headers = {
-        "Access-Control-Allow-Origin": allow_origin or "*",
-        "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
-        "Access-Control-Allow-Headers": req_headers or "*",
-        "Access-Control-Max-Age": "86400",
-        "Vary": "Origin",
-    }
-    # Only advertise credentials when we echo a specific Origin (not "*")
-    if allow_origin:
-        headers["Access-Control-Allow-Credentials"] = "true"
-
-    return Response(status_code=204, headers=headers)

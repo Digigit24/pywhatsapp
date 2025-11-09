@@ -228,13 +228,46 @@ async function loadGroups() {
 async function loadStats() {
   try {
     const response = await fetch('/api/stats');
-    const stats = await response.json();
-    
-    document.getElementById('statTotal').textContent = stats.total_messages || 0;
-    document.getElementById('statIncoming').textContent = stats.incoming_messages || 0;
-    document.getElementById('statOutgoing').textContent = stats.outgoing_messages || 0;
+
+    // If server returned an error page (e.g., 500), avoid JSON parse and show zeros
+    if (!response.ok) {
+      const text = await response.text().catch(() => '');
+      console.error(`Failed to load stats: HTTP ${response.status}`, text);
+      document.getElementById('statTotal').textContent = 0;
+      document.getElementById('statIncoming').textContent = 0;
+      document.getElementById('statOutgoing').textContent = 0;
+      return;
+    }
+
+    // Try to parse JSON; if body is not JSON, show zeros
+    let stats;
+    try {
+      stats = await response.json();
+    } catch (e) {
+      const text = await response.text().catch(() => '');
+      console.error('Failed to parse stats JSON:', e, text);
+      document.getElementById('statTotal').textContent = 0;
+      document.getElementById('statIncoming').textContent = 0;
+      document.getElementById('statOutgoing').textContent = 0;
+      return;
+    }
+
+    // Support both shapes:
+    // - stats.incoming_messages / stats.outgoing_messages (new)
+    // - stats.by_direction = { incoming, outgoing } (legacy)
+    const byDir = stats.by_direction || {};
+    const incoming = (stats.incoming_messages ?? byDir.incoming ?? 0) || 0;
+    const outgoing = (stats.outgoing_messages ?? byDir.outgoing ?? 0) || 0;
+    const total = (stats.total_messages ?? (incoming + outgoing)) || 0;
+
+    document.getElementById('statTotal').textContent = total;
+    document.getElementById('statIncoming').textContent = incoming;
+    document.getElementById('statOutgoing').textContent = outgoing;
   } catch (error) {
     console.error('Failed to load stats:', error);
+    document.getElementById('statTotal').textContent = 0;
+    document.getElementById('statIncoming').textContent = 0;
+    document.getElementById('statOutgoing').textContent = 0;
   }
 }
 
