@@ -19,7 +19,7 @@ from app.core.config import (
 )
 from app.db.session import init_db, test_db_connection
 from app.core.security import authenticate_user
-from app.api.deps import require_auth_session, optional_auth_session, require_auth_flexible
+from app.api.deps import require_auth_session, optional_auth_session, require_auth_flexible, get_current_user_flexible, get_tenant_id_flexible
 from app.api.v1.router import api_router
 from app.services import set_whatsapp_client
 
@@ -48,14 +48,37 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# CORS
+# CORS - Enhanced configuration matching old version
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:5173"],
+    # Explicitly allow common localhost dev origins
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:5173",  # Vite default port
+        "http://127.0.0.1:5173",
+        "https://yourdomain.com",  # Add your production domain
+    ],
+    # Also accept any localhost/127.0.0.1 with any port (dev convenience)
     allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
+    # Required to support cookies/authorization headers across origins
     allow_credentials=True,
-    allow_methods=["*"],
+    # Explicit methods to ensure preflight passes everywhere
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    # Allow any request headers (covers X-Tenant-Id, X-Tenant-Slug, tenanttoken, etc.)
     allow_headers=["*"],
+    # Headers the browser is allowed to read from responses
+    expose_headers=[
+        "X-Tenant",
+        "X-Tenant-Id",
+        "X-Tenant-Slug",
+        "tenanttoken",
+        "Authorization",
+        "Content-Type",
+        "Set-Cookie",
+    ],
+    # Cache preflight for a day to reduce OPTIONS noise
+    max_age=86400,
 )
 
 # Session middleware
@@ -66,6 +89,30 @@ app.add_middleware(
     same_site="lax",
     https_only=False
 )
+
+# ────────────────────────────────────────────
+# Development Middleware - Default Tenant ID
+# ────────────────────────────────────────────
+
+@app.middleware("http")
+async def add_default_tenant_header(request: Request, call_next):
+    """
+    Development middleware to add default tenant ID header.
+    This helps with testing when no JWT token is provided.
+    """
+    # Only add default tenant for API routes if no auth header present
+    if request.url.path.startswith("/api/") and not request.headers.get("authorization"):
+        # Create a mutable copy of headers
+        mutable_headers = dict(request.headers)
+        # Add default tenant ID for development
+        if "x-tenant-id" not in mutable_headers:
+            mutable_headers["x-tenant-id"] = "bc531d42-ac91-41df-817e-26c339af6b3a"
+        
+        # Create new request with updated headers
+        request._headers = mutable_headers
+    
+    response = await call_next(request)
+    return response
 
 # WhatsApp client
 wa = None
@@ -89,10 +136,10 @@ if PHONE_ID and TOKEN and VERIFY_TOKEN:
 else:
     log.warning("⚠️  WhatsApp not configured")
 
-# Include API routes
+# Include API routes with correct prefix
 app.include_router(
     api_router,
-    prefix="/api/v1",
+    prefix="/api",  # Changed from /api/v1 to /api to match frontend expectations
     dependencies=[Depends(require_auth_flexible)]
 )
 
@@ -103,14 +150,37 @@ except:
     log.warning("⚠️  Static files not mounted")
 
 # Public routes
-@app.get("/healthz")
+# CORS preflight handler for any /api/* path (defensive fallback)
+@app.options("/api/{path:path}", include_in_schema=False)
+async def cors_preflight(path: str, request: Request):
+    """Return 204 No Content; CORSMiddleware will attach proper CORS headers"""
+    from fastapi import Response
+    return Response(status_code=204)
+
+@app.get(
+    "/healthz",
+    summary="Health Check",
+    tags=["System"],
+    response_description="System health status"
+)
 def health():
-    """Health check"""
+    """
+    Public health check endpoint.
+    
+    Returns system status including:
+    - Database connectivity
+    - WhatsApp API configuration status
+    - JWT authentication status
+    """
+    db_ok = test_db_connection()
     return {
-        "status": "ok",
-        "database": test_db_connection(),
-        "whatsapp": bool(wa),
-        "jwt_enabled": bool(JWT_SECRET_KEY)
+        "status": "ok" if db_ok else "degraded",
+        "phone_id_ok": bool(PHONE_ID),
+        "token_ok": bool(TOKEN),
+        "verify_token_ok": bool(VERIFY_TOKEN),
+        "database_ok": db_ok,
+        "jwt_enabled": bool(JWT_SECRET_KEY),
+        "buffer_size": MAX_BUFFER,
     }
 
 @app.get("/", include_in_schema=False)
@@ -159,6 +229,67 @@ def dashboard(request: Request, username: str = Depends(require_auth_session)):
         "verify_token": VERIFY_TOKEN,
         "buffer_size": MAX_BUFFER
     })
+
+@app.get("/logs", include_in_schema=False)
+def logs_ui(request: Request, username: str = Depends(require_auth_session)):
+    """Webhook logs interface - requires authentication"""
+    return jinja_templates.TemplateResponse("logs.html", {"request": request, "username": username})
+
+# ────────────────────────────────────────────
+# JWT Test Endpoint (for development)
+# ────────────────────────────────────────────
+
+@app.get(
+    "/api/auth/verify",
+    summary="Verify JWT Token",
+    tags=["Authentication"],
+    response_description="Token verification result"
+)
+async def verify_jwt(
+    user: dict = Depends(get_current_user_flexible),
+    tenant_id: str = Depends(get_tenant_id_flexible)
+):
+    """
+    Verify JWT token and return decoded payload.
+    
+    Use this endpoint to test your JWT token authentication.
+    """
+    return {
+        "valid": True,
+        "user_id": user.get("user_id"),
+        "tenant_id": tenant_id,
+        "email": user.get("username"),
+        "modules": user.get("modules", []),
+        "token_payload": user
+    }
+
+# ────────────────────────────────────────────
+# Exception Handlers
+# ────────────────────────────────────────────
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    """Handle HTTP exceptions"""
+    from fastapi.responses import JSONResponse
+    
+    if exc.status_code == 303 and exc.headers and exc.headers.get("Location"):
+        return RedirectResponse(url=exc.headers["Location"], status_code=303)
+    
+    # For API calls, return JSON
+    if request.url.path.startswith("/api/"):
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={"detail": exc.detail}
+        )
+    
+    # For page requests, show error or redirect
+    if exc.status_code == 401:
+        return RedirectResponse(url="/login", status_code=303)
+    
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail}
+    )
 
 if __name__ == "__main__":
     import uvicorn

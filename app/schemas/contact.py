@@ -13,9 +13,20 @@ class ContactBase(BaseModel):
     
     @validator('phone')
     def validate_phone(cls, v):
-        clean = v.replace('+', '').replace(' ', '').replace('-', '')
+        if not v or not v.strip():
+            raise ValueError('Phone number is required')
+        
+        # Clean the phone number by removing common formatting characters
+        clean = v.replace('+', '').replace(' ', '').replace('-', '').replace('(', '').replace(')', '').strip()
+        
+        # Check if the cleaned phone contains only digits
         if not clean.isdigit():
-            raise ValueError('Phone must contain only digits')
+            raise ValueError('Phone number must contain only digits (with optional +, spaces, hyphens, parentheses)')
+        
+        # Check length (should be between 10-15 digits for international numbers)
+        if len(clean) < 10 or len(clean) > 15:
+            raise ValueError('Phone number must be between 10-15 digits')
+        
         return clean
 
 class ContactCreate(ContactBase):

@@ -123,3 +123,57 @@ def send_template(
     """Send using template"""
     msg_id, saved = service.send_template_message(db, tenant_id, data)
     return {"ok": True, "message_id": msg_id}
+
+# ────────────────────────────────────────────
+# Statistics Endpoint
+# ────────────────────────────────────────────
+
+@router.get("/stats")
+def get_stats(
+    db: Session = Depends(get_db),
+    tenant_id: str = Depends(get_tenant_id_flexible),
+    service: MessageService = Depends(get_message_service)
+):
+    """Get message statistics"""
+    from sqlalchemy import func
+    from app.models.message import Message
+    
+    # Total messages
+    total_messages = db.query(Message).filter(Message.tenant_id == tenant_id).count()
+    
+    # Messages by direction
+    direction_stats = db.query(
+        Message.direction,
+        func.count(Message.id).label('count')
+    ).filter(
+        Message.tenant_id == tenant_id
+    ).group_by(Message.direction).all()
+    
+    # Messages by type
+    type_stats = db.query(
+        Message.message_type,
+        func.count(Message.id).label('count')
+    ).filter(
+        Message.tenant_id == tenant_id
+    ).group_by(Message.message_type).all()
+    
+    # Recent activity (last 7 days)
+    from datetime import datetime, timedelta
+    week_ago = datetime.utcnow() - timedelta(days=7)
+    recent_messages = db.query(Message).filter(
+        Message.tenant_id == tenant_id,
+        Message.created_at >= week_ago
+    ).count()
+    
+    # Unique contacts
+    unique_contacts = db.query(Message.phone).filter(
+        Message.tenant_id == tenant_id
+    ).distinct().count()
+    
+    return {
+        "total_messages": total_messages,
+        "unique_contacts": unique_contacts,
+        "recent_messages": recent_messages,
+        "by_direction": {stat.direction: stat.count for stat in direction_stats},
+        "by_type": {stat.message_type: stat.count for stat in type_stats}
+    }

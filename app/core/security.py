@@ -17,7 +17,7 @@ log = logging.getLogger("whatspy.security")
 # ────────────────────────────────────────────
 # Password Hashing
 # ────────────────────────────────────────────
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["bcrypt_sha256", "bcrypt"], deprecated="auto")
 
 
 def hash_password(password: str) -> str:

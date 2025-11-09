@@ -2,7 +2,7 @@
 """Main API router combining all v1 endpoints"""
 from fastapi import APIRouter
 
-from app.api.v1 import messages, contacts, campaigns, auth
+from app.api.v1 import messages, contacts, campaigns, auth, groups
 
 api_router = APIRouter()
 
@@ -11,3 +11,4 @@ api_router.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 api_router.include_router(messages.router, prefix="/messages", tags=["Messages"])
 api_router.include_router(contacts.router, prefix="/contacts", tags=["Contacts"])
 api_router.include_router(campaigns.router, prefix="/campaigns", tags=["Campaigns"])
+api_router.include_router(groups.router, prefix="/groups", tags=["Groups"])

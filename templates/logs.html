@@ -1,0 +1,55 @@
+<style>
+  body {
+    padding-top: 60px;
+  }
+
+  .auth-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: #000;
+    border-bottom: 1px solid #0f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 2000;
+  }
+
+  .auth-bar .title {
+    font-size: 16px;
+  }
+
+  .auth-bar .user {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 13px;
+  }
+
+  .auth-bar a {
+    color: #0f0;
+    text-decoration: none;
+    padding: 6px 12px;
+    border: 1px solid #0f0;
+  }
+
+  .auth-bar a:hover {
+    background: rgba(0, 255, 0, 0.1);
+  }
+
+  .header {
+    margin-top: 10px;
+  }
+</style>
+
+<div class="auth-bar">
+  <div class="title">📡 WHATSPY LOGS</div>
+  <div class="user">
+    <span>👤 {{ username }}</span>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/logout">Logout</a>
+  </div>
+</div>

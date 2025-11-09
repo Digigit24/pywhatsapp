@@ -60,11 +60,12 @@ async def get_current_user_flexible(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)
 ) -> Dict[str, Any]:
     """
-    Flexible authentication - accepts BOTH session and JWT.
+    Flexible authentication - accepts JWT, session, or development header.
     
     Priority:
     1. JWT Bearer token (for API/React)
     2. Session cookie (for HTML UI)
+    3. X-Tenant-Id header (for development)
     
     Returns user info dict with auth_type, user_id, tenant_id
     """
@@ -94,24 +95,43 @@ async def get_current_user_flexible(
             "user_id": username
         }
     
+    # For development: Allow requests with X-Tenant-Id header
+    tenant_id = request.headers.get("x-tenant-id")
+    if tenant_id:
+        return {
+            "auth_type": "development",
+            "username": "dev-user",
+            "tenant_id": tenant_id,
+            "user_id": "dev-user"
+        }
+    
     # No authentication found
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Authentication required. Provide JWT token or login via session."
+        detail="Authentication required. Provide JWT token, login via session, or X-Tenant-Id header for development."
     )
 
 
 async def get_tenant_id_flexible(
+    request: Request,
     user: Dict[str, Any] = Depends(get_current_user_flexible)
 ) -> str:
     """
-    Get tenant_id from either JWT or session.
+    Get tenant_id from JWT, session, or header.
     
-    - JWT users: Get from token payload
-    - Session users: Use default tenant
+    Priority:
+    1. JWT token payload
+    2. X-Tenant-Id header (for development)
+    3. Session users: Use default tenant
     """
+    # First try to get from user (JWT)
     tenant_id = user.get("tenant_id")
     
+    # If not found, try header (for development)
+    if not tenant_id:
+        tenant_id = request.headers.get("x-tenant-id")
+    
+    # Fallback to default
     if not tenant_id:
         tenant_id = "default"
     

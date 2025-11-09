@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WhatsApp Chats - Whatspy</title>
+  
+  <!-- SheetJS for Excel import -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  
+  <!-- Component Styles -->
+  <link rel="stylesheet" href="/static/components/styles.css">
+</head>
+<body>
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <h1>📡 Whatspy</h1>
+    <div class="user-info">
+      <span>👤 {{ username }}</span>
+      <a href="/dashboard" class="nav-link">Dashboard</a>
+      <a href="/logs" class="nav-link">Logs</a>
+      <a href="/logout" class="logout-btn">Logout</a>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- Sidebar Component -->
+    {% include 'components/sidebar.html' %}
+    
+    <!-- Chat Area Component -->
+    {% include 'components/chat-area.html' %}
+  </div>
+
+  <!-- Modals Component -->
+  {% include 'components/modals.html' %}
+
+  <!-- Component Scripts -->
+  <script src="/static/components/scripts.js"></script>
+</body>
+</html>

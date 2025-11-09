@@ -1,0 +1,30 @@
+name: Deploy Whatspy
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          port: ${{ secrets.SSH_PORT || '22' }}   # or hardcode '22'
+          key: ${{ secrets.SSH_KEY }}             # <-- pass the PRIVATE key here
+          # If your key has a passphrase:
+          # passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          script_stop: true
+          script: |
+            set -e
+            cd /home/ubuntu/whatspy
+            git config --global --add safe.directory /home/ubuntu/whatspy
+            ./deploy.sh main
