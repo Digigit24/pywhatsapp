@@ -3,7 +3,7 @@
 Pydantic schemas for Message API requests and responses.
 Handles validation, serialization, and documentation.
 """
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional, Dict, Any, List
 from datetime import datetime
 
@@ -18,7 +18,8 @@ class MessageBase(BaseModel):
     text: Optional[str] = Field(None, description="Message text content", max_length=4096)
     message_type: Optional[str] = Field("text", description="Message type: text, image, video, audio, document")
     
-    @validator('phone')
+    @field_validator('phone')
+    @classmethod
     def validate_phone(cls, v):
         """Ensure phone contains only digits"""
         if not v.replace('+', '').isdigit():
@@ -35,7 +36,8 @@ class MessageCreate(BaseModel):
     to: str = Field(..., description="Recipient phone number", min_length=10, max_length=15)
     text: str = Field(..., description="Message text", min_length=1, max_length=4096)
     
-    @validator('to')
+    @field_validator('to')
+    @classmethod
     def validate_to(cls, v):
         """Clean and validate phone number"""
         clean = v.replace('+', '').replace(' ', '').replace('-', '')
@@ -51,7 +53,8 @@ class MediaMessageCreate(BaseModel):
     media_type: str = Field(..., description="Media type: image, video, audio, document")
     caption: Optional[str] = Field(None, max_length=1024, description="Media caption")
     
-    @validator('media_type')
+    @field_validator('media_type')
+    @classmethod
     def validate_media_type(cls, v):
         """Ensure valid media type"""
         valid_types = ['image', 'video', 'audio', 'document']

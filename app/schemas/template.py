@@ -3,7 +3,7 @@
 Pydantic schemas for WhatsApp Template API.
 Supports PyWa template structure.
 """
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 from enum import Enum
@@ -89,11 +89,11 @@ class TemplateComponent(BaseModel):
 class TemplateCreate(BaseModel):
     """Create WhatsApp template"""
     name: str = Field(
-        ..., 
-        min_length=1, 
+        ...,
+        min_length=1,
         max_length=512,
         description="Template name (lowercase, underscores only)",
-        regex="^[a-z0-9_]+$"
+        pattern="^[a-z0-9_]+$"
     )
     language: TemplateLanguage = Field(..., description="Template language")
     category: TemplateCategory = Field(..., description="Template category")
@@ -110,7 +110,8 @@ class TemplateCreate(BaseModel):
         description="If creating from template library"
     )
     
-    @validator('name')
+    @field_validator('name')
+    @classmethod
     def validate_name(cls, v):
         """Validate template name format"""
         if not v.replace('_', '').isalnum():
@@ -199,7 +200,8 @@ class TemplateSendRequest(BaseModel):
         description="Simple key-value parameters for body text"
     )
     
-    @validator('to')
+    @field_validator('to')
+    @classmethod
     def validate_phone(cls, v):
         """Clean phone number"""
         clean = v.replace('+', '').replace(' ', '').replace('-', '')

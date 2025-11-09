@@ -1,5 +1,5 @@
 # app/schemas/contact.py
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List
 from datetime import datetime
 
@@ -11,7 +11,8 @@ class ContactBase(BaseModel):
     groups: List[str] = Field(default_factory=list)
     assigned_to: Optional[int] = None  # User ID
     
-    @validator('phone')
+    @field_validator('phone')
+    @classmethod
     def validate_phone(cls, v):
         if not v or not v.strip():
             raise ValueError('Phone number is required')
