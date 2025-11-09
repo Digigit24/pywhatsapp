@@ -1,55 +1,272 @@
-<style>
-  body {
-    padding-top: 60px;
-  }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webhook Logs - Whatspy</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000;
+            color: #0f0;
+            margin: 0;
+            padding-top: 60px;
+        }
 
-  .auth-bar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 50px;
-    background: #000;
-    border-bottom: 1px solid #0f0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 20px;
-    z-index: 2000;
-  }
+        .auth-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50px;
+            background: #000;
+            border-bottom: 1px solid #0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            z-index: 2000;
+        }
 
-  .auth-bar .title {
-    font-size: 16px;
-  }
+        .auth-bar .title {
+            font-size: 16px;
+        }
 
-  .auth-bar .user {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    font-size: 13px;
-  }
+        .auth-bar .user {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 13px;
+        }
 
-  .auth-bar a {
-    color: #0f0;
-    text-decoration: none;
-    padding: 6px 12px;
-    border: 1px solid #0f0;
-  }
+        .auth-bar a {
+            color: #0f0;
+            text-decoration: none;
+            padding: 6px 12px;
+            border: 1px solid #0f0;
+        }
 
-  .auth-bar a:hover {
-    background: rgba(0, 255, 0, 0.1);
-  }
+        .auth-bar a:hover {
+            background: rgba(0, 255, 0, 0.1);
+        }
 
-  .header {
-    margin-top: 10px;
-  }
-</style>
+        .container {
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
 
-<div class="auth-bar">
-  <div class="title">📡 WHATSPY LOGS</div>
-  <div class="user">
-    <span>👤 {{ username }}</span>
-    <a href="/dashboard">Dashboard</a>
-    <a href="/logout">Logout</a>
-  </div>
-</div>
+        .controls {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .controls input, .controls select, .controls button {
+            background: #000;
+            border: 1px solid #0f0;
+            color: #0f0;
+            padding: 8px 12px;
+            font-family: inherit;
+        }
+
+        .controls button {
+            cursor: pointer;
+        }
+
+        .controls button:hover {
+            background: rgba(0, 255, 0, 0.1);
+        }
+
+        .log-entry {
+            border: 1px solid #0f0;
+            margin-bottom: 10px;
+            padding: 15px;
+            background: rgba(0, 255, 0, 0.05);
+        }
+
+        .log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .log-type {
+            padding: 2px 8px;
+            border: 1px solid #0f0;
+            font-size: 12px;
+        }
+
+        .log-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .log-raw {
+            background: rgba(0, 255, 0, 0.1);
+            padding: 10px;
+            border: 1px solid #0f0;
+            font-size: 12px;
+            overflow-x: auto;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .no-logs {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        @media (max-width: 768px) {
+            .log-details {
+                grid-template-columns: 1fr;
+            }
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-bar">
+        <div class="title">📡 WHATSPY LOGS</div>
+        <div class="user">
+            <span>👤 {{ username }}</span>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/logout">Logout</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="controls">
+            <input type="text" id="phoneFilter" placeholder="Filter by phone...">
+            <select id="typeFilter">
+                <option value="">All Types</option>
+                <option value="message">Messages</option>
+                <option value="status">Status</option>
+                <option value="error">Errors</option>
+            </select>
+            <button onclick="loadLogs()">🔄 Refresh</button>
+            <button onclick="clearLogs()">🗑️ Clear Old Logs</button>
+            <span id="autoRefresh">
+                <input type="checkbox" id="autoRefreshCheck" onchange="toggleAutoRefresh()">
+                <label for="autoRefreshCheck">Auto Refresh (5s)</label>
+            </span>
+        </div>
+
+        <div id="logsContainer">
+            <div class="loading">Loading webhook logs...</div>
+        </div>
+    </div>
+
+    <script>
+        let autoRefreshInterval = null;
+
+        async function loadLogs() {
+            const phoneFilter = document.getElementById('phoneFilter').value;
+            const typeFilter = document.getElementById('typeFilter').value;
+            
+            let url = '/api/webhooks/logs?limit=50';
+            if (phoneFilter) url += `&phone=${encodeURIComponent(phoneFilter)}`;
+            if (typeFilter) url += `&log_type=${encodeURIComponent(typeFilter)}`;
+
+            try {
+                const response = await fetch(url);
+                const logs = await response.json();
+                
+                const container = document.getElementById('logsContainer');
+                
+                if (logs.length === 0) {
+                    container.innerHTML = '<div class="no-logs">No webhook logs found</div>';
+                    return;
+                }
+
+                container.innerHTML = logs.map(log => `
+                    <div class="log-entry">
+                        <div class="log-header">
+                            <div>
+                                <span class="log-type">${log.log_type.toUpperCase()}</span>
+                                <span>${log.phone || 'N/A'}</span>
+                            </div>
+                            <div>${new Date(log.created_at).toLocaleString()}</div>
+                        </div>
+                        <div class="log-details">
+                            <div><strong>Message ID:</strong> ${log.message_id || 'N/A'}</div>
+                            <div><strong>Status:</strong> ${log.status || 'N/A'}</div>
+                            <div><strong>Context:</strong> ${log.context || 'N/A'}</div>
+                            <div><strong>Error:</strong> ${log.error_message || 'None'}</div>
+                        </div>
+                        ${log.raw_data ? `
+                            <div class="log-raw">
+                                <strong>Raw Data:</strong><br>
+                                <pre>${JSON.stringify(log.raw_data, null, 2)}</pre>
+                            </div>
+                        ` : ''}
+                    </div>
+                `).join('');
+            } catch (error) {
+                document.getElementById('logsContainer').innerHTML =
+                    `<div class="no-logs">Error loading logs: ${error.message}</div>`;
+            }
+        }
+
+        async function clearLogs() {
+            if (!confirm('Clear logs older than 30 days?')) return;
+            
+            try {
+                const response = await fetch('/api/webhooks/logs/cleanup', { method: 'DELETE' });
+                const result = await response.json();
+                alert(`Cleared ${result.deleted} old log entries`);
+                loadLogs();
+            } catch (error) {
+                alert(`Error clearing logs: ${error.message}`);
+            }
+        }
+
+        function toggleAutoRefresh() {
+            const checkbox = document.getElementById('autoRefreshCheck');
+            
+            if (checkbox.checked) {
+                autoRefreshInterval = setInterval(loadLogs, 5000);
+            } else {
+                if (autoRefreshInterval) {
+                    clearInterval(autoRefreshInterval);
+                    autoRefreshInterval = null;
+                }
+            }
+        }
+
+        // Load logs on page load
+        document.addEventListener('DOMContentLoaded', loadLogs);
+
+        // Add event listeners for filters
+        document.getElementById('phoneFilter').addEventListener('input',
+            debounce(loadLogs, 500));
+        document.getElementById('typeFilter').addEventListener('change', loadLogs);
+
+        // Debounce function to avoid too many API calls
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+    </script>
+</body>
+</html>

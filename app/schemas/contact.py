@@ -16,7 +16,10 @@ class ContactBase(BaseModel):
         if not v or not v.strip():
             raise ValueError('Phone number is required')
         
-        # Clean the phone number by removing common formatting characters
+        # Preserve the original format but validate structure
+        original = v.strip()
+        
+        # Clean for validation by removing formatting characters
         clean = v.replace('+', '').replace(' ', '').replace('-', '').replace('(', '').replace(')', '').strip()
         
         # Check if the cleaned phone contains only digits
@@ -27,7 +30,8 @@ class ContactBase(BaseModel):
         if len(clean) < 10 or len(clean) > 15:
             raise ValueError('Phone number must be between 10-15 digits')
         
-        return clean
+        # Return original format to preserve country codes like +91
+        return original
 
 class ContactCreate(ContactBase):
     pass
