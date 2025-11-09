@@ -28,4 +28,4 @@ jobs:
             cd /home/ubuntu/whatspy
             git config --global --add safe.directory /home/ubuntu/whatspy
             
-            deploy.sh main
+            ./deploy.sh main
