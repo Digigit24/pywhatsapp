@@ -63,7 +63,7 @@ def register_handlers(wa_client):
                 name = getattr(message.from_user, 'name', None) if message.from_user else None
                 msg_id = getattr(message, 'id', None)
                 msg_type = getattr(message, 'type', 'text')
-                text = getattr(message, 'text', None)
+                text = None
                 
                 # Extract tenant_id from webhook context
                 tenant_id = extract_tenant_id_from_webhook(message)
@@ -122,15 +122,34 @@ def register_handlers(wa_client):
                 
                 db.commit()
                 
-                # Handle media
-                if msg_type == "image":
-                    text = getattr(message.image, 'caption', '(image)') if hasattr(message, 'image') else '(image)'
+                # Extract text content based on type
+                if msg_type == "text":
+                    raw_text = getattr(message, "text", None)
+                    if isinstance(raw_text, str):
+                        text = raw_text
+                    elif hasattr(raw_text, "body"):
+                        try:
+                            text = getattr(raw_text, "body", None)
+                        except Exception:
+                            text = None
+                    elif isinstance(raw_text, dict):
+                        text = raw_text.get("body") or raw_text.get("text")
+                    else:
+                        text = None
+                elif msg_type == "image":
+                    text = getattr(getattr(message, "image", None), "caption", "(image)") or "(image)"
                 elif msg_type == "video":
-                    text = getattr(message.video, 'caption', '(video)') if hasattr(message, 'video') else '(video)'
+                    text = getattr(getattr(message, "video", None), "caption", "(video)") or "(video)"
                 elif msg_type == "audio":
                     text = "(audio)"
                 elif msg_type == "document":
-                    text = getattr(message.document, 'filename', '(document)') if hasattr(message, 'document') else '(document)'
+                    text = getattr(getattr(message, "document", None), "filename", "(document)") or "(document)"
+                else:
+                    # Fallback: stringify unknown types
+                    try:
+                        text = str(getattr(message, "text", "")) or f"({msg_type})"
+                    except Exception:
+                        text = f"({msg_type})"
                 
                 # Save incoming message with proper tenant_id and formatted phone
                 service.save_incoming_message(

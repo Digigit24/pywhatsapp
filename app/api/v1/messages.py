@@ -10,7 +10,8 @@ from app.services.message_service import MessageService
 from app.schemas.message import (
     MessageCreate, MediaMessageCreate, LocationMessageCreate,
     MessageResponse, MessageSendResponse, ConversationPreview,
-    TemplateSendRequest, TemplateCreate, TemplateResponse
+    TemplateSendRequest, TemplateCreate, TemplateResponse,
+    ConversationDetail
 )
 
 from datetime import datetime
@@ -96,7 +97,7 @@ def list_conversations(
     """List all conversations"""
     return service.get_conversations(db, tenant_id)
 
-@router.get("/conversations/{phone}", response_model=List[MessageResponse])
+@router.get("/conversations/{phone}", response_model=ConversationDetail)
 def get_conversation(
     phone: str,
     db: Session = Depends(get_db),
@@ -104,7 +105,8 @@ def get_conversation(
     service: MessageService = Depends(get_message_service)
 ):
     """Get conversation with specific number"""
-    return service.get_conversation(db, tenant_id, phone)
+    messages = service.get_conversation(db, tenant_id, phone)
+    return {"phone": phone, "messages": messages}
 
 @router.delete("/conversations/{phone}")
 def delete_conversation(

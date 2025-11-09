@@ -23,6 +23,13 @@ from app.schemas.message import (
 
 log = logging.getLogger("whatspy.message_service")
 
+def _normalize_phone(phone: Optional[str]) -> Optional[str]:
+    """Ensure phone numbers are stored in a consistent format with '+' prefix."""
+    if not phone:
+        return phone
+    phone = str(phone).strip()
+    return phone if phone.startswith('+') else f'+{phone}'
+
 
 class MessageService:
     """Service for message operations"""
@@ -450,6 +457,16 @@ class MessageService:
     ) -> Message:
         """Save message to database"""
         try:
+            # Normalize phone once at persistence boundary
+            phone = _normalize_phone(phone)
+
+            # Avoid duplicate inserts on webhook retries or duplicate callbacks
+            if message_id:
+                existing = db.query(Message).filter(Message.message_id == message_id).first()
+                if existing:
+                    log.debug(f"💾 Message already exists, skipping insert: {message_id}")
+                    return existing
+
             message = Message(
                 tenant_id=tenant_id,
                 message_id=message_id,
