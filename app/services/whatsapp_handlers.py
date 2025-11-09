@@ -9,7 +9,7 @@ from datetime import datetime
 import json
 
 log = logging.getLogger("whatspy.handlers")
-
+from app.ws.manager import notify_clients_sync
 def extract_tenant_id_from_webhook(message):
     """
     Extract tenant_id from webhook message context.
@@ -143,6 +143,25 @@ def register_handlers(wa_client):
                     message_type=msg_type,
                     metadata={"timestamp": str(getattr(message, 'timestamp', None))}
                 )
+
+                # Push to connected websocket clients for this tenant
+                try:
+                    notify_clients_sync(tenant_id, {
+                        "event": "message_incoming",
+                        "data": {
+                            "phone": formatted_phone,
+                            "name": name,
+                            "message": {
+                                "id": msg_id,
+                                "type": msg_type,
+                                "text": text,
+                                "timestamp": str(getattr(message, 'timestamp', None)),
+                                "direction": "incoming"
+                            }
+                        }
+                    })
+                except Exception as e:
+                    log.debug(f"WS notify failed: {e}")
                 
                 # Auto-reply
                 if msg_type == "text" and text:
@@ -170,6 +189,25 @@ def register_handlers(wa_client):
                             message_type="text",
                             metadata=None
                         )
+
+                        # Notify clients about bot reply/outgoing message
+                        try:
+                            notify_clients_sync(tenant_id, {
+                                "event": "message_outgoing",
+                                "data": {
+                                    "phone": formatted_phone,
+                                    "name": name,
+                                    "message": {
+                                        "id": None,
+                                        "type": "text",
+                                        "text": reply,
+                                        "timestamp": datetime.utcnow().isoformat(),
+                                        "direction": "outgoing"
+                                    }
+                                }
+                            })
+                        except Exception as e:
+                            log.debug(f"WS notify failed: {e}")
                 
                 log.info(f"✅ Message processed: {formatted_phone} (tenant: {tenant_id})")
                 

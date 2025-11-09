@@ -11,6 +11,78 @@ let autoRefreshInterval = null;
 let statsInterval = null;
 let contactsToImport = [];
 
+// WebSocket realtime updates (multi-tenant)
+let ws = null;
+let wsAttempts = 0;
+let wsTimer = null;
+
+function getTenantId() {
+  return document.body.getAttribute('data-tenant-id') || 'default';
+}
+
+function connectWebSocket() {
+  const tenantId = getTenantId();
+  if (!tenantId) return;
+
+  const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
+  const url = `${protocol}://${location.host}/ws/${tenantId}`;
+
+  try { if (ws) ws.close(); } catch (e) {}
+
+  ws = new WebSocket(url);
+
+  ws.onopen = () => {
+    wsAttempts = 0;
+  };
+
+  ws.onmessage = (event) => {
+    try {
+      const payload = JSON.parse(event.data);
+      handleWsEvent(payload);
+    } catch (e) {
+      // ignore non-JSON keepalives
+    }
+  };
+
+  ws.onclose = () => scheduleReconnect();
+  ws.onerror = () => {
+    try { ws.close(); } catch (e) {}
+  };
+}
+
+function scheduleReconnect() {
+  if (wsTimer) clearTimeout(wsTimer);
+  wsAttempts = Math.min(wsAttempts + 1, 8);
+  const delay = Math.min(30000, 500 * Math.pow(2, wsAttempts)); // up to 30s
+  wsTimer = setTimeout(connectWebSocket, delay);
+}
+
+function handleWsEvent(payload) {
+  if (!payload || !payload.event) return;
+  const { event, data } = payload;
+  if (!data) return;
+
+  if (event === 'message_incoming' || event === 'message_outgoing') {
+    const msg = {
+      id: data.message?.id || null,
+      type: data.message?.type || 'text',
+      text: data.message?.text || '',
+      timestamp: data.message?.timestamp || new Date().toISOString(),
+      direction: data.message?.direction || (event === 'message_incoming' ? 'incoming' : 'outgoing')
+    };
+
+    // If currently viewing this chat, append live
+    if (currentChat && data.phone === currentChat) {
+      currentMessages.push(msg);
+      renderMessages(true);
+    }
+
+    // Refresh conversation previews and stats
+    loadConversations();
+    loadStats();
+  }
+}
+
 // ═══════════════════════════════════════════
 // UTILITY FUNCTIONS
 // ═══════════════════════════════════════════
@@ -766,6 +838,7 @@ document.getElementById('messageInput').addEventListener('keydown', function(e) 
 // Initial load
 loadConversations();
 loadStats();
+connectWebSocket();
 
 // Refresh intervals
 setInterval(loadConversations, 10000);
@@ -775,4 +848,6 @@ statsInterval = setInterval(loadStats, 30000);
 window.addEventListener('beforeunload', () => {
   if (autoRefreshInterval) clearInterval(autoRefreshInterval);
   if (statsInterval) clearInterval(statsInterval);
+  try { if (ws) ws.close(); } catch (e) {}
+  if (wsTimer) clearTimeout(wsTimer);
 });

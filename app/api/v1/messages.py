@@ -13,9 +13,13 @@ from app.schemas.message import (
     TemplateSendRequest, TemplateCreate, TemplateResponse
 )
 
+from datetime import datetime
+from app.ws.manager import notify_clients_sync
+
 router = APIRouter()
 
 @router.post("/send", response_model=MessageSendResponse)
+@router.post("/send/text", response_model=MessageSendResponse)
 def send_text(
     data: MessageCreate,
     db: Session = Depends(get_db),
@@ -24,6 +28,27 @@ def send_text(
 ):
     """Send text message"""
     msg_id, saved = service.send_text_message(db, tenant_id, data)
+
+    # Broadcast to tenant websocket clients
+    try:
+        notify_clients_sync(tenant_id, {
+            "event": "message_outgoing",
+            "data": {
+                "phone": data.to,
+                "name": None,
+                "message": {
+                    "id": msg_id,
+                    "type": "text",
+                    "text": data.text,
+                    "timestamp": datetime.utcnow().isoformat(),
+                    "direction": "outgoing"
+                }
+            }
+        })
+    except Exception:
+        # Don't fail the request if WS broadcast fails
+        pass
+
     return MessageSendResponse(message_id=msg_id, phone=data.to, text=data.text)
 
 @router.post("/send/media")

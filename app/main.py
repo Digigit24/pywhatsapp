@@ -22,6 +22,8 @@ from app.core.security import authenticate_user
 from app.api.deps import require_auth_session, optional_auth_session, require_auth_flexible, get_current_user_flexible, get_tenant_id_flexible
 from app.api.v1.router import api_router
 from app.services import set_whatsapp_client
+from fastapi import WebSocket, WebSocketDisconnect
+from app.ws.manager import ws_manager
 
 # Logging
 logging.basicConfig(level="INFO", format="%(asctime)s | %(levelname)s | %(name)s | %(message)s")
@@ -216,7 +218,11 @@ def logout(request: Request):
 @app.get("/chat", include_in_schema=False)
 def chat_ui(request: Request, username: str = Depends(require_auth_session)):
     """Chat interface"""
-    return jinja_templates.TemplateResponse("chat.html", {"request": request, "username": username})
+    return jinja_templates.TemplateResponse("chat.html", {
+        "request": request,
+        "username": username,
+        "tenant_id": "bc531d42-ac91-41df-817e-26c339af6b3a"
+    })
 
 @app.get("/dashboard", include_in_schema=False)
 def dashboard(request: Request, username: str = Depends(require_auth_session)):
@@ -291,6 +297,29 @@ async def http_exception_handler(request: Request, exc: HTTPException):
         content={"detail": exc.detail}
     )
 
+
+
+
+
+
+
+# ────────────────────────────────────────────
+# WebSocket Endpoint (multi-tenant)
+# ────────────────────────────────────────────
+@app.websocket("/ws/{tenant_id}")
+async def websocket_endpoint(websocket: WebSocket, tenant_id: str):
+    await ws_manager.connect(tenant_id, websocket)
+    try:
+        while True:
+            # Keep the connection alive and detect disconnects
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        ws_manager.disconnect(tenant_id, websocket)
+    except Exception:
+        ws_manager.disconnect(tenant_id, websocket)
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8002)
+
+
+
