@@ -5,6 +5,7 @@ Provides singleton instances of services.
 """
 from typing import Optional
 from app.services.message_service import MessageService
+from app.services.template_service import TemplateService
 
 # Global WhatsApp client instance
 _wa_client = None
@@ -22,9 +23,15 @@ def get_message_service() -> MessageService:
     """Get MessageService instance with WhatsApp client"""
     return MessageService(_wa_client)
 
+def get_template_service() -> TemplateService:
+    """Get TemplateService instance with WhatsApp client"""
+    return TemplateService(_wa_client)
+
 __all__ = [
     'MessageService',
+    'TemplateService',
     'set_whatsapp_client',
     'get_whatsapp_client',
-    'get_message_service'
+    'get_message_service',
+    'get_template_service'
 ]

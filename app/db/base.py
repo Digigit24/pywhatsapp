@@ -8,5 +8,6 @@ from app.models.webhook import WebhookLog, MessageReaction
 from app.models.contact import Contact
 from app.models.group import Group
 from app.models.campaign import Campaign
+from app.models.template import WhatsAppTemplate, TemplateSendLog
 
 __all__ = ["Base"]
