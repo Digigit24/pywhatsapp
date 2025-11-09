@@ -235,7 +235,7 @@ def register_handlers(wa_client):
                             
                             # Save outgoing auto-reply
                             try:
-                                service.save_incoming_message(
+                                service.save_outgoing_message(
                                     db=db,
                                     tenant_id=tenant_id,
                                     message_id=None,
