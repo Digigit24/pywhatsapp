@@ -6,6 +6,7 @@ Handles template creation, management, and sending.
 from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks
 from sqlalchemy.orm import Session
 from typing import List, Optional
+import json
 
 from app.db.session import get_db
 from app.api.deps import get_tenant_id_flexible
@@ -17,8 +18,10 @@ from app.schemas.template import (
     TemplateBulkSendRequest, TemplateBulkSendResponse,
     TemplateListResponse, LibraryTemplateCreate
 )
+from app.core.logging_config import get_template_logger
 
 router = APIRouter()
+template_log = get_template_logger()
 
 
 def get_template_service():
@@ -40,27 +43,56 @@ def create_template(
 ):
     """
     Create a new WhatsApp template.
-    
+
     The template will be submitted to WhatsApp for approval.
     Status will be PENDING until WhatsApp reviews it.
-    
+
     **Template naming rules:**
     - Only lowercase letters, numbers, and underscores
     - No spaces or special characters
     - Example: `order_confirmation`, `delivery_update_2`
-    
+
     **Components:**
     - HEADER: Text, image, video, or document
     - BODY: Main message text with variables {{1}}, {{2}}, etc.
     - FOOTER: Optional footer text
     - BUTTONS: Quick reply, URL, or phone buttons
     """
+    template_log.info("="*80)
+    template_log.info("📥 API ENDPOINT CALLED: POST /templates/")
+    template_log.info("="*80)
+    template_log.info(f"Tenant ID: {tenant_id}")
+    template_log.info(f"Template Name: {data.name}")
+    template_log.info(f"Language: {data.language.value}")
+    template_log.info(f"Category: {data.category.value}")
+    template_log.info(f"Components: {json.dumps(data.components, indent=2)}")
+    template_log.info("="*80)
+
     try:
+        template_log.info("Calling template service create_template()...")
         template = service.create_template(db, tenant_id, data)
+
+        template_log.info("="*80)
+        template_log.info("✅✅✅ API ENDPOINT SUCCESS ✅✅✅")
+        template_log.info(f"Template created: {template.name} (ID: {template.id})")
+        template_log.info(f"WhatsApp Template ID: {template.template_id or 'None'}")
+        template_log.info("="*80)
+
         return template
     except ValueError as e:
+        template_log.error("="*80)
+        template_log.error("❌ API ENDPOINT ERROR: ValueError (400)")
+        template_log.error(f"Error: {str(e)}")
+        template_log.error("="*80)
         raise HTTPException(400, str(e))
     except Exception as e:
+        template_log.error("="*80)
+        template_log.error("❌❌❌ API ENDPOINT CRITICAL ERROR (500) ❌❌❌")
+        template_log.error(f"Error Type: {type(e).__name__}")
+        template_log.error(f"Error Message: {str(e)}")
+        import traceback
+        template_log.error(f"Full Traceback:\n{traceback.format_exc()}")
+        template_log.error("="*80)
         raise HTTPException(500, f"Failed to create template: {str(e)}")
 
 
@@ -73,11 +105,23 @@ def create_from_library(
 ):
     """
     Create template from WhatsApp template library.
-    
+
     Template library provides pre-approved templates for common use cases
     like payment reminders, delivery updates, and authentication codes.
     """
+    template_log.info("="*80)
+    template_log.info("📥 API ENDPOINT CALLED: POST /templates/library")
+    template_log.info("="*80)
+    template_log.info(f"Tenant ID: {tenant_id}")
+    template_log.info(f"Template Name: {data.name}")
+    template_log.info(f"Library Template: {data.library_template_name}")
+    template_log.info(f"Language: {data.language.value}")
+    template_log.info(f"Category: {data.category.value}")
+    template_log.info(f"Button Inputs: {data.button_inputs}")
+    template_log.info("="*80)
+
     try:
+        template_log.info("Calling template service create_from_library()...")
         template = service.create_from_library(
             db, tenant_id,
             name=data.name,
@@ -86,8 +130,21 @@ def create_from_library(
             category=data.category.value,
             button_inputs=data.button_inputs
         )
+
+        template_log.info("="*80)
+        template_log.info("✅✅✅ API ENDPOINT SUCCESS ✅✅✅")
+        template_log.info(f"Library template created: {template.name} (ID: {template.id})")
+        template_log.info("="*80)
+
         return template
     except Exception as e:
+        template_log.error("="*80)
+        template_log.error("❌❌❌ API ENDPOINT ERROR (500) ❌❌❌")
+        template_log.error(f"Error Type: {type(e).__name__}")
+        template_log.error(f"Error: {str(e)}")
+        import traceback
+        template_log.error(f"Full Traceback:\n{traceback.format_exc()}")
+        template_log.error("="*80)
         raise HTTPException(500, str(e))
 
 

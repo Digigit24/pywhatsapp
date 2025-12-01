@@ -32,8 +32,10 @@ from app.api.v1.router import api_router
 from app.services import set_whatsapp_client
 from app.ws.manager import ws_manager
 
-# Logging
-logging.basicConfig(level="INFO", format="%(asctime)s | %(levelname)s | %(name)s | %(message)s")
+# Initialize comprehensive logging
+from app.core.logging_config import setup_logging
+setup_logging(app_name="pywhatsapp", level="DEBUG")
+
 log = logging.getLogger("whatspy")
 
 # Initialize database

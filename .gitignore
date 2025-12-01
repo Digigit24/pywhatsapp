@@ -22,3 +22,9 @@ Thumbs.db
 
 # Secrets
 .env
+
+# Logs
+logs/*.log
+logs/debug.log*
+logs/error.log*
+logs/template_api.log*
