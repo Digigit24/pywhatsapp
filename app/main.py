@@ -23,7 +23,8 @@ from starlette.middleware.sessions import SessionMiddleware
 from app.core.config import (
     PHONE_ID, TOKEN, VERIFY_TOKEN, CALLBACK_URL,
     SESSION_SECRET_KEY, SESSION_MAX_AGE, JWT_SECRET_KEY,
-    MAX_BUFFER, VALIDATE_UPDATES, DEFAULT_TENANT_ID
+    MAX_BUFFER, VALIDATE_UPDATES, DEFAULT_TENANT_ID,
+    BUSINESS_ACCOUNT_ID
 )
 from app.db.session import init_db, test_db_connection
 from app.core.security import authenticate_user
@@ -166,19 +167,32 @@ if PHONE_ID and TOKEN and VERIFY_TOKEN:
     try:
         from pywa import WhatsApp
         from app.services.whatsapp_handlers import register_handlers
-        
-        wa = WhatsApp(
-            phone_id=PHONE_ID,
-            token=TOKEN,
-            server=app,
-            verify_token=VERIFY_TOKEN,
-            validate_updates=VALIDATE_UPDATES
-        )
+
+        # Initialize WhatsApp client with business_account_id for template creation
+        wa_kwargs = {
+            "phone_id": PHONE_ID,
+            "token": TOKEN,
+            "server": app,
+            "verify_token": VERIFY_TOKEN,
+            "validate_updates": VALIDATE_UPDATES
+        }
+
+        # Add business_account_id if available (required for template creation)
+        if BUSINESS_ACCOUNT_ID:
+            wa_kwargs["business_account_id"] = BUSINESS_ACCOUNT_ID
+            log.info(f"✅ WhatsApp Business Account ID configured: {BUSINESS_ACCOUNT_ID}")
+        else:
+            log.warning("⚠️  BUSINESS_ACCOUNT_ID not set - template creation will fail!")
+            log.warning("⚠️  Set WHATSAPP_BUSINESS_ACCOUNT_ID or WABA_ID in .env file")
+
+        wa = WhatsApp(**wa_kwargs)
         set_whatsapp_client(wa)
         register_handlers(wa)
         log.info("✅ WhatsApp client initialized")
     except Exception as e:
         log.error(f"❌ WhatsApp init failed: {e}")
+        import traceback
+        log.error(traceback.format_exc())
 else:
     log.warning("⚠️  WhatsApp not configured")
 

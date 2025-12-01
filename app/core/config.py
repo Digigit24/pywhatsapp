@@ -22,6 +22,9 @@ TOKEN: str = os.getenv("WHATSAPP_TOKEN", "")
 VERIFY_TOKEN: str = os.getenv("VERIFY_TOKEN", "")
 CALLBACK_URL: str = os.getenv("CALLBACK_URL", "")
 
+# WhatsApp Business Account ID (required for template creation)
+BUSINESS_ACCOUNT_ID: Optional[str] = os.getenv("WHATSAPP_BUSINESS_ACCOUNT_ID") or os.getenv("WABA_ID")
+
 APP_ID: Optional[str] = os.getenv("FB_APP_ID") or os.getenv("META_APP_ID")
 APP_SECRET: Optional[str] = os.getenv("FB_APP_SECRET") or os.getenv("META_APP_SECRET")
 
