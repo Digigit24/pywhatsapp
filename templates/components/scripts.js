@@ -28,7 +28,7 @@ let wsAttempts = 0;
 let wsTimer = null;
 
 function getTenantId() {
-  return document.body.getAttribute('data-tenant-id') || (window.DEFAULT_TENANT_ID || 'bc531d42-ac91-41df-817e-26c339af6b3a');
+  return document.body.getAttribute('data-tenant-id') || (window.DEFAULT_TENANT_ID || 'd2bcd1ee-e5c5-4c9f-bff2-aaf901d40440');
 }
 
 /**
