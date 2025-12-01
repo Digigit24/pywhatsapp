@@ -468,3 +468,172 @@ async def template_status_webhook(
         return {"ok": True}
     except Exception as e:
         raise HTTPException(500, str(e))
+
+
+# ────────────────────────────────────────────
+# Template Sync Endpoints
+# ────────────────────────────────────────────
+
+@router.post("/sync")
+def sync_all_templates(
+    db: Session = Depends(get_db),
+    tenant_id: str = Depends(get_tenant_id_flexible),
+    service: TemplateService = Depends(get_template_service)
+):
+    """
+    Sync all templates with Meta WhatsApp API.
+
+    This endpoint:
+    - Fetches current status of all templates from Meta API
+    - Updates database with latest statuses
+    - Returns summary of sync operation
+
+    **Use cases:**
+    - Check if pending templates have been approved
+    - Update rejected templates
+    - Keep local database in sync with Meta
+
+    **Returns:**
+    - total_templates: Total number of templates
+    - updated: Number of templates with status changes
+    - unchanged: Number of templates with no changes
+    - failed: Number of failed sync attempts
+    - skipped: Number of templates without Meta API ID
+    - results: Detailed results per template
+
+    **Example Response:**
+    ```json
+    {
+        "success": true,
+        "total_templates": 5,
+        "updated": 2,
+        "unchanged": 2,
+        "failed": 0,
+        "skipped": 1,
+        "results": [
+            {
+                "template_id": 1,
+                "template_name": "hello_world",
+                "status": "updated",
+                "old_status": "PENDING",
+                "new_status": "APPROVED"
+            },
+            ...
+        ]
+    }
+    ```
+    """
+    template_log.info("="*80)
+    template_log.info("📥 API ENDPOINT CALLED: POST /templates/sync")
+    template_log.info("="*80)
+    template_log.info(f"Tenant ID: {tenant_id}")
+    template_log.info("="*80)
+
+    try:
+        template_log.info("Calling template service sync_all_templates()...")
+        result = service.sync_all_templates(db, tenant_id)
+
+        template_log.info("="*80)
+        if result.get("success"):
+            template_log.info("✅✅✅ SYNC COMPLETED SUCCESSFULLY ✅✅✅")
+            template_log.info(f"Total: {result.get('total_templates')} | " +
+                            f"Updated: {result.get('updated')} | " +
+                            f"Unchanged: {result.get('unchanged')} | " +
+                            f"Failed: {result.get('failed')} | " +
+                            f"Skipped: {result.get('skipped')}")
+        else:
+            template_log.error("❌ SYNC FAILED")
+        template_log.info("="*80)
+
+        return result
+    except Exception as e:
+        template_log.error("="*80)
+        template_log.error("❌❌❌ API ENDPOINT ERROR (500) ❌❌❌")
+        template_log.error(f"Error Type: {type(e).__name__}")
+        template_log.error(f"Error: {str(e)}")
+        import traceback
+        template_log.error(f"Full Traceback:\n{traceback.format_exc()}")
+        template_log.error("="*80)
+        raise HTTPException(500, f"Failed to sync templates: {str(e)}")
+
+
+@router.post("/{template_id}/sync")
+def sync_single_template(
+    template_id: int,
+    db: Session = Depends(get_db),
+    tenant_id: str = Depends(get_tenant_id_flexible),
+    service: TemplateService = Depends(get_template_service)
+):
+    """
+    Sync a single template's status with Meta WhatsApp API.
+
+    This endpoint:
+    - Fetches current status of the template from Meta API
+    - Updates database if status changed
+    - Returns sync result
+
+    **Use cases:**
+    - Check if a specific template was approved
+    - Get rejection reason for a rejected template
+    - Update quality score
+
+    **Returns:**
+    - success: Whether sync succeeded
+    - template_name: Name of the template
+    - template_id: Database ID
+    - old_status: Previous status
+    - new_status: Current status from Meta
+    - updated: Whether status changed
+
+    **Example Response:**
+    ```json
+    {
+        "success": true,
+        "template_name": "hello_world",
+        "template_id": 5,
+        "old_status": "PENDING",
+        "new_status": "APPROVED",
+        "updated": true
+    }
+    ```
+    """
+    template_log.info("="*80)
+    template_log.info(f"📥 API ENDPOINT CALLED: POST /templates/{template_id}/sync")
+    template_log.info("="*80)
+    template_log.info(f"Tenant ID: {tenant_id}")
+    template_log.info(f"Template ID: {template_id}")
+    template_log.info("="*80)
+
+    try:
+        template_log.info(f"Calling template service sync_template_status() for template {template_id}...")
+        result = service.sync_template_status(db, tenant_id, template_id)
+
+        template_log.info("="*80)
+        if result.get("success"):
+            if result.get("updated"):
+                template_log.info("✅✅✅ TEMPLATE STATUS UPDATED ✅✅✅")
+                template_log.info(f"Template: {result.get('template_name')}")
+                template_log.info(f"Status change: {result.get('old_status')} → {result.get('new_status')}")
+            else:
+                template_log.info("✅ Template synced - no status change")
+                template_log.info(f"Template: {result.get('template_name')}")
+                template_log.info(f"Current status: {result.get('old_status')}")
+        else:
+            template_log.error(f"❌ Sync failed: {result.get('error')}")
+        template_log.info("="*80)
+
+        if not result.get("success"):
+            raise HTTPException(400, result.get("error", "Sync failed"))
+
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        template_log.error("="*80)
+        template_log.error("❌❌❌ API ENDPOINT ERROR (500) ❌❌❌")
+        template_log.error(f"Error Type: {type(e).__name__}")
+        template_log.error(f"Error: {str(e)}")
+        import traceback
+        template_log.error(f"Full Traceback:\n{traceback.format_exc()}")
+        template_log.error("="*80)
+        raise HTTPException(500, f"Failed to sync template: {str(e)}")

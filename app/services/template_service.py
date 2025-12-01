@@ -483,7 +483,245 @@ class TemplateService:
         
         log.info(f"🗑️  Template {template.name} deleted")
         return True
-    
+
+    # ────────────────────────────────────────────
+    # Sync Template Status from Meta API
+    # ────────────────────────────────────────────
+
+    def sync_template_status(
+        self,
+        db: Session,
+        tenant_id: str,
+        template_id: int
+    ) -> Dict[str, Any]:
+        """
+        Sync a single template's status from Meta WhatsApp API.
+
+        Returns:
+            Dict with sync result and updated status
+        """
+        log_function_entry(
+            template_log,
+            "sync_template_status",
+            tenant_id=tenant_id,
+            template_id=template_id
+        )
+
+        try:
+            # Get template from database
+            template = self.get_template(db, tenant_id, template_id)
+
+            if not template:
+                error_msg = f"Template {template_id} not found in database"
+                template_log.error(f"❌ {error_msg}")
+                return {"success": False, "error": error_msg}
+
+            if not template.template_id:
+                error_msg = f"Template '{template.name}' has no Meta API template_id"
+                template_log.warning(f"⚠️  {error_msg}")
+                return {"success": False, "error": error_msg}
+
+            if not self.wa:
+                error_msg = "WhatsApp client not available"
+                template_log.error(f"❌ {error_msg}")
+                return {"success": False, "error": error_msg}
+
+            # Fetch template from Meta API
+            template_log.info(f"🔄 Fetching template '{template.name}' (Meta ID: {template.template_id}) from API...")
+
+            try:
+                # Get template from Meta API
+                meta_template = self.wa.get_template(
+                    template_name=template.name,
+                    language_code=template.language
+                )
+
+                template_log.debug(f"Meta API response: {meta_template}")
+
+                if not meta_template:
+                    error_msg = f"Template not found in Meta API"
+                    template_log.warning(f"⚠️  {error_msg}")
+                    return {"success": False, "error": error_msg}
+
+                # Extract status from Meta API response
+                old_status = template.status.value
+                new_status = None
+
+                if hasattr(meta_template, 'status'):
+                    new_status = meta_template.status.value if hasattr(meta_template.status, 'value') else str(meta_template.status)
+
+                template_log.info(f"Template '{template.name}' - Old status: {old_status}, New status: {new_status}")
+
+                # Update database if status changed
+                if new_status and new_status != old_status:
+                    template.status = TemplateStatus[new_status]
+
+                    # Update quality score if available
+                    if hasattr(meta_template, 'quality_score'):
+                        template.quality_score = str(meta_template.quality_score)
+
+                    # Update rejection reason if available
+                    if hasattr(meta_template, 'rejection_reason'):
+                        template.rejection_reason = meta_template.rejection_reason
+
+                    db.commit()
+                    db.refresh(template)
+
+                    template_log.info(f"✅ Template '{template.name}' status updated: {old_status} → {new_status}")
+
+                    log_function_exit(template_log, "sync_template_status", result="Status updated")
+
+                    return {
+                        "success": True,
+                        "template_name": template.name,
+                        "template_id": template_id,
+                        "old_status": old_status,
+                        "new_status": new_status,
+                        "updated": True
+                    }
+                else:
+                    template_log.info(f"✅ Template '{template.name}' status unchanged: {old_status}")
+
+                    log_function_exit(template_log, "sync_template_status", result="No change")
+
+                    return {
+                        "success": True,
+                        "template_name": template.name,
+                        "template_id": template_id,
+                        "old_status": old_status,
+                        "new_status": new_status or old_status,
+                        "updated": False
+                    }
+
+            except Exception as e:
+                error_msg = f"Failed to fetch template from Meta API: {str(e)}"
+                template_log.error(f"❌ {error_msg}")
+                template_log.error(f"Full Traceback:\n{traceback.format_exc()}")
+
+                log_function_exit(template_log, "sync_template_status", error=e)
+
+                return {
+                    "success": False,
+                    "template_name": template.name,
+                    "template_id": template_id,
+                    "error": error_msg
+                }
+
+        except Exception as e:
+            template_log.error(f"❌ Critical error in sync_template_status: {str(e)}")
+            template_log.error(f"Full Traceback:\n{traceback.format_exc()}")
+
+            log_function_exit(template_log, "sync_template_status", error=e)
+
+            return {
+                "success": False,
+                "error": str(e)
+            }
+
+    def sync_all_templates(
+        self,
+        db: Session,
+        tenant_id: str
+    ) -> Dict[str, Any]:
+        """
+        Sync all templates' statuses from Meta WhatsApp API.
+
+        Returns:
+            Dict with summary of sync operation
+        """
+        log_function_entry(
+            template_log,
+            "sync_all_templates",
+            tenant_id=tenant_id
+        )
+
+        try:
+            # Get all templates for tenant
+            templates, total = self.get_templates(db, tenant_id, skip=0, limit=1000)
+
+            template_log.info(f"🔄 Starting sync for {total} templates...")
+
+            results = []
+            updated_count = 0
+            unchanged_count = 0
+            failed_count = 0
+            skipped_count = 0
+
+            for template in templates:
+                template_log.info(f"Syncing template {template.id}: '{template.name}'...")
+
+                # Skip templates without Meta API ID
+                if not template.template_id:
+                    template_log.warning(f"⏭️  Skipping '{template.name}' - no Meta API template_id")
+                    skipped_count += 1
+                    results.append({
+                        "template_id": template.id,
+                        "template_name": template.name,
+                        "status": "skipped",
+                        "reason": "No Meta API template_id"
+                    })
+                    continue
+
+                # Sync this template
+                result = self.sync_template_status(db, tenant_id, template.id)
+
+                if result.get("success"):
+                    if result.get("updated"):
+                        updated_count += 1
+                        results.append({
+                            "template_id": template.id,
+                            "template_name": template.name,
+                            "status": "updated",
+                            "old_status": result.get("old_status"),
+                            "new_status": result.get("new_status")
+                        })
+                    else:
+                        unchanged_count += 1
+                        results.append({
+                            "template_id": template.id,
+                            "template_name": template.name,
+                            "status": "unchanged",
+                            "current_status": result.get("old_status")
+                        })
+                else:
+                    failed_count += 1
+                    results.append({
+                        "template_id": template.id,
+                        "template_name": template.name,
+                        "status": "failed",
+                        "error": result.get("error")
+                    })
+
+            summary = {
+                "success": True,
+                "total_templates": total,
+                "updated": updated_count,
+                "unchanged": unchanged_count,
+                "failed": failed_count,
+                "skipped": skipped_count,
+                "results": results
+            }
+
+            template_log.info("="*60)
+            template_log.info("✅ Sync completed!")
+            template_log.info(f"Total: {total} | Updated: {updated_count} | Unchanged: {unchanged_count} | Failed: {failed_count} | Skipped: {skipped_count}")
+            template_log.info("="*60)
+
+            log_function_exit(template_log, "sync_all_templates", result=f"Updated {updated_count}/{total}")
+
+            return summary
+
+        except Exception as e:
+            template_log.error(f"❌ Critical error in sync_all_templates: {str(e)}")
+            template_log.error(f"Full Traceback:\n{traceback.format_exc()}")
+
+            log_function_exit(template_log, "sync_all_templates", error=e)
+
+            return {
+                "success": False,
+                "error": str(e)
+            }
+
     # ────────────────────────────────────────────
     # Send Template Messages
     # ────────────────────────────────────────────
