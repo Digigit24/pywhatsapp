@@ -83,116 +83,125 @@ class TemplateService:
 
             template_log.info(f"✅ No existing template found. Proceeding with creation...")
 
-            # Create template via WhatsApp API if client available
+            # Create template via WhatsApp API (required - no fallback)
+            if not self.wa:
+                error_msg = "WhatsApp client is not available. Cannot create template without Meta API connection."
+                template_log.error(f"❌ {error_msg}")
+                log_function_exit(template_log, "create_template", error=ValueError(error_msg))
+                raise ValueError(error_msg)
+
             whatsapp_template_id = None
 
-            if not self.wa:
-                template_log.warning("⚠️  WhatsApp client is NOT available!")
-                template_log.warning("Template will be saved locally but NOT sent to Meta API")
-            else:
-                template_log.info("✅ WhatsApp client is available. Attempting to create template via Meta API...")
+            # WhatsApp client is available, proceed with template creation
+            template_log.info("✅ WhatsApp client is available. Attempting to create template via Meta API...")
 
-                try:
-                    # Convert to PyWa template format
-                    from pywa.types.templates import Template, TemplateLanguage as PyWaLanguage
+            try:
+                # Convert to PyWa template format
+                from pywa.types.templates import Template, TemplateLanguage as PyWaLanguage
 
-                    template_log.debug("Importing PyWa template classes...")
+                template_log.debug("Importing PyWa template classes...")
 
-                    # Map language
-                    language_map = {
-                        "en": PyWaLanguage.ENGLISH,
-                        "en_US": PyWaLanguage.ENGLISH_US,
-                        "en_GB": PyWaLanguage.ENGLISH_UK,
-                        "hi": PyWaLanguage.HINDI,
-                        "es": PyWaLanguage.SPANISH,
-                        "fr": PyWaLanguage.FRENCH,
+                # Map language
+                language_map = {
+                    "en": PyWaLanguage.ENGLISH,
+                    "en_US": PyWaLanguage.ENGLISH_US,
+                    "en_GB": PyWaLanguage.ENGLISH_UK,
+                    "hi": PyWaLanguage.HINDI,
+                    "es": PyWaLanguage.SPANISH,
+                    "fr": PyWaLanguage.FRENCH,
+                }
+
+                pywa_language = language_map.get(data.language.value, PyWaLanguage.ENGLISH_US)
+                template_log.debug(f"Mapped language '{data.language.value}' to PyWa language: {pywa_language}")
+
+                # Convert components
+                template_log.debug("Converting components to PyWa format...")
+                template_log.debug(f"Input components: {json.dumps(data.components, indent=2)}")
+
+                pywa_components = self._convert_components_to_pywa(data.components)
+                template_log.debug(f"Converted PyWa components: {pywa_components}")
+
+                # Create PyWa template
+                template_log.debug("Creating PyWa Template object...")
+                template = Template(
+                    name=data.name,
+                    language=pywa_language,
+                    category=data.category.value,
+                    components=pywa_components
+                )
+
+                template_log.debug(f"PyWa Template object created: {template}")
+
+                # Log the API request details
+                log_api_request(
+                    template_log,
+                    "POST",
+                    f"/v1/message_templates (Meta WhatsApp API)",
+                    data={
+                        "name": data.name,
+                        "language": pywa_language,
+                        "category": data.category.value,
+                        "components": data.components
                     }
+                )
 
-                    pywa_language = language_map.get(data.language.value, PyWaLanguage.ENGLISH_US)
-                    template_log.debug(f"Mapped language '{data.language.value}' to PyWa language: {pywa_language}")
+                # Submit to WhatsApp
+                template_log.info(f"🚀 Submitting template to Meta WhatsApp API...")
+                template_log.info(f"WhatsApp client type: {type(self.wa)}")
+                template_log.info(f"WhatsApp client dir: {dir(self.wa)}")
 
-                    # Convert components
-                    template_log.debug("Converting components to PyWa format...")
-                    template_log.debug(f"Input components: {json.dumps(data.components, indent=2)}")
+                result = self.wa.create_template(template)
 
-                    pywa_components = self._convert_components_to_pywa(data.components)
-                    template_log.debug(f"Converted PyWa components: {pywa_components}")
+                template_log.debug(f"API call completed. Result type: {type(result)}")
+                template_log.debug(f"Result attributes: {dir(result)}")
+                template_log.debug(f"Result value: {result}")
 
-                    # Create PyWa template
-                    template_log.debug("Creating PyWa Template object...")
-                    template = Template(
-                        name=data.name,
-                        language=pywa_language,
-                        category=data.category.value,
-                        components=pywa_components
-                    )
-
-                    template_log.debug(f"PyWa Template object created: {template}")
-
-                    # Log the API request details
-                    log_api_request(
-                        template_log,
-                        "POST",
-                        f"/v1/message_templates (Meta WhatsApp API)",
-                        data={
-                            "name": data.name,
-                            "language": pywa_language,
-                            "category": data.category.value,
-                            "components": data.components
-                        }
-                    )
-
-                    # Submit to WhatsApp
-                    template_log.info(f"🚀 Submitting template to Meta WhatsApp API...")
-                    template_log.info(f"WhatsApp client type: {type(self.wa)}")
-                    template_log.info(f"WhatsApp client dir: {dir(self.wa)}")
-
-                    result = self.wa.create_template(template)
-
-                    template_log.debug(f"API call completed. Result type: {type(result)}")
-                    template_log.debug(f"Result attributes: {dir(result)}")
-                    template_log.debug(f"Result value: {result}")
-
-                    if hasattr(result, 'id'):
-                        whatsapp_template_id = result.id
-                        template_log.info(f"✅ Template '{data.name}' created successfully via Meta API!")
-                        template_log.info(f"✅ WhatsApp Template ID: {whatsapp_template_id}")
-
-                        log_api_response(
-                            template_log,
-                            200,
-                            {
-                                "id": whatsapp_template_id,
-                                "status": "success"
-                            }
-                        )
-                    else:
-                        template_log.warning(f"⚠️  Result does not have 'id' attribute")
-                        template_log.warning(f"Result: {result}")
-
-                        log_api_response(
-                            template_log,
-                            200,
-                            {"result": str(result), "note": "No ID in response"}
-                        )
-
-                except Exception as e:
-                    template_log.error(f"❌❌❌ FAILED to create template via Meta WhatsApp API ❌❌❌")
-                    template_log.error(f"Error Type: {type(e).__name__}")
-                    template_log.error(f"Error Message: {str(e)}")
-                    template_log.error(f"Full Traceback:\n{traceback.format_exc()}")
+                if hasattr(result, 'id'):
+                    whatsapp_template_id = result.id
+                    template_log.info(f"✅ Template '{data.name}' created successfully via Meta API!")
+                    template_log.info(f"✅ WhatsApp Template ID: {whatsapp_template_id}")
 
                     log_api_response(
                         template_log,
-                        500,
-                        None,
-                        error=e
+                        200,
+                        {
+                            "id": whatsapp_template_id,
+                            "status": "success"
+                        }
+                    )
+                else:
+                    template_log.warning(f"⚠️  Result does not have 'id' attribute")
+                    template_log.warning(f"Result: {result}")
+
+                    log_api_response(
+                        template_log,
+                        200,
+                        {"result": str(result), "note": "No ID in response"}
                     )
 
-                    # Continue to save locally even if API fails
-                    template_log.warning("⚠️  Continuing to save template locally despite API failure...")
+            except Exception as e:
+                template_log.error(f"❌❌❌ FAILED to create template via Meta WhatsApp API ❌❌❌")
+                template_log.error(f"Error Type: {type(e).__name__}")
+                template_log.error(f"Error Message: {str(e)}")
+                template_log.error(f"Full Traceback:\n{traceback.format_exc()}")
 
-            # Save to database
+                log_api_response(
+                    template_log,
+                    500,
+                    None,
+                    error=e
+                )
+
+                # DO NOT save to database if Meta API fails
+                template_log.error("❌ Meta API template creation failed. NOT saving to database.")
+                template_log.error("Frontend will receive error response.")
+
+                log_function_exit(template_log, "create_template", error=e)
+
+                # Raise exception with clear message for frontend
+                raise ValueError(f"Failed to create template in Meta WhatsApp API: {str(e)}")
+
+            # Save to database only if Meta API succeeded
             template_log.info("💾 Saving template to database...")
             db_template = WhatsAppTemplate(
                 tenant_id=tenant_id,
