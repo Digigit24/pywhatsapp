@@ -531,9 +531,10 @@ class TemplateService:
 
             try:
                 # Get template from Meta API
+                # PyWa's get_template expects 'name' and 'language', not 'template_name' and 'language_code'
                 meta_template = self.wa.get_template(
-                    template_name=template.name,
-                    language_code=template.language
+                    name=template.name,
+                    language=template.language
                 )
 
                 template_log.debug(f"Meta API response: {meta_template}")
