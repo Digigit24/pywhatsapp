@@ -129,7 +129,7 @@ def register_handlers(wa_client):
                         pass
                     # Continue - webhook logging is not critical
                 
-                # Save or update contact intelligently
+                # Save or update contact - Simple and robust approach
                 contact_saved = False
                 is_new_contact = False
                 contact_info = None
@@ -137,14 +137,27 @@ def register_handlers(wa_client):
                 try:
                     log.debug(f"🔍 Checking if contact exists: {formatted_phone}")
 
+                    # Query for existing contact
                     contact = db.query(Contact).filter(
                         Contact.tenant_id == tenant_id,
                         Contact.phone == formatted_phone
                     ).first()
 
-                    if not contact:
-                        log.info(f"➕ Creating new contact: {formatted_phone}")
+                    if contact:
+                        # Update existing contact
+                        is_new_contact = False
+                        log.info(f"🔄 Updating existing contact: {formatted_phone}")
+
+                        if name and name != contact.name:
+                            log.debug(f"📝 Updating contact name: {contact.name} -> {name}")
+                            contact.name = name
+                        contact.last_seen = datetime.utcnow().isoformat()
+
+                    else:
+                        # Create new contact
                         is_new_contact = True
+                        log.info(f"➕ Creating new contact: {formatted_phone}")
+
                         contact = Contact(
                             tenant_id=tenant_id,
                             phone=formatted_phone,
@@ -153,90 +166,87 @@ def register_handlers(wa_client):
                         )
                         db.add(contact)
 
+                    # Commit changes
+                    try:
+                        db.commit()
+                        contact_saved = True
+                        log.info(f"✅ Contact {'created' if is_new_contact else 'updated'} successfully: {formatted_phone}")
+
+                        # Refresh to get DB-generated fields
+                        db.refresh(contact)
+
+                        # Build contact info for WebSocket
+                        contact_info = {
+                            "id": str(contact.id) if hasattr(contact, 'id') else None,
+                            "phone": contact.phone,
+                            "name": contact.name,
+                            "last_seen": contact.last_seen,
+                            "is_new": is_new_contact,
+                            "exists": True
+                        }
+
+                    except Exception as commit_error:
+                        # If commit fails (e.g., duplicate due to race condition)
+                        log.warning(f"⚠️ Contact commit failed (likely race condition): {commit_error}")
+                        db.rollback()
+
+                        # Try to fetch the contact that must exist now
                         try:
-                            db.flush()  # Flush to catch constraint violations immediately
-                            log.debug(f"✅ New contact flushed successfully")
-                        except Exception as flush_error:
-                            # If flush fails due to duplicate (race condition), rollback and re-query
-                            log.warning(f"⚠️ Contact insert failed (likely duplicate), rolling back and re-querying: {flush_error}")
-                            db.rollback()
-
-                            # Expire all objects in session to force fresh query
-                            db.expire_all()
-
-                            # Re-query to get the existing contact with fresh data
+                            db.expire_all()  # Clear session cache
                             contact = db.query(Contact).filter(
                                 Contact.tenant_id == tenant_id,
                                 Contact.phone == formatted_phone
                             ).first()
 
                             if contact:
-                                is_new_contact = False  # It's actually an existing contact
-                                log.info(f"🔄 Found existing contact after rollback, updating: {formatted_phone}")
-                                if name and name != contact.name:
-                                    contact.name = name
-                                contact.last_seen = datetime.utcnow().isoformat()
+                                is_new_contact = False  # It existed
+                                contact_saved = True  # We have the contact
+                                log.info(f"✅ Found existing contact after conflict: {formatted_phone}")
+
+                                contact_info = {
+                                    "id": str(contact.id),
+                                    "phone": contact.phone,
+                                    "name": contact.name,
+                                    "last_seen": contact.last_seen,
+                                    "is_new": False,
+                                    "exists": True
+                                }
                             else:
-                                log.error(f"❌ Contact still not found after rollback and expire_all")
-                                # Create minimal contact info for WebSocket
+                                log.error(f"❌ Contact still not found after rollback")
                                 contact_info = {
                                     "phone": formatted_phone,
                                     "name": name,
+                                    "is_new": is_new_contact,
                                     "exists": False
                                 }
-                    else:
-                        is_new_contact = False
-                        log.info(f"🔄 Updating existing contact: {formatted_phone}")
-                        if name and name != contact.name:
-                            log.debug(f"📝 Updating contact name: {contact.name} -> {name}")
-                            contact.name = name
-                        contact.last_seen = datetime.utcnow().isoformat()
-
-                    # Commit contact changes
-                    if contact:
-                        try:
-                            db.commit()
-                            contact_saved = True
-                            log.info(f"✅ Contact {'created' if is_new_contact else 'updated'} successfully: {formatted_phone}")
-
-                            # Refresh to get latest data
-                            db.refresh(contact)
-
-                            # Build contact info for WebSocket
-                            contact_info = {
-                                "id": str(contact.id) if hasattr(contact, 'id') else None,
-                                "phone": contact.phone,
-                                "name": contact.name,
-                                "last_seen": contact.last_seen,
-                                "is_new": is_new_contact,
-                                "exists": True
-                            }
-
-                        except Exception as commit_error:
-                            log.error(f"❌ Failed to commit contact changes: {commit_error}")
-                            db.rollback()
-                            # Build minimal contact info
+                        except Exception as requery_error:
+                            log.error(f"❌ Failed to re-query contact: {requery_error}")
                             contact_info = {
                                 "phone": formatted_phone,
                                 "name": name,
+                                "is_new": is_new_contact,
                                 "exists": False
                             }
 
                 except Exception as e:
-                    log.error(f"❌ Contact save/update error: {e}")
-                    log.debug(f"🔄 Rolling back contact transaction")
+                    log.error(f"❌ Contact operation error: {e}")
+                    import traceback
+                    log.debug(traceback.format_exc())
+
                     try:
                         db.rollback()
                     except:
                         pass
+
                     # Build minimal contact info
                     contact_info = {
                         "phone": formatted_phone,
                         "name": name,
+                        "is_new": False,  # Unknown, assume existing to avoid duplicate UI
                         "exists": False
                     }
 
-                # Log contact status for debugging
+                # Log final contact status
                 log.info(f"📇 Contact status: saved={contact_saved}, is_new={is_new_contact}, info={contact_info}")
                 
                 # Extract text content and download media based on message type
@@ -333,19 +343,21 @@ def register_handlers(wa_client):
                 # If previous operations failed, session might be in rollback state
                 try:
                     from sqlalchemy.exc import PendingRollbackError
-                    # Test the session by trying a simple query
-                    # Use Message model query as a test (avoids text() issues)
-                    db.query(Message).filter(Message.id == 'test-nonexistent').first()
+                    # Test the session by checking if it's active and not in transaction
+                    if hasattr(db, 'in_transaction') and db.in_transaction():
+                        # Session has uncommitted changes, this is OK
+                        log.debug("✅ Database session has active transaction (expected)")
                     log.debug("✅ Database session is clean and ready")
                 except PendingRollbackError as rollback_err:
                     log.warning(f"⚠️ Session in rollback state, rolling back to clean state: {rollback_err}")
                     db.rollback()
                     log.info("✅ Session rolled back successfully, ready for message save")
                 except Exception as session_check_error:
-                    log.warning(f"⚠️ Session check error, attempting rollback: {session_check_error}")
+                    # Any error means session might be in bad state, try rollback
+                    log.debug(f"⚠️ Session check encountered error (attempting recovery): {type(session_check_error).__name__}")
                     try:
                         db.rollback()
-                        log.debug("✅ Session rolled back successfully")
+                        log.debug("✅ Session rolled back as precaution")
                     except:
                         pass  # If rollback fails, continue anyway
 
@@ -461,21 +473,24 @@ def register_handlers(wa_client):
                                     metadata={"auto_reply": True}
                                 )
                                 
-                                # Broadcast outgoing message
+                                # Broadcast outgoing message with contact metadata
                                 notify_clients_sync(tenant_id, {
                                     "event": "message_outgoing",
                                     "data": {
                                         "phone": formatted_phone,
                                         "name": name,
+                                        "contact": contact_info,  # Include contact metadata
                                         "message": {
                                             "id": None,
                                             "type": "text",
                                             "text": reply,
                                             "timestamp": datetime.utcnow().isoformat(),
-                                            "direction": "outgoing"
+                                            "direction": "outgoing",
+                                            "auto_reply": True
                                         }
                                     }
                                 })
+                                log.debug(f"📡 Auto-reply WebSocket sent with contact metadata")
                             except Exception as e:
                                 log.error(f"❌ Failed to save auto-reply: {e}")
                 
