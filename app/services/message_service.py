@@ -774,38 +774,9 @@ class MessageService:
         if saved_message:
             log.debug(f"🔹 Saved message details: id={saved_message.id}, direction={saved_message.direction}")
 
-        # ✅ BROADCAST TO WEBSOCKET CLIENTS
-        try:
-            from app.ws.manager import notify_clients_sync
-
-            log.info(f"📢 Broadcasting incoming message to tenant {tenant_id}: {phone}")
-
-            notify_clients_sync(tenant_id, {
-                "event": "message_incoming",
-                "data": {
-                    "phone": phone,
-                    "name": contact_name or phone,
-                    "contact_name": contact_name,
-                    "message": {
-                        "id": message_id,
-                        "message_id": message_id,
-                        "type": message_type,
-                        "text": text or "",
-                        "message_text": text or "",
-                        "timestamp": saved_message.created_at.isoformat() if saved_message.created_at else datetime.utcnow().isoformat(),
-                        "created_at": saved_message.created_at.isoformat() if saved_message.created_at else datetime.utcnow().isoformat(),
-                        "direction": "incoming",
-                        "metadata": metadata
-                    }
-                }
-            })
-
-            log.info(f"✅ WebSocket broadcast successful for incoming message")
-
-        except Exception as ws_err:
-            log.error(f"❌ WebSocket broadcast failed for incoming message: {ws_err}")
-            import traceback
-            log.error(traceback.format_exc())
+        # NOTE: WebSocket broadcast is handled by the webhook handler
+        # The handler has more context (contact_info, media_id, etc.)
+        # So we don't broadcast here to avoid duplicates
 
         return saved_message
 
