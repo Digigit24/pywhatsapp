@@ -29,7 +29,10 @@ from app.schemas.message import (
 log = logging.getLogger("whatspy.message_service")
 
 # Configuration for media storage
-MEDIA_STORAGE_PATH = "app/static/media"
+# Configuration for media storage
+# Use absolute path to avoid issues in production
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+MEDIA_STORAGE_PATH = os.path.join(BASE_DIR, "app", "static", "media")
 
 def _normalize_phone(phone: Optional[str]) -> Optional[str]:
     """
