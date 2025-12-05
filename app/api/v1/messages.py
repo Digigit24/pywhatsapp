@@ -1,5 +1,5 @@
 # app/api/v1/messages.py
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, UploadFile, File, HTTPException, Response
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
@@ -9,6 +9,7 @@ from app.services import get_message_service
 from app.services.message_service import MessageService
 from app.schemas.message import (
     MessageCreate, MediaMessageCreate, LocationMessageCreate,
+    ReactionMessageCreate, StickerMessageCreate, ContactMessageCreate,
     MessageResponse, MessageSendResponse, ConversationPreview,
     TemplateSendRequest, TemplateCreate, TemplateResponse,
     ConversationDetail
@@ -73,6 +74,96 @@ def send_location(
     """Send location"""
     msg_id, saved = service.send_location(db, tenant_id, data)
     return {"ok": True, "message_id": msg_id}
+
+@router.post("/send/reaction")
+def send_reaction(
+    data: ReactionMessageCreate,
+    db: Session = Depends(get_db),
+    tenant_id: str = Depends(get_tenant_id_flexible),
+    service: MessageService = Depends(get_message_service)
+):
+    """Send reaction"""
+    msg_id, saved = service.send_reaction(db, tenant_id, data)
+    return {"ok": True, "message_id": msg_id}
+
+@router.post("/send/sticker")
+def send_sticker(
+    data: StickerMessageCreate,
+    db: Session = Depends(get_db),
+    tenant_id: str = Depends(get_tenant_id_flexible),
+    service: MessageService = Depends(get_message_service)
+):
+    """Send sticker"""
+    msg_id, saved = service.send_sticker(db, tenant_id, data)
+    return {"ok": True, "message_id": msg_id}
+
+@router.post("/send/contact")
+def send_contact(
+    data: ContactMessageCreate,
+    db: Session = Depends(get_db),
+    tenant_id: str = Depends(get_tenant_id_flexible),
+    service: MessageService = Depends(get_message_service)
+):
+    """Send contact"""
+    msg_id, saved = service.send_contact(db, tenant_id, data)
+    return {"ok": True, "message_id": msg_id}
+
+@router.post("/upload/media")
+async def upload_media(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    tenant_id: str = Depends(get_tenant_id_flexible),
+    service: MessageService = Depends(get_message_service)
+):
+    """
+    Upload media to WhatsApp and get media_id.
+    Use this media_id in /send/media endpoint.
+    """
+    try:
+        # Read file content
+        content = await file.read()
+        
+        # Upload to WhatsApp
+        media_id = service.upload_media(
+            db=db,
+            tenant_id=tenant_id,
+            media_bytes=content,
+            mime_type=file.content_type or "application/octet-stream",
+            filename=file.filename
+        )
+        
+        return {
+            "ok": True, 
+            "media_id": media_id,
+            "filename": file.filename,
+            "mime_type": file.content_type
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/media/{media_id}")
+async def get_media(
+    media_id: str,
+    db: Session = Depends(get_db),
+    tenant_id: str = Depends(get_tenant_id_flexible),
+    service: MessageService = Depends(get_message_service)
+):
+    """
+    Get media content by ID.
+    Streams the content back to the client.
+    """
+    try:
+        content, mime_type, filename = service.get_media(db, media_id)
+        
+        # Set Content-Disposition header for filename
+        headers = {
+           
+            "Content-Disposition": f'inline; filename="{filename}"'
+        }
+        
+        return Response(content=content, media_type=mime_type or "application/octet-stream", headers=headers)
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=f"Media not found: {str(e)}")
 
 @router.get("/messages", response_model=List[MessageResponse])
 def list_messages(

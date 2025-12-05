@@ -79,3 +79,4 @@
 2025-12-02 01:02:37 | DEBUG    | httpcore.http11                | _trace.py:47 | response_closed.complete
 2025-12-02 01:02:37 | [32mINFO[0m | whatspy.message_service        | message_service.py:89 | ✅ Message sent to +919142982138: wamid.HBgMOTE5MTQyOTgyMTM4FQIAERgSQzdENDhERTdCQzU3NTRGMDREAA==
 2025-12-02 01:02:37 | [32mINFO[0m | whatspy.message_service        | message_service.py:553 | 💾 Saving message: outgoing text to/from +919142982138
+2025-12-02 01:02:39 | [32mINFO[0m | whatspy.message_service        | message_service.py:580 | ✅ Message saved: ID=29, outgoing, +919142982138

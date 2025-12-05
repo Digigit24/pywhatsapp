@@ -8,20 +8,28 @@ FIXES:
 - Better error handling and logging
 - Direction field saved correctly (was missing in some places)
 - ✅ WebSocket broadcasting for incoming messages
+- ✅ Media persistence (local storage + DB)
 """
 import logging
+import os
+import uuid
+import mimetypes
 from typing import List, Optional, Dict, Any, Tuple
 from datetime import datetime
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, or_, func
 
 from app.models.message import Message, MessageTemplate
+from app.models.media import Media
 from app.schemas.message import (
     MessageCreate, MediaMessageCreate, LocationMessageCreate,
     TemplateCreate, TemplateUpdate, TemplateSendRequest
 )
 
 log = logging.getLogger("whatspy.message_service")
+
+# Configuration for media storage
+MEDIA_STORAGE_PATH = "app/static/media"
 
 def _normalize_phone(phone: Optional[str]) -> Optional[str]:
     """
@@ -46,6 +54,9 @@ class MessageService:
             wa_client: PyWa WhatsApp client instance (optional)
         """
         self.wa = wa_client
+        
+        # Ensure media directory exists
+        os.makedirs(MEDIA_STORAGE_PATH, exist_ok=True)
     
     # ────────────────────────────────────────────
     # Send Messages
@@ -116,30 +127,53 @@ class MessageService:
         message_id = None
         normalized_phone = _normalize_phone(data.to)
         
+        # Check if media_id is a UUID (internal) or WhatsApp ID
+        whatsapp_media_id = data.media_id
+        
+        # Try to look up in Media table if it looks like a UUID (or just try anyway)
+        try:
+            media_record = db.query(Media).filter(
+                Media.id == data.media_id,
+                Media.tenant_id == tenant_id
+            ).first()
+            
+            if media_record and media_record.whatsapp_media_id:
+                whatsapp_media_id = media_record.whatsapp_media_id
+                log.info(f"🔄 Resolved internal media ID {data.media_id} to WhatsApp ID {whatsapp_media_id}")
+        except Exception:
+            # If invalid UUID or DB error, assume it's a direct WhatsApp ID
+            pass
+        
         if self.wa:
             try:
                 if data.media_type == "image":
                     response = self.wa.send_image(
                         to=data.to,
-                        image=data.media_id,
+                        image=whatsapp_media_id,
                         caption=data.caption
                     )
                 elif data.media_type == "video":
                     response = self.wa.send_video(
                         to=data.to,
-                        video=data.media_id,
+                        video=whatsapp_media_id,
                         caption=data.caption
                     )
                 elif data.media_type == "audio":
                     response = self.wa.send_audio(
                         to=data.to,
-                        audio=data.media_id
+                        audio=whatsapp_media_id
                     )
                 elif data.media_type == "document":
+                    # Get filename from DB if available
+                    doc_filename = None
+                    if media_record:
+                        doc_filename = media_record.filename
+                        
                     response = self.wa.send_document(
                         to=data.to,
-                        document=data.media_id,
-                        caption=data.caption
+                        document=whatsapp_media_id,
+                        caption=data.caption,
+                        filename=doc_filename
                     )
                 else:
                     raise ValueError(f"Invalid media type: {data.media_type}")
@@ -159,7 +193,7 @@ class MessageService:
             text=data.caption or f"({data.media_type})",
             message_type=data.media_type,
             direction="outgoing",
-            metadata={"media_id": data.media_id}
+            metadata={"media_id": whatsapp_media_id, "internal_media_id": data.media_id}
         )
         
         return message_id, saved_message
@@ -211,6 +245,269 @@ class MessageService:
         )
         
         return message_id, saved_message
+
+    def send_reaction(
+        self,
+        db: Session,
+        tenant_id: str,
+        data: Any # ReactionMessageCreate
+    ) -> Tuple[Optional[str], Message]:
+        """Send reaction to a message"""
+        message_id = None
+        normalized_phone = _normalize_phone(data.to)
+        
+        if self.wa:
+            try:
+                response = self.wa.send_reaction(
+                    to=data.to,
+                    emoji=data.emoji,
+                    message_id=data.message_id
+                )
+                # Reaction responses might not have an ID we can use, but let's try
+                message_id = str(response) if response else None
+                log.info(f"✅ Reaction sent to {normalized_phone}")
+            except Exception as e:
+                log.error(f"❌ Failed to send reaction: {e}")
+                raise
+        
+        # Save to database (as a message of type 'reaction')
+        saved_message = self._save_message(
+            db=db,
+            tenant_id=tenant_id,
+            message_id=message_id,
+            phone=normalized_phone,
+            text=data.emoji,
+            message_type="reaction",
+            direction="outgoing",
+            metadata={"reacted_to": data.message_id}
+        )
+        
+        return message_id, saved_message
+
+    def send_sticker(
+        self,
+        db: Session,
+        tenant_id: str,
+        data: Any # StickerMessageCreate
+    ) -> Tuple[Optional[str], Message]:
+        """Send sticker"""
+        message_id = None
+        normalized_phone = _normalize_phone(data.to)
+        
+        if self.wa:
+            try:
+                response = self.wa.send_sticker(
+                    to=data.to,
+                    sticker=data.sticker
+                )
+                message_id = str(response) if response else None
+                log.info(f"✅ Sticker sent to {normalized_phone}")
+            except Exception as e:
+                log.error(f"❌ Failed to send sticker: {e}")
+                raise
+        
+        saved_message = self._save_message(
+            db=db,
+            tenant_id=tenant_id,
+            message_id=message_id,
+            phone=normalized_phone,
+            text="(sticker)",
+            message_type="sticker",
+            direction="outgoing",
+            metadata={"sticker": data.sticker}
+        )
+        
+        return message_id, saved_message
+
+    def send_contact(
+        self,
+        db: Session,
+        tenant_id: str,
+        data: Any # ContactMessageCreate
+    ) -> Tuple[Optional[str], Message]:
+        """Send contact card"""
+        message_id = None
+        normalized_phone = _normalize_phone(data.to)
+        
+        if self.wa:
+            try:
+                from pywa.types import Contact
+                
+                contact_obj = Contact(
+                    name=Contact.Name(formatted_name=data.name, first_name=data.name),
+                    phones=[Contact.Phone(phone=data.phone)] if data.phone else [],
+                    emails=[Contact.Email(email=data.email)] if data.email else [],
+                    urls=[Contact.Url(url=data.url)] if data.url else []
+                )
+                
+                response = self.wa.send_contact(
+                    to=data.to,
+                    contact=contact_obj
+                )
+                message_id = str(response) if response else None
+                log.info(f"✅ Contact sent to {normalized_phone}")
+            except Exception as e:
+                log.error(f"❌ Failed to send contact: {e}")
+                raise
+        
+        saved_message = self._save_message(
+            db=db,
+            tenant_id=tenant_id,
+            message_id=message_id,
+            phone=normalized_phone,
+            text=f"Contact: {data.name}",
+            message_type="contact",
+            direction="outgoing",
+            metadata={
+                "contact_name": data.name,
+                "contact_phone": data.phone
+            }
+        )
+        
+        return message_id, saved_message
+    
+    def upload_media(
+        self,
+        db: Session,
+        tenant_id: str,
+        media_bytes: bytes,
+        mime_type: str,
+        filename: Optional[str] = None
+    ) -> str:
+        """
+        Upload media to WhatsApp servers AND persist locally/DB.
+        
+        Args:
+            db: Database session
+            tenant_id: Tenant ID
+            media_bytes: Binary content
+            mime_type: MIME type
+            filename: Original filename
+            
+        Returns:
+            media_id: The INTERNAL UUID of the media record
+        """
+        if not self.wa:
+            raise RuntimeError("WhatsApp client not initialized")
+            
+        try:
+            # 1. Generate unique filename and save to disk
+            ext = mimetypes.guess_extension(mime_type) or ".bin"
+            if filename:
+                # Keep original extension if possible, but sanitize
+                _, orig_ext = os.path.splitext(filename)
+                if orig_ext:
+                    ext = orig_ext
+            
+            unique_filename = f"{uuid.uuid4()}{ext}"
+            file_path = os.path.join(MEDIA_STORAGE_PATH, unique_filename)
+            
+            with open(file_path, "wb") as f:
+                f.write(media_bytes)
+            
+            log.info(f"💾 Media saved locally: {file_path}")
+            
+            # 2. Upload to WhatsApp
+            # Note: We upload the bytes we received
+            response = self.wa.upload_media(
+                media=media_bytes,
+                mime_type=mime_type,
+                filename=filename or unique_filename
+            )
+            
+            whatsapp_media_id = None
+            if hasattr(response, 'id'):
+                whatsapp_media_id = response.id
+            elif isinstance(response, str):
+                whatsapp_media_id = response
+            else:
+                whatsapp_media_id = str(response)
+                
+            log.info(f"✅ Media uploaded to WhatsApp: {whatsapp_media_id}")
+            
+            # 3. Save to Database
+            internal_id = str(uuid.uuid4())
+            
+            media_record = Media(
+                id=internal_id,
+                tenant_id=tenant_id,
+                filename=filename or unique_filename,
+                mime_type=mime_type,
+                file_size=len(media_bytes),
+                whatsapp_media_id=whatsapp_media_id,
+                storage_path=file_path
+            )
+            
+            db.add(media_record)
+            db.commit()
+            db.refresh(media_record)
+            
+            return str(media_record.id)
+                
+        except Exception as e:
+            log.error(f"❌ Failed to upload/save media: {e}")
+            raise
+
+    def get_media(self, db: Session, media_id: str) -> Tuple[bytes, str, Optional[str]]:
+        """
+        Get media content by ID (Internal UUID) or WhatsApp Media ID.
+        
+        Args:
+            db: Database session
+            media_id: Internal Media UUID or WhatsApp Media ID
+            
+        Returns:
+            Tuple of (media_bytes, mime_type, filename)
+        """
+        try:
+            # 1. Look up in DB by UUID
+            media_record = db.query(Media).filter(Media.id == media_id).first()
+            
+            # 2. If not found, try looking up by WhatsApp Media ID
+            if not media_record:
+                media_record = db.query(Media).filter(Media.whatsapp_media_id == media_id).first()
+
+            if not media_record:
+                # Fallback: maybe it's a WhatsApp Media ID?
+                # If so, try to fetch from WhatsApp directly (legacy support)
+                if self.wa:
+                    try:
+                        log.info(f"🔄 Media record not found for {media_id}, trying direct WhatsApp download...")
+                        url = self.wa.get_media_url(media_id)
+                        content = self.wa.download_media(url=url, in_memory=True)
+                        # Try to guess extension from mime type if possible, or default
+                        return content, "application/octet-stream", f"{media_id}.bin"
+                    except Exception as e:
+                        log.warning(f"⚠️ Direct WhatsApp download failed for {media_id}: {e}")
+                        # Continue to raise ValueError below
+                        pass
+                raise ValueError(f"Media not found: {media_id}")
+            
+            # 3. Read from disk
+            if media_record.storage_path and os.path.exists(media_record.storage_path):
+                with open(media_record.storage_path, "rb") as f:
+                    content = f.read()
+                return content, media_record.mime_type, media_record.filename
+            
+            # 4. If file missing but we have WhatsApp ID, try to re-download
+            if media_record.whatsapp_media_id and self.wa:
+                log.warning(f"⚠️ Local file missing for {media_id}, fetching from WhatsApp...")
+                try:
+                    url = self.wa.get_media_url(media_record.whatsapp_media_id)
+                    content = self.wa.download_media(url=url, in_memory=True)
+                    
+                    # Optionally re-save to disk (future improvement)
+                    
+                    return content, media_record.mime_type, media_record.filename
+                except Exception as e:
+                    log.error(f"❌ Failed to re-download media {media_record.whatsapp_media_id}: {e}")
+                    raise
+                
+            raise FileNotFoundError(f"Media file not found for {media_id}")
+            
+        except Exception as e:
+            log.error(f"❌ Failed to get media: {e}")
+            raise
     
     # ────────────────────────────────────────────
     # Retrieve Messages

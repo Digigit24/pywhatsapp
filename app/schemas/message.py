@@ -72,6 +72,28 @@ class LocationMessageCreate(BaseModel):
     address: Optional[str] = Field(None, max_length=500)
 
 
+class ReactionMessageCreate(BaseModel):
+    """Schema for sending reaction"""
+    to: str = Field(..., description="Recipient phone number")
+    emoji: str = Field(..., description="Emoji to react with")
+    message_id: str = Field(..., description="Message ID to react to")
+
+
+class StickerMessageCreate(BaseModel):
+    """Schema for sending sticker"""
+    to: str = Field(..., description="Recipient phone number")
+    sticker: str = Field(..., description="Sticker ID or URL")
+
+
+class ContactMessageCreate(BaseModel):
+    """Schema for sending contact"""
+    to: str = Field(..., description="Recipient phone number")
+    name: str = Field(..., description="Contact name")
+    phone: Optional[str] = Field(None, description="Contact phone")
+    email: Optional[str] = Field(None, description="Contact email")
+    url: Optional[str] = Field(None, description="Contact URL")
+
+
 class MarkAsReadRequest(BaseModel):
     """Schema for marking message as read"""
     message_id: str = Field(..., description="WhatsApp message ID")

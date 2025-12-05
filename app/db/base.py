@@ -9,5 +9,6 @@ from app.models.contact import Contact
 from app.models.group import Group
 from app.models.campaign import Campaign
 from app.models.template import WhatsAppTemplate, TemplateSendLog
+from app.models.media import Media
 
 __all__ = ["Base"]
