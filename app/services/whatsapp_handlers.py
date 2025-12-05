@@ -16,6 +16,7 @@ from app.models.webhook import WebhookLog
 from datetime import datetime
 from app.core.config import DEFAULT_TENANT_ID
 from app.ws.manager import notify_clients_sync
+from sqlalchemy import text
 
 log = logging.getLogger("whatspy.handlers")
 
@@ -111,18 +112,32 @@ def register_handlers(wa_client):
                         }
                     )
                     db.add(webhook_log)
-                    db.commit()
-                    log.info(f"📝 Webhook logged: {msg_type} from {formatted_phone}")
+
+                    try:
+                        db.commit()
+                        log.info(f"📝 Webhook logged: {msg_type} from {formatted_phone}")
+                    except Exception as commit_error:
+                        log.error(f"❌ Failed to commit webhook log: {commit_error}")
+                        db.rollback()
+                        # Continue - webhook logging is not critical
+
                 except Exception as e:
                     log.error(f"❌ Failed to log webhook: {e}")
+                    try:
+                        db.rollback()
+                    except:
+                        pass
+                    # Continue - webhook logging is not critical
                 
-                # Save or update contact
+                # Save or update contact intelligently
                 try:
+                    log.debug(f"🔍 Checking if contact exists: {formatted_phone}")
+
                     contact = db.query(Contact).filter(
                         Contact.tenant_id == tenant_id,
                         Contact.phone == formatted_phone
                     ).first()
-                    
+
                     if not contact:
                         log.info(f"➕ Creating new contact: {formatted_phone}")
                         contact = Contact(
@@ -132,16 +147,53 @@ def register_handlers(wa_client):
                             last_seen=datetime.utcnow().isoformat()
                         )
                         db.add(contact)
+
+                        try:
+                            db.flush()  # Flush to catch constraint violations immediately
+                            log.debug(f"✅ New contact flushed successfully")
+                        except Exception as flush_error:
+                            # If flush fails due to duplicate (race condition), rollback and re-query
+                            log.warning(f"⚠️ Contact insert failed (likely duplicate), rolling back and re-querying: {flush_error}")
+                            db.rollback()
+
+                            # Re-query to get the existing contact
+                            contact = db.query(Contact).filter(
+                                Contact.tenant_id == tenant_id,
+                                Contact.phone == formatted_phone
+                            ).first()
+
+                            if contact:
+                                log.info(f"🔄 Found existing contact after rollback, updating: {formatted_phone}")
+                                if name and contact.name != name:
+                                    contact.name = name
+                                contact.last_seen = datetime.utcnow().isoformat()
+                            else:
+                                log.error(f"❌ Contact still not found after rollback, skipping contact save")
+                                # Don't raise - continue with message save
                     else:
                         log.info(f"🔄 Updating existing contact: {formatted_phone}")
                         if name and contact.name != name:
+                            log.debug(f"📝 Updating contact name: {contact.name} -> {name}")
                             contact.name = name
                         contact.last_seen = datetime.utcnow().isoformat()
-                    
-                    db.commit()
-                    log.info(f"✅ Contact saved: {formatted_phone}")
+
+                    # Commit contact changes
+                    try:
+                        db.commit()
+                        log.info(f"✅ Contact saved/updated successfully: {formatted_phone}")
+                    except Exception as commit_error:
+                        log.error(f"❌ Failed to commit contact changes: {commit_error}")
+                        db.rollback()
+                        # Don't raise - continue with message save
+
                 except Exception as e:
-                    log.error(f"❌ Failed to save contact: {e}")
+                    log.error(f"❌ Contact save/update error: {e}")
+                    log.debug(f"🔄 Rolling back contact transaction")
+                    try:
+                        db.rollback()
+                    except:
+                        pass
+                    # Don't raise - continue with message save even if contact save fails
                 
                 # Extract text content and download media based on message type
                 media_id = None
@@ -232,6 +284,26 @@ def register_handlers(wa_client):
                 log.info("━"*80)
                 log.info("💾 SAVING INCOMING MESSAGE TO DATABASE")
                 log.info("━"*80)
+
+                # Safety check: ensure database session is in a clean state
+                # If previous operations failed, session might be in rollback state
+                try:
+                    from sqlalchemy.exc import PendingRollbackError
+                    # Test the session by executing a simple query
+                    db.execute(text("SELECT 1"))
+                    log.debug("✅ Database session is clean and ready")
+                except PendingRollbackError:
+                    log.warning("⚠️ Session in rollback state, rolling back to clean state")
+                    db.rollback()
+                    log.debug("✅ Session rolled back successfully")
+                except Exception as session_check_error:
+                    log.warning(f"⚠️ Session check error, attempting rollback: {session_check_error}")
+                    try:
+                        db.rollback()
+                        log.debug("✅ Session rolled back successfully")
+                    except:
+                        pass  # If rollback fails, continue anyway
+
                 try:
                     # Build metadata
                     metadata_dict = {
