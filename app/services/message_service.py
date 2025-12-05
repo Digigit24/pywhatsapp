@@ -45,50 +45,50 @@ def _normalize_phone(phone: Optional[str]) -> Optional[str]:
 
 class MessageService:
     """Service for message operations"""
-    
+
     def __init__(self, wa_client=None):
         """
         Initialize service with optional WhatsApp client.
-        
+
         Args:
             wa_client: PyWa WhatsApp client instance (optional)
         """
         self.wa = wa_client
-        
+
         # Ensure media directory exists
         os.makedirs(MEDIA_STORAGE_PATH, exist_ok=True)
-    
+
     # ────────────────────────────────────────────
     # Send Messages
     # ────────────────────────────────────────────
-    
+
     def send_text_message(
-        self, 
-        db: Session, 
-        tenant_id: str, 
+        self,
+        db: Session,
+        tenant_id: str,
         data: MessageCreate
     ) -> Tuple[Optional[str], Message]:
         """
         Send text message via WhatsApp and store in database.
-        
+
         Args:
             db: Database session
             tenant_id: Tenant identifier
             data: Message data
-            
+
         Returns:
             Tuple of (message_id, saved_message)
         """
         message_id = None
-        
+
         # Normalize phone number
         normalized_phone = _normalize_phone(data.to)
-        
+
         # Send via WhatsApp if client available
         if self.wa:
             try:
                 response = self.wa.send_text(to=data.to, text=data.text)
-                
+
                 # Extract message ID
                 if hasattr(response, 'id'):
                     message_id = response.id
@@ -96,14 +96,14 @@ class MessageService:
                     message_id = response
                 else:
                     message_id = str(response) if response else None
-                
+
                 log.info(f"✅ Message sent to {normalized_phone}: {message_id}")
             except Exception as e:
                 log.error(f"❌ Failed to send message: {e}")
                 raise
         else:
             log.warning("WhatsApp client not available - message not sent")
-        
+
         # Save to database
         saved_message = self._save_message(
             db=db,
@@ -114,9 +114,9 @@ class MessageService:
             message_type="text",
             direction="outgoing"
         )
-        
+
         return message_id, saved_message
-    
+
     def send_media_message(
         self,
         db: Session,
@@ -126,24 +126,24 @@ class MessageService:
         """Send media message (image, video, audio, document)"""
         message_id = None
         normalized_phone = _normalize_phone(data.to)
-        
+
         # Check if media_id is a UUID (internal) or WhatsApp ID
         whatsapp_media_id = data.media_id
-        
+
         # Try to look up in Media table if it looks like a UUID (or just try anyway)
         try:
             media_record = db.query(Media).filter(
                 Media.id == data.media_id,
                 Media.tenant_id == tenant_id
             ).first()
-            
+
             if media_record and media_record.whatsapp_media_id:
                 whatsapp_media_id = media_record.whatsapp_media_id
                 log.info(f"🔄 Resolved internal media ID {data.media_id} to WhatsApp ID {whatsapp_media_id}")
         except Exception:
             # If invalid UUID or DB error, assume it's a direct WhatsApp ID
             pass
-        
+
         if self.wa:
             try:
                 if data.media_type == "image":
@@ -168,7 +168,7 @@ class MessageService:
                     doc_filename = None
                     if media_record:
                         doc_filename = media_record.filename
-                        
+
                     response = self.wa.send_document(
                         to=data.to,
                         document=whatsapp_media_id,
@@ -177,13 +177,13 @@ class MessageService:
                     )
                 else:
                     raise ValueError(f"Invalid media type: {data.media_type}")
-                
+
                 message_id = str(response) if response else None
                 log.info(f"✅ Media sent to {normalized_phone}: {message_id}")
             except Exception as e:
                 log.error(f"❌ Failed to send media: {e}")
                 raise
-        
+
         # Save to database
         saved_message = self._save_message(
             db=db,
@@ -195,9 +195,9 @@ class MessageService:
             direction="outgoing",
             metadata={"media_id": whatsapp_media_id, "internal_media_id": data.media_id}
         )
-        
+
         return message_id, saved_message
-    
+
     def send_location(
         self,
         db: Session,
@@ -207,7 +207,7 @@ class MessageService:
         """Send location message"""
         message_id = None
         normalized_phone = _normalize_phone(data.to)
-        
+
         if self.wa:
             try:
                 response = self.wa.send_location(
@@ -222,12 +222,12 @@ class MessageService:
             except Exception as e:
                 log.error(f"❌ Failed to send location: {e}")
                 raise
-        
+
         # Save to database
         text = f"Location: {data.latitude}, {data.longitude}"
         if data.name:
             text = f"{data.name} - {text}"
-        
+
         saved_message = self._save_message(
             db=db,
             tenant_id=tenant_id,
@@ -243,7 +243,7 @@ class MessageService:
                 "address": data.address
             }
         )
-        
+
         return message_id, saved_message
 
     def send_reaction(
@@ -255,7 +255,7 @@ class MessageService:
         """Send reaction to a message"""
         message_id = None
         normalized_phone = _normalize_phone(data.to)
-        
+
         if self.wa:
             try:
                 response = self.wa.send_reaction(
@@ -269,7 +269,7 @@ class MessageService:
             except Exception as e:
                 log.error(f"❌ Failed to send reaction: {e}")
                 raise
-        
+
         # Save to database (as a message of type 'reaction')
         saved_message = self._save_message(
             db=db,
@@ -281,7 +281,7 @@ class MessageService:
             direction="outgoing",
             metadata={"reacted_to": data.message_id}
         )
-        
+
         return message_id, saved_message
 
     def send_sticker(
@@ -293,7 +293,7 @@ class MessageService:
         """Send sticker"""
         message_id = None
         normalized_phone = _normalize_phone(data.to)
-        
+
         if self.wa:
             try:
                 response = self.wa.send_sticker(
@@ -305,7 +305,7 @@ class MessageService:
             except Exception as e:
                 log.error(f"❌ Failed to send sticker: {e}")
                 raise
-        
+
         saved_message = self._save_message(
             db=db,
             tenant_id=tenant_id,
@@ -316,7 +316,7 @@ class MessageService:
             direction="outgoing",
             metadata={"sticker": data.sticker}
         )
-        
+
         return message_id, saved_message
 
     def send_contact(
@@ -328,18 +328,18 @@ class MessageService:
         """Send contact card"""
         message_id = None
         normalized_phone = _normalize_phone(data.to)
-        
+
         if self.wa:
             try:
                 from pywa.types import Contact
-                
+
                 contact_obj = Contact(
                     name=Contact.Name(formatted_name=data.name, first_name=data.name),
                     phones=[Contact.Phone(phone=data.phone)] if data.phone else [],
                     emails=[Contact.Email(email=data.email)] if data.email else [],
                     urls=[Contact.Url(url=data.url)] if data.url else []
                 )
-                
+
                 response = self.wa.send_contact(
                     to=data.to,
                     contact=contact_obj
@@ -349,7 +349,7 @@ class MessageService:
             except Exception as e:
                 log.error(f"❌ Failed to send contact: {e}")
                 raise
-        
+
         saved_message = self._save_message(
             db=db,
             tenant_id=tenant_id,
@@ -363,9 +363,9 @@ class MessageService:
                 "contact_phone": data.phone
             }
         )
-        
+
         return message_id, saved_message
-    
+
     def upload_media(
         self,
         db: Session,
@@ -376,20 +376,20 @@ class MessageService:
     ) -> str:
         """
         Upload media to WhatsApp servers AND persist locally/DB.
-        
+
         Args:
             db: Database session
             tenant_id: Tenant ID
             media_bytes: Binary content
             mime_type: MIME type
             filename: Original filename
-            
+
         Returns:
             media_id: The INTERNAL UUID of the media record
         """
         if not self.wa:
             raise RuntimeError("WhatsApp client not initialized")
-            
+
         try:
             # 1. Generate unique filename and save to disk
             ext = mimetypes.guess_extension(mime_type) or ".bin"
@@ -398,15 +398,15 @@ class MessageService:
                 _, orig_ext = os.path.splitext(filename)
                 if orig_ext:
                     ext = orig_ext
-            
+
             unique_filename = f"{uuid.uuid4()}{ext}"
             file_path = os.path.join(MEDIA_STORAGE_PATH, unique_filename)
-            
+
             with open(file_path, "wb") as f:
                 f.write(media_bytes)
-            
+
             log.info(f"💾 Media saved locally: {file_path}")
-            
+
             # 2. Upload to WhatsApp
             # Note: We upload the bytes we received
             response = self.wa.upload_media(
@@ -414,7 +414,7 @@ class MessageService:
                 mime_type=mime_type,
                 filename=filename or unique_filename
             )
-            
+
             whatsapp_media_id = None
             if hasattr(response, 'id'):
                 whatsapp_media_id = response.id
@@ -422,12 +422,12 @@ class MessageService:
                 whatsapp_media_id = response
             else:
                 whatsapp_media_id = str(response)
-                
+
             log.info(f"✅ Media uploaded to WhatsApp: {whatsapp_media_id}")
-            
+
             # 3. Save to Database
             internal_id = str(uuid.uuid4())
-            
+
             media_record = Media(
                 id=internal_id,
                 tenant_id=tenant_id,
@@ -437,13 +437,13 @@ class MessageService:
                 whatsapp_media_id=whatsapp_media_id,
                 storage_path=file_path
             )
-            
+
             db.add(media_record)
             db.commit()
             db.refresh(media_record)
-            
+
             return str(media_record.id)
-                
+
         except Exception as e:
             log.error(f"❌ Failed to upload/save media: {e}")
             raise
@@ -451,18 +451,18 @@ class MessageService:
     def get_media(self, db: Session, media_id: str) -> Tuple[bytes, str, Optional[str]]:
         """
         Get media content by ID (Internal UUID) or WhatsApp Media ID.
-        
+
         Args:
             db: Database session
             media_id: Internal Media UUID or WhatsApp Media ID
-            
+
         Returns:
             Tuple of (media_bytes, mime_type, filename)
         """
         try:
             # 1. Look up in DB by UUID
             media_record = db.query(Media).filter(Media.id == media_id).first()
-            
+
             # 2. If not found, try looking up by WhatsApp Media ID
             if not media_record:
                 media_record = db.query(Media).filter(Media.whatsapp_media_id == media_id).first()
@@ -482,37 +482,37 @@ class MessageService:
                         # Continue to raise ValueError below
                         pass
                 raise ValueError(f"Media not found: {media_id}")
-            
+
             # 3. Read from disk
             if media_record.storage_path and os.path.exists(media_record.storage_path):
                 with open(media_record.storage_path, "rb") as f:
                     content = f.read()
                 return content, media_record.mime_type, media_record.filename
-            
+
             # 4. If file missing but we have WhatsApp ID, try to re-download
             if media_record.whatsapp_media_id and self.wa:
                 log.warning(f"⚠️ Local file missing for {media_id}, fetching from WhatsApp...")
                 try:
                     url = self.wa.get_media_url(media_record.whatsapp_media_id)
                     content = self.wa.download_media(url=url, in_memory=True)
-                    
+
                     # Optionally re-save to disk (future improvement)
-                    
+
                     return content, media_record.mime_type, media_record.filename
                 except Exception as e:
                     log.error(f"❌ Failed to re-download media {media_record.whatsapp_media_id}: {e}")
                     raise
-                
+
             raise FileNotFoundError(f"Media file not found for {media_id}")
-            
+
         except Exception as e:
             log.error(f"❌ Failed to get media: {e}")
             raise
-    
+
     # ────────────────────────────────────────────
     # Retrieve Messages
     # ────────────────────────────────────────────
-    
+
     def get_messages(
         self,
         db: Session,
@@ -524,27 +524,27 @@ class MessageService:
     ) -> Tuple[List[Message], int]:
         """
         Get messages with filtering and pagination.
-        
+
         Returns:
             Tuple of (messages, total_count)
         """
         query = db.query(Message).filter(Message.tenant_id == tenant_id)
-        
+
         # Apply filters
         if phone:
             normalized_phone = _normalize_phone(phone)
             query = query.filter(Message.phone == normalized_phone)
         if direction:
             query = query.filter(Message.direction == direction)
-        
+
         # Get total count
         total = query.count()
-        
+
         # Apply pagination and sorting
         messages = query.order_by(desc(Message.created_at)).offset(skip).limit(limit).all()
-        
+
         return messages, total
-    
+
     def get_conversation(
         self,
         db: Session,
@@ -553,14 +553,14 @@ class MessageService:
     ) -> List[Message]:
         """Get full conversation with a phone number"""
         normalized_phone = _normalize_phone(phone)
-        
+
         messages = db.query(Message).filter(
             Message.tenant_id == tenant_id,
             Message.phone == normalized_phone
         ).order_by(Message.created_at).all()
-        
+
         return messages
-    
+
     def get_conversations(
         self,
         db: Session,
@@ -568,7 +568,7 @@ class MessageService:
     ) -> List[Dict[str, Any]]:
         """
         Get all conversations with last message preview.
-        
+
         Returns list of conversation summaries.
         """
         # Get latest message for each phone
@@ -578,16 +578,16 @@ class MessageService:
         ).filter(
             Message.tenant_id == tenant_id
         ).group_by(Message.phone).subquery()
-        
+
         # Join to get full message details
         conversations = db.query(Message).join(
             subquery,
-            (Message.phone == subquery.c.phone) & 
+            (Message.phone == subquery.c.phone) &
             (Message.created_at == subquery.c.last_timestamp)
         ).filter(
             Message.tenant_id == tenant_id
         ).order_by(desc(Message.created_at)).all()
-        
+
         # Build response
         result = []
         for msg in conversations:
@@ -595,7 +595,7 @@ class MessageService:
                 Message.tenant_id == tenant_id,
                 Message.phone == msg.phone
             ).count()
-            
+
             result.append({
                 "phone": msg.phone,
                 "name": msg.contact_name or msg.phone,
@@ -605,9 +605,9 @@ class MessageService:
                 "message_count": msg_count,
                 "direction": msg.direction
             })
-        
+
         return result
-    
+
     def delete_conversation(
         self,
         db: Session,
@@ -616,26 +616,26 @@ class MessageService:
     ) -> int:
         """
         Delete all messages for a phone number.
-        
+
         Returns:
             Number of messages deleted
         """
         normalized_phone = _normalize_phone(phone)
-        
+
         deleted = db.query(Message).filter(
             Message.tenant_id == tenant_id,
             Message.phone == normalized_phone
         ).delete()
-        
+
         db.commit()
         log.info(f"🗑️  Deleted {deleted} messages for {normalized_phone}")
-        
+
         return deleted
-    
+
     # ────────────────────────────────────────────
     # Save Incoming Messages
     # ────────────────────────────────────────────
-    
+
     def save_incoming_message(
         self,
         db: Session,
@@ -649,7 +649,7 @@ class MessageService:
     ) -> Message:
         """
         Save incoming message to database and broadcast via WebSocket
-        
+
         CRITICAL: This is called by webhook handler for incoming messages
         ✅ NOW BROADCASTS TO WEBSOCKET CLIENTS
         """
@@ -664,13 +664,13 @@ class MessageService:
             direction="incoming",
             metadata=metadata
         )
-        
+
         # ✅ BROADCAST TO WEBSOCKET CLIENTS
         try:
             from app.ws.manager import notify_clients_sync
-            
+
             log.info(f"📢 Broadcasting incoming message to tenant {tenant_id}: {phone}")
-            
+
             notify_clients_sync(tenant_id, {
                 "event": "message_incoming",
                 "data": {
@@ -690,16 +690,16 @@ class MessageService:
                     }
                 }
             })
-            
+
             log.info(f"✅ WebSocket broadcast successful for incoming message")
-            
+
         except Exception as ws_err:
             log.error(f"❌ WebSocket broadcast failed for incoming message: {ws_err}")
             import traceback
             log.error(traceback.format_exc())
-        
+
         return saved_message
-    
+
     def save_outgoing_message(
         self,
         db: Session,
@@ -726,11 +726,11 @@ class MessageService:
             direction="outgoing",
             metadata=metadata
         )
-    
+
     # ────────────────────────────────────────────
     # Message Templates
     # ────────────────────────────────────────────
-    
+
     def create_template(
         self,
         db: Session,
@@ -743,10 +743,10 @@ class MessageService:
             MessageTemplate.tenant_id == tenant_id,
             MessageTemplate.name == data.name
         ).first()
-        
+
         if existing:
             raise ValueError(f"Template '{data.name}' already exists")
-        
+
         template = MessageTemplate(
             tenant_id=tenant_id,
             name=data.name,
@@ -754,14 +754,14 @@ class MessageService:
             variables=data.variables,
             category=data.category
         )
-        
+
         db.add(template)
         db.commit()
         db.refresh(template)
-        
+
         log.info(f"✅ Template '{data.name}' created")
         return template
-    
+
     def get_templates(
         self,
         db: Session,
@@ -772,12 +772,12 @@ class MessageService:
         query = db.query(MessageTemplate).filter(
             MessageTemplate.tenant_id == tenant_id
         )
-        
+
         if category:
             query = query.filter(MessageTemplate.category == category)
-        
+
         return query.order_by(desc(MessageTemplate.created_at)).all()
-    
+
     def send_template_message(
         self,
         db: Session,
@@ -790,38 +790,38 @@ class MessageService:
             MessageTemplate.tenant_id == tenant_id,
             MessageTemplate.name == data.template_name
         ).first()
-        
+
         if not template:
             raise ValueError(f"Template '{data.template_name}' not found")
-        
+
         # Replace variables
         content = template.content
         for var_name, var_value in data.variables.items():
             placeholder = "{{" + var_name + "}}"
             content = content.replace(placeholder, var_value)
-        
+
         # Check for unreplaced variables
         if "{{" in content and "}}" in content:
             raise ValueError(
                 f"Not all variables replaced. Template requires: {template.variables}"
             )
-        
+
         # Send message
         message_data = MessageCreate(to=data.to, text=content)
         message_id, saved_message = self.send_text_message(db, tenant_id, message_data)
-        
+
         # Update template usage
         template.usage_count += 1
         db.commit()
-        
+
         log.info(f"✅ Template '{data.template_name}' sent to {data.to}")
-        
+
         return message_id, saved_message
-    
+
     # ────────────────────────────────────────────
     # Private Helper Methods
     # ────────────────────────────────────────────
-    
+
     def _save_message(
         self,
         db: Session,
@@ -836,7 +836,7 @@ class MessageService:
     ) -> Message:
         """
         Save message to database
-        
+
         CRITICAL FIXES:
         - Normalize phone once at persistence boundary
         - Prevent duplicate inserts on webhook retries
@@ -846,7 +846,7 @@ class MessageService:
         try:
             # Normalize phone number with + prefix
             phone = _normalize_phone(phone)
-            
+
             log.info(f"💾 Saving message: {direction} {message_type} to/from {phone}")
 
             # Avoid duplicate inserts on webhook retries
@@ -869,17 +869,16 @@ class MessageService:
                 direction=direction,  # CRITICAL: Must be set
                 meta_data=metadata
             )
-            
+
             db.add(message)
             db.commit()
             db.refresh(message)
-            
+
             log.info(f"✅ Message saved: ID={message.id}, {direction}, {phone}")
             return message
-            
+
         except Exception as e:
             log.error(f"❌ Failed to save message: {e}")
             import traceback
             log.error(traceback.format_exc())
             db.rollback()
-            raise
