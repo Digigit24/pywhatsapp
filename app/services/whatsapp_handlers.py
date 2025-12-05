@@ -134,7 +134,8 @@ def register_handlers(wa_client):
                 except Exception as e:
                     log.error(f"❌ Failed to save contact: {e}")
                 
-                # Extract text content based on message type
+                # Extract text content and download media based on message type
+                media_id = None
                 try:
                     if msg_type == "text":
                         raw_text = getattr(message, "text", None)
@@ -146,33 +147,89 @@ def register_handlers(wa_client):
                             text = raw_text.get("body") or raw_text.get("text")
                         else:
                             text = str(raw_text) if raw_text else None
-                            
+
                     elif msg_type == "image":
-                        caption = getattr(getattr(message, "image", None), "caption", None)
+                        image_obj = getattr(message, "image", None)
+                        caption = getattr(image_obj, "caption", None)
                         text = caption if caption else "(image)"
-                        
+
+                        # Download and save media
+                        if image_obj:
+                            media_id = service.download_and_save_incoming_media(
+                                db=db,
+                                tenant_id=tenant_id,
+                                media_obj=image_obj,
+                                media_type="image"
+                            )
+                            log.info(f"📥 Image downloaded and saved: {media_id}")
+
                     elif msg_type == "video":
-                        caption = getattr(getattr(message, "video", None), "caption", None)
+                        video_obj = getattr(message, "video", None)
+                        caption = getattr(video_obj, "caption", None)
                         text = caption if caption else "(video)"
-                        
+
+                        # Download and save media
+                        if video_obj:
+                            media_id = service.download_and_save_incoming_media(
+                                db=db,
+                                tenant_id=tenant_id,
+                                media_obj=video_obj,
+                                media_type="video"
+                            )
+                            log.info(f"📥 Video downloaded and saved: {media_id}")
+
                     elif msg_type == "audio":
+                        audio_obj = getattr(message, "audio", None)
                         text = "(audio)"
-                        
+
+                        # Download and save media
+                        if audio_obj:
+                            media_id = service.download_and_save_incoming_media(
+                                db=db,
+                                tenant_id=tenant_id,
+                                media_obj=audio_obj,
+                                media_type="audio"
+                            )
+                            log.info(f"📥 Audio downloaded and saved: {media_id}")
+
                     elif msg_type == "document":
-                        filename = getattr(getattr(message, "document", None), "filename", None)
+                        doc_obj = getattr(message, "document", None)
+                        filename = getattr(doc_obj, "filename", None)
                         text = filename if filename else "(document)"
-                        
+
+                        # Download and save media
+                        if doc_obj:
+                            media_id = service.download_and_save_incoming_media(
+                                db=db,
+                                tenant_id=tenant_id,
+                                media_obj=doc_obj,
+                                media_type="document",
+                                filename=filename
+                            )
+                            log.info(f"📥 Document downloaded and saved: {media_id}")
+
                     else:
                         text = f"({msg_type})"
-                    
+
                     log.info(f"💬 Message text: {text[:50]}..." if text and len(text) > 50 else f"💬 Message text: {text}")
-                    
+
                 except Exception as e:
-                    log.error(f"❌ Failed to extract message text: {e}")
+                    log.error(f"❌ Failed to extract message text/media: {e}")
+                    import traceback
+                    log.error(traceback.format_exc())
                     text = f"({msg_type})"
                 
                 # Save incoming message to database
                 try:
+                    # Build metadata
+                    metadata_dict = {
+                        "timestamp": str(getattr(message, 'timestamp', None)),
+                        "raw_type": msg_type
+                    }
+                    # Include media_id if media was downloaded
+                    if media_id:
+                        metadata_dict["media_id"] = media_id
+
                     saved_message = service.save_incoming_message(
                         db=db,
                         tenant_id=tenant_id,
@@ -181,10 +238,7 @@ def register_handlers(wa_client):
                         contact_name=name,
                         text=text,
                         message_type=msg_type,
-                        metadata={
-                            "timestamp": str(getattr(message, 'timestamp', None)),
-                            "raw_type": msg_type
-                        }
+                        metadata=metadata_dict
                     )
                     log.info(f"💾 Message saved to database: ID={saved_message.id}")
                 except Exception as e:

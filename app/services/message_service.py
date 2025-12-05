@@ -512,6 +512,105 @@ class MessageService:
             log.error(f"❌ Failed to get media: {e}")
             raise
 
+    def download_and_save_incoming_media(
+        self,
+        db: Session,
+        tenant_id: str,
+        media_obj: Any,
+        media_type: str,
+        filename: Optional[str] = None
+    ) -> Optional[str]:
+        """
+        Download incoming media from WhatsApp and save to database.
+
+        Args:
+            db: Database session
+            tenant_id: Tenant ID
+            media_obj: PyWA media object (image, video, audio, document)
+            media_type: Type of media (image, video, audio, document)
+            filename: Optional filename
+
+        Returns:
+            Internal media UUID or None if failed
+        """
+        if not self.wa:
+            log.warning("WhatsApp client not available - cannot download media")
+            return None
+
+        try:
+            # Extract WhatsApp media ID from the media object
+            whatsapp_media_id = getattr(media_obj, 'id', None)
+            if not whatsapp_media_id:
+                log.warning(f"No media ID found in {media_type} object")
+                return None
+
+            log.info(f"📥 Downloading {media_type} from WhatsApp: {whatsapp_media_id}")
+
+            # Get media URL and download
+            media_url = self.wa.get_media_url(whatsapp_media_id)
+            media_bytes = self.wa.download_media(url=media_url, in_memory=True)
+
+            # Get MIME type
+            mime_type = getattr(media_obj, 'mime_type', None)
+            if not mime_type:
+                # Fallback MIME types
+                mime_map = {
+                    'image': 'image/jpeg',
+                    'video': 'video/mp4',
+                    'audio': 'audio/ogg',
+                    'document': 'application/octet-stream'
+                }
+                mime_type = mime_map.get(media_type, 'application/octet-stream')
+
+            # Get filename
+            if not filename:
+                filename = getattr(media_obj, 'filename', None)
+            if not filename:
+                ext = mimetypes.guess_extension(mime_type) or '.bin'
+                filename = f"{media_type}_{uuid.uuid4()}{ext}"
+
+            # Generate unique filename and save to disk
+            ext = mimetypes.guess_extension(mime_type) or ".bin"
+            if filename:
+                _, orig_ext = os.path.splitext(filename)
+                if orig_ext:
+                    ext = orig_ext
+
+            unique_filename = f"{uuid.uuid4()}{ext}"
+            file_path = os.path.join(MEDIA_STORAGE_PATH, unique_filename)
+
+            with open(file_path, "wb") as f:
+                f.write(media_bytes)
+
+            log.info(f"💾 Incoming media saved locally: {file_path}")
+
+            # Save to Database
+            internal_id = str(uuid.uuid4())
+
+            media_record = Media(
+                id=internal_id,
+                tenant_id=tenant_id,
+                filename=filename,
+                mime_type=mime_type,
+                file_size=len(media_bytes),
+                whatsapp_media_id=whatsapp_media_id,
+                storage_path=file_path
+            )
+
+            db.add(media_record)
+            db.commit()
+            db.refresh(media_record)
+
+            log.info(f"✅ Incoming media saved to database: {internal_id}")
+
+            return str(media_record.id)
+
+        except Exception as e:
+            log.error(f"❌ Failed to download/save incoming media: {e}")
+            import traceback
+            log.error(traceback.format_exc())
+            return None
+
     # ────────────────────────────────────────────
     # Retrieve Messages
     # ────────────────────────────────────────────
@@ -885,3 +984,4 @@ class MessageService:
             import traceback
             log.error(traceback.format_exc())
             db.rollback()
+            raise  # Re-raise the exception so caller knows it failed

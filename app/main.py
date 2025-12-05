@@ -340,7 +340,7 @@ def send_text_message(
 
 # Mount static files
 try:
-    app.mount("/static", StaticFiles(directory=str(BASE_DIR / "templates")), name="static")
+    app.mount("/static", StaticFiles(directory=str(BASE_DIR / "app" / "static")), name="static")
 except:
     log.warning("⚠️  Static files not mounted")
 
