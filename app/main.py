@@ -32,9 +32,35 @@ from app.api.v1.router import api_router
 from app.services import set_whatsapp_client
 from app.ws.manager import ws_manager
 
-# Logging
-logging.basicConfig(level="INFO", format="%(asctime)s | %(levelname)s | %(name)s | %(message)s")
+# Logging setup with file handler
+import os
+from logging.handlers import RotatingFileHandler
+
+# Ensure logs directory exists
+LOG_DIR = Path(__file__).parent.parent / "logs"
+LOG_DIR.mkdir(exist_ok=True)
+
+# Configure root logger
+logging.basicConfig(
+    level=logging.DEBUG,  # Set to DEBUG for detailed logs
+    format="%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
+    handlers=[
+        # Console handler
+        logging.StreamHandler(),
+        # File handler for debug logs
+        RotatingFileHandler(
+            LOG_DIR / "debug.log",
+            maxBytes=10 * 1024 * 1024,  # 10MB
+            backupCount=5,
+            encoding='utf-8'
+        )
+    ]
+)
+
 log = logging.getLogger("whatspy")
+log.info("="*80)
+log.info("🚀 Application starting - Logging to console and logs/debug.log")
+log.info("="*80)
 
 # Initialize database
 try:

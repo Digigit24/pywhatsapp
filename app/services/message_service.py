@@ -755,6 +755,9 @@ class MessageService:
         CRITICAL: This is called by webhook handler for incoming messages
         ✅ NOW BROADCASTS TO WEBSOCKET CLIENTS
         """
+        log.info("🔹 save_incoming_message called")
+        log.debug(f"🔹 Parameters: tenant_id={tenant_id}, message_id={message_id}, phone={phone}, type={message_type}")
+
         saved_message = self._save_message(
             db=db,
             tenant_id=tenant_id,
@@ -766,6 +769,10 @@ class MessageService:
             direction="incoming",
             metadata=metadata
         )
+
+        log.info(f"🔹 _save_message returned: {saved_message}")
+        if saved_message:
+            log.debug(f"🔹 Saved message details: id={saved_message.id}, direction={saved_message.direction}")
 
         # ✅ BROADCAST TO WEBSOCKET CLIENTS
         try:
@@ -946,21 +953,29 @@ class MessageService:
         - Better error handling
         """
         try:
+            log.info("▶️ _save_message: START")
+            log.debug(f"▶️ Input params: tenant_id={tenant_id}, msg_id={message_id}, phone={phone}, direction={direction}")
+
             # Normalize phone number with + prefix
             phone = _normalize_phone(phone)
+            log.debug(f"▶️ Phone normalized: {phone}")
 
             log.info(f"💾 Saving message: {direction} {message_type} to/from {phone}")
 
             # Avoid duplicate inserts on webhook retries
             if message_id:
+                log.debug(f"▶️ Checking for duplicate message_id: {message_id}")
                 existing = db.query(Message).filter(
                     Message.message_id == message_id,
                     Message.tenant_id == tenant_id
                 ).first()
                 if existing:
-                    log.debug(f"💾 Message already exists, skipping insert: {message_id}")
+                    log.info(f"💾 Message already exists, returning existing: {message_id}")
                     return existing
+                else:
+                    log.debug(f"▶️ No duplicate found, proceeding with insert")
 
+            log.debug(f"▶️ Creating Message object with direction={direction}")
             message = Message(
                 tenant_id=tenant_id,
                 message_id=message_id,
@@ -972,16 +987,33 @@ class MessageService:
                 meta_data=metadata
             )
 
+            log.debug(f"▶️ Adding message to session")
             db.add(message)
+
+            log.debug(f"▶️ Committing to database...")
             db.commit()
+
+            log.debug(f"▶️ Refreshing message object...")
             db.refresh(message)
 
+            log.info(f"✅ ✅ ✅ Message committed and refreshed successfully! ✅ ✅ ✅")
             log.info(f"✅ Message saved: ID={message.id}, {direction}, {phone}")
+            log.debug(f"✅ Full message: {message.__dict__}")
+
             return message
 
         except Exception as e:
-            log.error(f"❌ Failed to save message: {e}")
+            log.error("❌"*40)
+            log.error(f"❌ _save_message: EXCEPTION CAUGHT")
+            log.error(f"❌ Exception type: {type(e).__name__}")
+            log.error(f"❌ Exception message: {e}")
+            log.error("❌"*40)
             import traceback
             log.error(traceback.format_exc())
+            log.error("❌"*40)
+
+            log.debug(f"▶️ Rolling back database transaction...")
             db.rollback()
+
+            log.error(f"❌ Re-raising exception...")
             raise  # Re-raise the exception so caller knows it failed

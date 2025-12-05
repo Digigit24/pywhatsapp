@@ -51,7 +51,7 @@ def register_handlers(wa_client):
     def handle_message(client, message):
         """
         Handle incoming messages from WhatsApp
-        
+
         This handler:
         1. Extracts message details from webhook
         2. Uses TENANT_ID from .env (Meta doesn't provide it)
@@ -63,24 +63,33 @@ def register_handlers(wa_client):
         try:
             # Use tenant_id from environment (Meta webhook doesn't provide it)
             tenant_id = DEFAULT_TENANT_ID
-            
-            log.info(f"📨 Incoming message webhook received (tenant: {tenant_id})")
+
+            log.info("="*80)
+            log.info(f"📨 INCOMING MESSAGE WEBHOOK RECEIVED (tenant: {tenant_id})")
+            log.debug(f"Message object: {message}")
+            log.debug(f"Message type: {type(message)}")
+            log.info("="*80)
             
             with get_db_session() as db:
+                log.debug("✅ Database session created successfully")
+
                 # Extract message information
                 phone = getattr(message.from_user, 'wa_id', None) if message.from_user else None
                 name = getattr(message.from_user, 'name', None) if message.from_user else None
                 msg_id = getattr(message, 'id', None)
                 msg_type = getattr(message, 'type', 'text')
                 text = None
-                
+
+                log.debug(f"📋 Extracted - Phone: {phone}, Name: {name}, ID: {msg_id}, Type: {msg_type}")
+
                 if not phone:
                     log.warning("⚠️ No phone number in webhook message")
                     return
-                
+
                 # Format phone number with + prefix
                 formatted_phone = format_phone_number(phone)
                 log.info(f"📞 Phone: {formatted_phone}, Name: {name}, Type: {msg_type}")
+                log.debug(f"📞 Phone formatting: {phone} -> {formatted_phone}")
                 
                 # Log webhook activity for debugging
                 try:
@@ -220,6 +229,9 @@ def register_handlers(wa_client):
                     text = f"({msg_type})"
                 
                 # Save incoming message to database
+                log.info("━"*80)
+                log.info("💾 SAVING INCOMING MESSAGE TO DATABASE")
+                log.info("━"*80)
                 try:
                     # Build metadata
                     metadata_dict = {
@@ -229,6 +241,15 @@ def register_handlers(wa_client):
                     # Include media_id if media was downloaded
                     if media_id:
                         metadata_dict["media_id"] = media_id
+
+                    log.debug(f"📦 Metadata to save: {metadata_dict}")
+                    log.debug(f"📦 Calling save_incoming_message with:")
+                    log.debug(f"   - tenant_id: {tenant_id}")
+                    log.debug(f"   - message_id: {msg_id}")
+                    log.debug(f"   - phone: {formatted_phone}")
+                    log.debug(f"   - contact_name: {name}")
+                    log.debug(f"   - text: {text}")
+                    log.debug(f"   - message_type: {msg_type}")
 
                     saved_message = service.save_incoming_message(
                         db=db,
@@ -240,11 +261,26 @@ def register_handlers(wa_client):
                         message_type=msg_type,
                         metadata=metadata_dict
                     )
-                    log.info(f"💾 Message saved to database: ID={saved_message.id}")
+
+                    if saved_message:
+                        log.info(f"✅ ✅ ✅ MESSAGE SAVED TO DATABASE SUCCESSFULLY ✅ ✅ ✅")
+                        log.info(f"💾 Message ID: {saved_message.id}")
+                        log.info(f"💾 DB Message ID: {saved_message.message_id}")
+                        log.info(f"💾 Phone: {saved_message.phone}")
+                        log.info(f"💾 Text: {saved_message.text}")
+                        log.info(f"💾 Direction: {saved_message.direction}")
+                        log.info(f"💾 Type: {saved_message.message_type}")
+                    else:
+                        log.error("❌ ❌ ❌ save_incoming_message returned None! ❌ ❌ ❌")
+
                 except Exception as e:
-                    log.error(f"❌ Failed to save incoming message: {e}")
+                    log.error("❌"*40)
+                    log.error(f"❌ CRITICAL: Failed to save incoming message: {e}")
+                    log.error(f"❌ Exception type: {type(e).__name__}")
+                    log.error("❌"*40)
                     import traceback
                     log.error(traceback.format_exc())
+                    log.error("❌"*40)
                 
                 # Broadcast to WebSocket clients
                 try:
@@ -320,8 +356,10 @@ def register_handlers(wa_client):
                 
                 except Exception as e:
                     log.error(f"❌ Auto-reply error: {e}")
-                
-                log.info(f"✅ Message handler completed for {formatted_phone}")
+
+                log.info("="*80)
+                log.info(f"✅ ✅ ✅ MESSAGE HANDLER COMPLETED SUCCESSFULLY FOR {formatted_phone} ✅ ✅ ✅")
+                log.info("="*80)
                 
         except Exception as e:
             log.error(f"❌ CRITICAL: Message handler error: {e}")
