@@ -45,17 +45,28 @@ class WebSocketConnectionManager:
     async def notify_clients(self, tenant_id: str, message_data: dict) -> None:
         """Async: send JSON to all connected clients of a tenant."""
         connections = list(self.active.get(tenant_id, set()))
+
+        log.info(f"🔔 notify_clients called for tenant {tenant_id}")
+        log.info(f"🔔 Active connections for {tenant_id}: {len(connections)}")
+        log.debug(f"🔔 Message data: {message_data}")
+
         if not connections:
+            log.warning(f"⚠️ No WebSocket connections for tenant {tenant_id}")
             return
 
         stale: Set[WebSocket] = set()
+        sent_count = 0
         for ws in connections:
             try:
                 await ws.send_json(message_data)
+                sent_count += 1
+                log.debug(f"✅ Message sent to WebSocket client {id(ws)}")
             except Exception as e:
                 # mark stale; we will remove after loop
-                log.debug("WS send failed, marking stale: %s", e)
+                log.warning(f"⚠️ WS send failed, marking stale: {e}")
                 stale.add(ws)
+
+        log.info(f"✅ Sent to {sent_count}/{len(connections)} clients for tenant {tenant_id}")
 
         # remove stale connections
         if stale:
@@ -64,6 +75,7 @@ class WebSocketConnectionManager:
                 alive.discard(ws)
             if not alive:
                 self.active.pop(tenant_id, None)
+            log.info(f"🧹 Removed {len(stale)} stale connections")
 
     # Convenience aliases
     async def broadcast(self, tenant_id: str, message_data: dict) -> None:
@@ -83,36 +95,53 @@ class WebSocketConnectionManager:
         - Else, if we're on a running loop thread, create_task
         - Else, run the coroutine in a new daemon thread to avoid blocking
         """
+        log.info(f"🔄 notify_clients_sync called for tenant {tenant_id}")
+
         # Attempt best-case: anyio bridge
         try:
             import anyio
             try:
+                log.debug("🔄 Trying anyio.from_thread.run...")
                 anyio.from_thread.run(self.notify_clients, tenant_id, message_data)
+                log.info("✅ Used anyio.from_thread.run successfully")
                 return
-            except RuntimeError:
+            except RuntimeError as e:
                 # Not in a worker thread bound to an event loop; fallback below
+                log.debug(f"⚠️ anyio.from_thread.run failed: {e}")
                 pass
-        except Exception:
+        except Exception as e:
             # anyio not available or other issue; continue with fallbacks
+            log.debug(f"⚠️ anyio not available: {e}")
             pass
 
         # If on a running loop (rare in sync funcs), schedule a task
         try:
             loop = asyncio.get_running_loop()
+            log.debug("🔄 Running loop detected, creating task...")
             loop.create_task(self.notify_clients(tenant_id, message_data))
+            log.info("✅ Used loop.create_task successfully")
             return
         except RuntimeError:
             # No running loop in this thread
+            log.debug("⚠️ No running loop in thread")
             pass
 
         # Last resort: run in a new thread with its own short-lived loop
+        log.debug("🔄 Creating new thread with asyncio.run...")
+
         def _runner():
             try:
+                log.debug(f"🧵 Thread runner started for tenant {tenant_id}")
                 asyncio.run(self.notify_clients(tenant_id, message_data))
+                log.info(f"✅ Thread runner completed for tenant {tenant_id}")
             except Exception as e:
-                log.debug("Background notify failed: %s", e)
+                log.error(f"❌ Background notify failed: {e}")
+                import traceback
+                log.error(traceback.format_exc())
 
-        threading.Thread(target=_runner, daemon=True).start()
+        thread = threading.Thread(target=_runner, daemon=True)
+        thread.start()
+        log.info(f"✅ Background thread started for WebSocket broadcast")
 
 
 # Singleton manager instance

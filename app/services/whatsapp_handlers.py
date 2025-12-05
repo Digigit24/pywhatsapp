@@ -412,6 +412,9 @@ def register_handlers(wa_client):
                     log.error("❌"*40)
                 
                 # Broadcast to WebSocket clients with contact metadata
+                log.info("━"*80)
+                log.info("📡 BROADCASTING TO WEBSOCKET CLIENTS")
+                log.info("━"*80)
                 try:
                     ws_payload = {
                         "event": "message_incoming",
@@ -430,14 +433,22 @@ def register_handlers(wa_client):
                         }
                     }
 
-                    log.debug(f"📡 Sending WebSocket with contact metadata: {contact_info}")
+                    log.info(f"📡 WebSocket payload prepared:")
+                    log.info(f"   - Tenant: {tenant_id}")
+                    log.info(f"   - Event: message_incoming")
+                    log.info(f"   - Phone: {formatted_phone}")
+                    log.info(f"   - Contact is_new: {contact_info.get('is_new') if contact_info else 'unknown'}")
+                    log.info(f"   - Message: {text[:50]}..." if text and len(text) > 50 else f"   - Message: {text}")
+                    log.debug(f"📦 Full payload: {ws_payload}")
+
+                    log.info(f"📡 Calling notify_clients_sync...")
                     notify_clients_sync(tenant_id, ws_payload)
-                    log.info(f"✅ WebSocket notification sent (contact.is_new={contact_info.get('is_new') if contact_info else 'unknown'})")
+                    log.info(f"✅ ✅ ✅ WebSocket broadcast dispatched! ✅ ✅ ✅")
 
                 except Exception as e:
-                    log.warning(f"⚠️ WS notify failed (non-critical): {e}")
+                    log.error(f"❌ WebSocket broadcast FAILED: {e}")
                     import traceback
-                    log.debug(traceback.format_exc())
+                    log.error(traceback.format_exc())
                 
                 # Auto-reply logic
                 try:
