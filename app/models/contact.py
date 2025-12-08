@@ -1,6 +1,6 @@
 # app/models/contact.py
 """Contact model with assigned_to field"""
-from sqlalchemy import Column, String, Text, Boolean, JSON, Integer, ForeignKey, UniqueConstraint, DateTime
+from sqlalchemy import Column, String, Text, Boolean, JSON, UniqueConstraint, DateTime
 from sqlalchemy.orm import relationship
 from app.models.base import BaseModel
 
@@ -23,7 +23,8 @@ class Contact(BaseModel):
     last_seen = Column(String, nullable=True)
 
     # NEW: Assign contact to a user
-    assigned_to = Column(Integer, ForeignKey('admin_users.id'), nullable=True)
+    # Allow UUID/string identifiers for assignment (no FK enforced)
+    assigned_to = Column(String(100), nullable=True)
 
     # 24-hour conversation window tracking
     last_message_from_user = Column(DateTime, nullable=True)  # Last incoming message timestamp

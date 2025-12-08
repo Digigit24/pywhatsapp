@@ -543,7 +543,12 @@ async def http_exception_handler(request: Request, exc: HTTPException):
     if exc.status_code == 303 and exc.headers and exc.headers.get("Location"):
         return RedirectResponse(url=exc.headers["Location"], status_code=303)
     
+    if exc.status_code == 405:
+        allowed = exc.headers.get("allow") if exc.headers else None
+        log.warning(f"405 for {request.method} {request.url.path} allowed={allowed} tenant={request.headers.get('x-tenant-id')}")
+    
     if request.url.path.startswith("/api/"):
+        log.debug(f"API HTTPException {exc.status_code} for {request.method} {request.url.path}: {exc.detail}")
         return JSONResponse(
             status_code=exc.status_code,
             content={"detail": exc.detail}

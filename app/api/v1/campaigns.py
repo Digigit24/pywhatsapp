@@ -1,5 +1,5 @@
 # app/api/v1/campaigns.py
-from fastapi import APIRouter, Depends, BackgroundTasks
+from fastapi import APIRouter, Depends, BackgroundTasks, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 import uuid
@@ -9,10 +9,64 @@ from app.db.session import get_db
 from app.api.deps import get_tenant_id_flexible
 from app.services import get_message_service
 from app.models.campaign import Campaign
+from app.models.contact import Contact
+from app.models.group import Group
 from app.schemas.campaign import CampaignCreate, CampaignResponse
 from app.schemas.message import MessageCreate
 
 router = APIRouter()
+
+def resolve_recipients(
+    db: Session,
+    tenant_id: str,
+    recipients: List[str] = None,
+    contact_ids: List[str] = None,
+    group_ids: List[str] = None
+) -> List[str]:
+    """
+    Resolve all recipient types into a list of phone numbers
+
+    Args:
+        db: Database session
+        tenant_id: Tenant ID for filtering
+        recipients: Direct phone numbers
+        contact_ids: Contact UUIDs to look up
+        group_ids: Group UUIDs to look up
+
+    Returns:
+        List of unique phone numbers
+    """
+    phone_numbers = set()
+
+    # Add direct phone numbers
+    if recipients:
+        phone_numbers.update(recipients)
+
+    # Resolve contact IDs to phone numbers
+    if contact_ids:
+        contacts = db.query(Contact).filter(
+            Contact.tenant_id == tenant_id,
+            Contact.id.in_(contact_ids)
+        ).all()
+
+        for contact in contacts:
+            if contact.phone:
+                phone_numbers.add(contact.phone)
+
+    # Resolve group IDs to participant phone numbers
+    if group_ids:
+        groups = db.query(Group).filter(
+            Group.tenant_id == tenant_id,
+            Group.id.in_(group_ids),
+            Group.is_active == True
+        ).all()
+
+        for group in groups:
+            if group.participants:
+                # participants is a JSON array of phone numbers
+                phone_numbers.update(group.participants)
+
+    return list(phone_numbers)
 
 async def send_broadcast(campaign_id: str, tenant_id: str, message_text: str, recipients: List[str]):
     """Background task to send messages"""
@@ -51,30 +105,55 @@ async def create_broadcast(
     db: Session = Depends(get_db),
     tenant_id: str = Depends(get_tenant_id_flexible)
 ):
-    """Create broadcast campaign"""
+    """
+    Create broadcast campaign
+
+    Accepts recipients via:
+    - recipients: Direct phone numbers array
+    - contact_ids: Contact UUIDs from database
+    - group_ids: Group UUIDs from database (sends to all participants)
+
+    At least one recipient type must be provided.
+    """
     campaign_id = str(uuid.uuid4())
-    
+
+    # Resolve all recipient types to phone numbers
+    phone_numbers = resolve_recipients(
+        db=db,
+        tenant_id=tenant_id,
+        recipients=data.recipients,
+        contact_ids=data.contact_ids,
+        group_ids=data.group_ids
+    )
+
+    # Validate we have recipients
+    if not phone_numbers:
+        raise HTTPException(
+            status_code=400,
+            detail="No valid recipients found. Please check contact IDs, group IDs, or phone numbers."
+        )
+
     campaign = Campaign(
         tenant_id=tenant_id,
         campaign_id=campaign_id,
         campaign_name=data.campaign_name,
         message_text=data.message_text,
-        total_recipients=len(data.recipients)
+        total_recipients=len(phone_numbers)
     )
-    
+
     db.add(campaign)
     db.commit()
     db.refresh(campaign)
-    
-    # Start background task
+
+    # Start background task with resolved phone numbers
     background_tasks.add_task(
         send_broadcast,
         campaign_id,
         tenant_id,
         data.message_text,
-        data.recipients
+        phone_numbers
     )
-    
+
     return campaign
 
 @router.get("/", response_model=List[CampaignResponse])

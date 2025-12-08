@@ -9,7 +9,7 @@ class ContactBase(BaseModel):
     notes: Optional[str] = None
     labels: List[str] = Field(default_factory=list)
     groups: List[str] = Field(default_factory=list)
-    assigned_to: Optional[int] = None  # User ID
+    assigned_to: Optional[str] = None  # User ID (string/UUID allowed)
     
     @field_validator('phone')
     @classmethod
@@ -43,7 +43,7 @@ class ContactUpdate(BaseModel):
     labels: Optional[List[str]] = None
     groups: Optional[List[str]] = None
     is_business: Optional[bool] = None
-    assigned_to: Optional[int] = None
+    assigned_to: Optional[str] = None
 
 class ContactResponse(ContactBase):
     id: int
