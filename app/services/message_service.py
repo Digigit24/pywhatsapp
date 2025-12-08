@@ -22,7 +22,7 @@ from sqlalchemy import desc, or_, func
 from app.models.message import Message, MessageTemplate
 from app.models.media import Media
 from app.schemas.message import (
-    MessageCreate, MediaMessageCreate, LocationMessageCreate,
+    MessageCreate, MediaMessageCreate, LocationMessageCreate, LocationRequestCreate,
     TemplateCreate, TemplateUpdate, TemplateSendRequest
 )
 
@@ -83,23 +83,21 @@ class MessageService:
             Tuple of (message_id, saved_message)
         """
         message_id = None
-
-        # Normalize phone number
         normalized_phone = _normalize_phone(data.to)
 
-        # Send via WhatsApp if client available
         if self.wa:
             try:
-                response = self.wa.send_text(to=data.to, text=data.text)
-
-                # Extract message ID
+                response = self.wa.send_text(
+                    to=data.to, 
+                    text=data.text,
+                    reply_to_message_id=data.reply_to_message_id
+                )
                 if hasattr(response, 'id'):
                     message_id = response.id
                 elif isinstance(response, str):
                     message_id = response
                 else:
                     message_id = str(response) if response else None
-
                 log.info(f"✅ Message sent to {normalized_phone}: {message_id}")
             except Exception as e:
                 log.error(f"❌ Failed to send message: {e}")
@@ -107,7 +105,6 @@ class MessageService:
         else:
             log.warning("WhatsApp client not available - message not sent")
 
-        # Save to database
         saved_message = self._save_message(
             db=db,
             tenant_id=tenant_id,
@@ -115,9 +112,9 @@ class MessageService:
             phone=normalized_phone,
             text=data.text,
             message_type="text",
-            direction="outgoing"
+            direction="outgoing",
+            metadata={"reply_to": data.reply_to_message_id} if data.reply_to_message_id else None
         )
-
         return message_id, saved_message
 
     def send_media_message(
@@ -129,65 +126,47 @@ class MessageService:
         """Send media message (image, video, audio, document)"""
         message_id = None
         normalized_phone = _normalize_phone(data.to)
-
-        # Check if media_id is a UUID (internal) or WhatsApp ID
         whatsapp_media_id = data.media_id
-
-        # Try to look up in Media table if it looks like a UUID (or just try anyway)
+        media_record = None
         try:
             media_record = db.query(Media).filter(
                 Media.id == data.media_id,
                 Media.tenant_id == tenant_id
             ).first()
-
             if media_record and media_record.whatsapp_media_id:
                 whatsapp_media_id = media_record.whatsapp_media_id
                 log.info(f"🔄 Resolved internal media ID {data.media_id} to WhatsApp ID {whatsapp_media_id}")
         except Exception:
-            # If invalid UUID or DB error, assume it's a direct WhatsApp ID
             pass
 
         if self.wa:
             try:
+                common_args = {
+                    "to": data.to,
+                    "reply_to_message_id": data.reply_to_message_id
+                }
                 if data.media_type == "image":
-                    response = self.wa.send_image(
-                        to=data.to,
-                        image=whatsapp_media_id,
-                        caption=data.caption
-                    )
+                    response = self.wa.send_image(**common_args, image=whatsapp_media_id, caption=data.caption)
                 elif data.media_type == "video":
-                    response = self.wa.send_video(
-                        to=data.to,
-                        video=whatsapp_media_id,
-                        caption=data.caption
-                    )
+                    response = self.wa.send_video(**common_args, video=whatsapp_media_id, caption=data.caption)
                 elif data.media_type == "audio":
-                    response = self.wa.send_audio(
-                        to=data.to,
-                        audio=whatsapp_media_id
-                    )
+                    response = self.wa.send_audio(**common_args, audio=whatsapp_media_id)
                 elif data.media_type == "document":
-                    # Get filename from DB if available
-                    doc_filename = None
-                    if media_record:
-                        doc_filename = media_record.filename
-
-                    response = self.wa.send_document(
-                        to=data.to,
-                        document=whatsapp_media_id,
-                        caption=data.caption,
-                        filename=doc_filename
-                    )
+                    doc_filename = media_record.filename if media_record else None
+                    response = self.wa.send_document(**common_args, document=whatsapp_media_id, caption=data.caption, filename=doc_filename)
                 else:
                     raise ValueError(f"Invalid media type: {data.media_type}")
-
+                
                 message_id = str(response) if response else None
                 log.info(f"✅ Media sent to {normalized_phone}: {message_id}")
             except Exception as e:
                 log.error(f"❌ Failed to send media: {e}")
                 raise
 
-        # Save to database
+        metadata = {"media_id": whatsapp_media_id, "internal_media_id": data.media_id}
+        if data.reply_to_message_id:
+            metadata["reply_to"] = data.reply_to_message_id
+
         saved_message = self._save_message(
             db=db,
             tenant_id=tenant_id,
@@ -196,9 +175,8 @@ class MessageService:
             text=data.caption or f"({data.media_type})",
             message_type=data.media_type,
             direction="outgoing",
-            metadata={"media_id": whatsapp_media_id, "internal_media_id": data.media_id}
+            metadata=metadata
         )
-
         return message_id, saved_message
 
     def send_location(
@@ -218,7 +196,8 @@ class MessageService:
                     latitude=data.latitude,
                     longitude=data.longitude,
                     name=data.name,
-                    address=data.address
+                    address=data.address,
+                    reply_to_message_id=data.reply_to_message_id
                 )
                 message_id = str(response) if response else None
                 log.info(f"✅ Location sent to {normalized_phone}")
@@ -226,10 +205,16 @@ class MessageService:
                 log.error(f"❌ Failed to send location: {e}")
                 raise
 
-        # Save to database
         text = f"Location: {data.latitude}, {data.longitude}"
         if data.name:
             text = f"{data.name} - {text}"
+            
+        metadata = {
+            "latitude": data.latitude, "longitude": data.longitude,
+            "name": data.name, "address": data.address
+        }
+        if data.reply_to_message_id:
+            metadata["reply_to"] = data.reply_to_message_id
 
         saved_message = self._save_message(
             db=db,
@@ -239,14 +224,43 @@ class MessageService:
             text=text,
             message_type="location",
             direction="outgoing",
-            metadata={
-                "latitude": data.latitude,
-                "longitude": data.longitude,
-                "name": data.name,
-                "address": data.address
-            }
+            metadata=metadata
         )
+        return message_id, saved_message
 
+    def request_location(
+        self,
+        db: Session,
+        tenant_id: str,
+        data: LocationRequestCreate
+    ) -> Tuple[Optional[str], Message]:
+        """Send a location request message."""
+        message_id = None
+        normalized_phone = _normalize_phone(data.to)
+
+        if self.wa:
+            try:
+                response = self.wa.request_location(
+                    to=data.to,
+                    text=data.text,
+                    reply_to_message_id=data.reply_to_message_id
+                )
+                message_id = str(response) if response else None
+                log.info(f"✅ Location request sent to {normalized_phone}")
+            except Exception as e:
+                log.error(f"❌ Failed to send location request: {e}")
+                raise
+
+        saved_message = self._save_message(
+            db=db,
+            tenant_id=tenant_id,
+            message_id=message_id,
+            phone=normalized_phone,
+            text=data.text,
+            message_type="location_request",
+            direction="outgoing",
+            metadata={"reply_to": data.reply_to_message_id} if data.reply_to_message_id else None
+        )
         return message_id, saved_message
 
     def send_reaction(
@@ -266,14 +280,12 @@ class MessageService:
                     emoji=data.emoji,
                     message_id=data.message_id
                 )
-                # Reaction responses might not have an ID we can use, but let's try
                 message_id = str(response) if response else None
                 log.info(f"✅ Reaction sent to {normalized_phone}")
             except Exception as e:
                 log.error(f"❌ Failed to send reaction: {e}")
                 raise
 
-        # Save to database (as a message of type 'reaction')
         saved_message = self._save_message(
             db=db,
             tenant_id=tenant_id,
@@ -284,8 +296,39 @@ class MessageService:
             direction="outgoing",
             metadata={"reacted_to": data.message_id}
         )
-
         return message_id, saved_message
+
+    def remove_reaction(self, db: Session, tenant_id: str, message_id: str) -> bool:
+        """
+        Remove a reaction from a message.
+
+        Args:
+            db: Database session.
+            tenant_id: The tenant ID.
+            message_id: The ID of the message to remove the reaction from.
+
+        Returns:
+            True if the reaction was removed successfully, False otherwise.
+        """
+        if not self.wa:
+            log.warning("WhatsApp client not available - cannot remove reaction")
+            return False
+        
+        try:
+            message = db.query(Message).filter(
+                Message.message_id == message_id,
+                Message.tenant_id == tenant_id
+            ).first()
+            if not message:
+                log.error(f"❌ Message not found to remove reaction: {message_id}")
+                return False
+
+            log.info(f"Removing reaction from message {message_id} for user {message.phone}")
+            success = self.wa.remove_reaction(to=message.phone, message_id=message_id)
+            return success.get("success", False)
+        except Exception as e:
+            log.error(f"❌ Failed to remove reaction: {e}")
+            return False
 
     def send_sticker(
         self,
@@ -301,7 +344,8 @@ class MessageService:
             try:
                 response = self.wa.send_sticker(
                     to=data.to,
-                    sticker=data.sticker
+                    sticker=data.sticker,
+                    reply_to_message_id=data.reply_to_message_id
                 )
                 message_id = str(response) if response else None
                 log.info(f"✅ Sticker sent to {normalized_phone}")
@@ -317,9 +361,11 @@ class MessageService:
             text="(sticker)",
             message_type="sticker",
             direction="outgoing",
-            metadata={"sticker": data.sticker}
+            metadata={
+                "sticker": data.sticker,
+                "reply_to": data.reply_to_message_id
+            } if data.reply_to_message_id else {"sticker": data.sticker}
         )
-
         return message_id, saved_message
 
     def send_contact(
@@ -345,13 +391,21 @@ class MessageService:
 
                 response = self.wa.send_contact(
                     to=data.to,
-                    contact=contact_obj
+                    contact=contact_obj,
+                    reply_to_message_id=data.reply_to_message_id
                 )
                 message_id = str(response) if response else None
                 log.info(f"✅ Contact sent to {normalized_phone}")
             except Exception as e:
                 log.error(f"❌ Failed to send contact: {e}")
                 raise
+
+        metadata = {
+            "contact_name": data.name,
+            "contact_phone": data.phone
+        }
+        if data.reply_to_message_id:
+            metadata["reply_to"] = data.reply_to_message_id
 
         saved_message = self._save_message(
             db=db,
@@ -361,13 +415,53 @@ class MessageService:
             text=f"Contact: {data.name}",
             message_type="contact",
             direction="outgoing",
-            metadata={
-                "contact_name": data.name,
-                "contact_phone": data.phone
-            }
+            metadata=metadata
         )
-
         return message_id, saved_message
+
+    def indicate_typing(self, message_id: str) -> bool:
+        """
+        Indicate that the business is typing a response.
+
+        Args:
+            message_id: The ID of the message to which the business is responding.
+
+        Returns:
+            True if the typing indicator was sent successfully, False otherwise.
+        """
+        if not self.wa:
+            log.warning("WhatsApp client not available - cannot indicate typing")
+            return False
+        
+        try:
+            log.info(f"Typing indicator sent for message {message_id}")
+            success = self.wa.indicate_typing(message_id=message_id)
+            return success.get("success", False)
+        except Exception as e:
+            log.error(f"❌ Failed to send typing indicator: {e}")
+            return False
+
+    def mark_message_as_read(self, message_id: str) -> bool:
+        """
+        Mark a message as read.
+
+        Args:
+            message_id: The ID of the message to mark as read.
+
+        Returns:
+            True if the message was marked as read, False otherwise.
+        """
+        if not self.wa:
+            log.warning("WhatsApp client not available - cannot mark message as read")
+            return False
+        
+        try:
+            log.info(f"Marking message as read: {message_id}")
+            success = self.wa.mark_message_as_read(message_id=message_id)
+            return success.get("success", False)
+        except Exception as e:
+            log.error(f"❌ Failed to mark message as read: {e}")
+            return False
 
     def upload_media(
         self,
@@ -378,7 +472,8 @@ class MessageService:
         filename: Optional[str] = None
     ) -> str:
         """
-        Upload media to WhatsApp servers AND persist locally/DB.
+        Upload media to WhatsApp servers and persist metadata in DB.
+        DOES NOT save the file locally.
 
         Args:
             db: Database session
@@ -394,28 +489,11 @@ class MessageService:
             raise RuntimeError("WhatsApp client not initialized")
 
         try:
-            # 1. Generate unique filename and save to disk
-            ext = mimetypes.guess_extension(mime_type) or ".bin"
-            if filename:
-                # Keep original extension if possible, but sanitize
-                _, orig_ext = os.path.splitext(filename)
-                if orig_ext:
-                    ext = orig_ext
-
-            unique_filename = f"{uuid.uuid4()}{ext}"
-            file_path = os.path.join(MEDIA_STORAGE_PATH, unique_filename)
-
-            with open(file_path, "wb") as f:
-                f.write(media_bytes)
-
-            log.info(f"💾 Media saved locally: {file_path}")
-
-            # 2. Upload to WhatsApp
-            # Note: We upload the bytes we received
+            # 1. Upload to WhatsApp
             response = self.wa.upload_media(
                 media=media_bytes,
                 mime_type=mime_type,
-                filename=filename or unique_filename
+                filename=filename
             )
 
             whatsapp_media_id = None
@@ -428,17 +506,16 @@ class MessageService:
 
             log.info(f"✅ Media uploaded to WhatsApp: {whatsapp_media_id}")
 
-            # 3. Save to Database
+            # 2. Save metadata to Database
             internal_id = str(uuid.uuid4())
-
             media_record = Media(
                 id=internal_id,
                 tenant_id=tenant_id,
-                filename=filename or unique_filename,
+                filename=filename,
                 mime_type=mime_type,
                 file_size=len(media_bytes),
                 whatsapp_media_id=whatsapp_media_id,
-                storage_path=file_path
+                storage_path=None  # Not stored locally
             )
 
             db.add(media_record)
@@ -448,12 +525,14 @@ class MessageService:
             return str(media_record.id)
 
         except Exception as e:
-            log.error(f"❌ Failed to upload/save media: {e}")
+            log.error(f"❌ Failed to upload media and save metadata: {e}")
+            db.rollback()
             raise
 
     def get_media(self, db: Session, media_id: str) -> Tuple[bytes, str, Optional[str]]:
         """
-        Get media content by ID (Internal UUID) or WhatsApp Media ID.
+        Get media content. It tries to find a local record and if not present,
+        downloads it from WhatsApp on-the-fly.
 
         Args:
             db: Database session
@@ -463,56 +542,98 @@ class MessageService:
             Tuple of (media_bytes, mime_type, filename)
         """
         try:
-            # 1. Look up in DB by UUID
+            # 1. Look up in DB by internal UUID
             media_record = db.query(Media).filter(Media.id == media_id).first()
 
             # 2. If not found, try looking up by WhatsApp Media ID
             if not media_record:
                 media_record = db.query(Media).filter(Media.whatsapp_media_id == media_id).first()
 
-            if not media_record:
-                # Fallback: maybe it's a WhatsApp Media ID?
-                # If so, try to fetch from WhatsApp directly (legacy support)
-                if self.wa:
-                    try:
-                        log.info(f"🔄 Media record not found for {media_id}, trying direct WhatsApp download...")
-                        url = self.wa.get_media_url(media_id)
-                        content = self.wa.download_media(url=url, in_memory=True)
-                        # Try to guess extension from mime type if possible, or default
-                        return content, "application/octet-stream", f"{media_id}.bin"
-                    except Exception as e:
-                        log.warning(f"⚠️ Direct WhatsApp download failed for {media_id}: {e}")
-                        # Continue to raise ValueError below
-                        pass
-                raise ValueError(f"Media not found: {media_id}")
-
-            # 3. Read from disk
-            if media_record.storage_path and os.path.exists(media_record.storage_path):
-                with open(media_record.storage_path, "rb") as f:
-                    content = f.read()
-                return content, media_record.mime_type, media_record.filename
-
-            # 4. If file missing but we have WhatsApp ID, try to re-download
-            if media_record.whatsapp_media_id and self.wa:
-                log.warning(f"⚠️ Local file missing for {media_id}, fetching from WhatsApp...")
-                try:
-                    url = self.wa.get_media_url(media_record.whatsapp_media_id)
-                    content = self.wa.download_media(url=url, in_memory=True)
-
-                    # Optionally re-save to disk (future improvement)
-
+            # If we have a record, decide how to fetch it
+            if media_record:
+                # If it happens to be stored locally, return it
+                if media_record.storage_path and os.path.exists(media_record.storage_path):
+                    log.info(f"✅ Serving media {media_id} from local storage.")
+                    with open(media_record.storage_path, "rb") as f:
+                        content = f.read()
                     return content, media_record.mime_type, media_record.filename
-                except Exception as e:
-                    log.error(f"❌ Failed to re-download media {media_record.whatsapp_media_id}: {e}")
-                    raise
+                
+                # If not stored locally, but we have whatsapp_media_id, download it
+                if media_record.whatsapp_media_id and self.wa:
+                    log.info(f"⬇️ Media not stored locally. Fetching {media_record.whatsapp_media_id} from WhatsApp...")
+                    try:
+                        url_res = self.wa.get_media_url(media_record.whatsapp_media_id)
+                        content = self.wa.get_media_bytes(url=url_res.url)
+                        return content, media_record.mime_type, media_record.filename
+                    except Exception as e:
+                        log.error(f"❌ Failed to download media {media_record.whatsapp_media_id} from WhatsApp: {e}")
+                        raise
 
-            raise FileNotFoundError(f"Media file not found for {media_id}")
+            # Fallback for direct WhatsApp Media ID not in our DB
+            if self.wa:
+                log.info(f"🔄 Media record not found for {media_id}, trying direct WhatsApp download...")
+                try:
+                    url_res = self.wa.get_media_url(media_id)
+                    content = self.wa.get_media_bytes(url=url_res.url)
+                    # Cannot determine mime_type or filename reliably
+                    return content, "application/octet-stream", f"{media_id}.bin"
+                except Exception as e:
+                    log.warning(f"⚠️ Direct WhatsApp download failed for {media_id}: {e}")
+
+            raise ValueError(f"Media not found for ID: {media_id}")
 
         except Exception as e:
             log.error(f"❌ Failed to get media: {e}")
             raise
 
-    def download_and_save_incoming_media(
+    def delete_media(self, db: Session, tenant_id: str, media_id: str) -> bool:
+        """
+        Delete a media file from WhatsApp servers and our database.
+
+        Args:
+            db: Database session
+            tenant_id: The tenant ID.
+            media_id: The internal UUID of the media to delete.
+
+        Returns:
+            True if deletion was successful, False otherwise.
+        """
+        media_record = db.query(Media).filter(Media.id == media_id, Media.tenant_id == tenant_id).first()
+        if not media_record:
+            log.warning(f"⚠️ Media record not found for deletion: {media_id}")
+            return False
+        
+        try:
+            # Delete from WhatsApp servers if we have the ID
+            if media_record.whatsapp_media_id and self.wa:
+                log.info(f"🗑️ Deleting media from WhatsApp servers: {media_record.whatsapp_media_id}")
+                try:
+                    success = self.wa.delete_media(media_id=media_record.whatsapp_media_id)
+                    if success.get("success"):
+                        log.info(f"✅ Media deleted from WhatsApp successfully.")
+                    else:
+                        log.warning(f"⚠️ WhatsApp media deletion failed or returned false: {success}")
+                except Exception as e:
+                    log.error(f"❌ Error deleting media from WhatsApp: {e}")
+                    # Continue to delete from our DB anyway
+
+            # Delete from our database
+            db.delete(media_record)
+            db.commit()
+            log.info(f"✅ Media record deleted from database: {media_id}")
+
+            # Also delete from local filesystem if it exists
+            if media_record.storage_path and os.path.exists(media_record.storage_path):
+                os.remove(media_record.storage_path)
+                log.info(f"✅ Local media file deleted: {media_record.storage_path}")
+
+            return True
+        except Exception as e:
+            log.error(f"❌ Failed to delete media record: {e}")
+            db.rollback()
+            return False
+
+    def save_incoming_media_metadata(
         self,
         db: Session,
         tenant_id: str,
@@ -521,94 +642,65 @@ class MessageService:
         filename: Optional[str] = None
     ) -> Optional[str]:
         """
-        Download incoming media from WhatsApp and save to database.
+        Save incoming media metadata to database without downloading the file.
 
         Args:
             db: Database session
             tenant_id: Tenant ID
-            media_obj: PyWA media object (image, video, audio, document)
-            media_type: Type of media (image, video, audio, document)
-            filename: Optional filename
+            media_obj: PyWA media object (e.g., image, video)
+            media_type: Type of media ('image', 'video', etc.)
+            filename: Optional filename from the message
 
         Returns:
             Internal media UUID or None if failed
         """
         if not self.wa:
-            log.warning("WhatsApp client not available - cannot download media")
+            log.warning("WhatsApp client not available - cannot save media metadata")
             return None
 
         try:
-            # Extract WhatsApp media ID from the media object
             whatsapp_media_id = getattr(media_obj, 'id', None)
             if not whatsapp_media_id:
                 log.warning(f"No media ID found in {media_type} object")
                 return None
 
-            log.info(f"📥 Downloading {media_type} from WhatsApp: {whatsapp_media_id}")
-
-            # Get media URL and download
-            media_url = self.wa.get_media_url(whatsapp_media_id)
-            media_bytes = self.wa.download_media(url=media_url, in_memory=True)
-
-            # Get MIME type
             mime_type = getattr(media_obj, 'mime_type', None)
             if not mime_type:
-                # Fallback MIME types
                 mime_map = {
-                    'image': 'image/jpeg',
-                    'video': 'video/mp4',
-                    'audio': 'audio/ogg',
-                    'document': 'application/octet-stream'
+                    'image': 'image/jpeg', 'video': 'video/mp4', 'audio': 'audio/ogg',
+                    'document': 'application/octet-stream', 'sticker': 'image/webp'
                 }
                 mime_type = mime_map.get(media_type, 'application/octet-stream')
 
-            # Get filename
             if not filename:
                 filename = getattr(media_obj, 'filename', None)
+            
             if not filename:
                 ext = mimetypes.guess_extension(mime_type) or '.bin'
                 filename = f"{media_type}_{uuid.uuid4()}{ext}"
 
-            # Generate unique filename and save to disk
-            ext = mimetypes.guess_extension(mime_type) or ".bin"
-            if filename:
-                _, orig_ext = os.path.splitext(filename)
-                if orig_ext:
-                    ext = orig_ext
-
-            unique_filename = f"{uuid.uuid4()}{ext}"
-            file_path = os.path.join(MEDIA_STORAGE_PATH, unique_filename)
-
-            with open(file_path, "wb") as f:
-                f.write(media_bytes)
-
-            log.info(f"💾 Incoming media saved locally: {file_path}")
-
-            # Save to Database
+            # Save metadata to Database
             internal_id = str(uuid.uuid4())
-
             media_record = Media(
                 id=internal_id,
                 tenant_id=tenant_id,
                 filename=filename,
                 mime_type=mime_type,
-                file_size=len(media_bytes),
+                file_size=0,  # We don't know the size
                 whatsapp_media_id=whatsapp_media_id,
-                storage_path=file_path
+                storage_path=None  # Not stored locally
             )
 
             db.add(media_record)
             db.commit()
             db.refresh(media_record)
 
-            log.info(f"✅ Incoming media saved to database: {internal_id}")
-
+            log.info(f"✅ Incoming media metadata saved to database: {internal_id}")
             return str(media_record.id)
 
         except Exception as e:
-            log.error(f"❌ Failed to download/save incoming media: {e}")
-            import traceback
-            log.error(traceback.format_exc())
+            log.error(f"❌ Failed to save incoming media metadata: {e}")
+            db.rollback()
             return None
 
     # ────────────────────────────────────────────

@@ -8,11 +8,11 @@ from app.api.deps import get_current_user_flexible, get_tenant_id_flexible
 from app.services import get_message_service
 from app.services.message_service import MessageService
 from app.schemas.message import (
-    MessageCreate, MediaMessageCreate, LocationMessageCreate,
+    MessageCreate, MediaMessageCreate, LocationMessageCreate, LocationRequestCreate,
     ReactionMessageCreate, StickerMessageCreate, ContactMessageCreate,
     MessageResponse, MessageSendResponse, ConversationPreview,
     TemplateSendRequest, TemplateCreate, TemplateResponse,
-    ConversationDetail
+    ConversationDetail, TypingIndicatorRequest
 )
 
 from datetime import datetime
@@ -75,6 +75,19 @@ def send_location(
     msg_id, saved = service.send_location(db, tenant_id, data)
     return {"ok": True, "message_id": msg_id}
 
+
+@router.post("/send/request_location")
+def request_location(
+    data: LocationRequestCreate,
+    db: Session = Depends(get_db),
+    tenant_id: str = Depends(get_tenant_id_flexible),
+    service: MessageService = Depends(get_message_service)
+):
+    """Request a location from a user."""
+    msg_id, saved = service.request_location(db, tenant_id, data)
+    return {"ok": True, "message_id": msg_id}
+
+
 @router.post("/send/reaction")
 def send_reaction(
     data: ReactionMessageCreate,
@@ -85,6 +98,19 @@ def send_reaction(
     """Send reaction"""
     msg_id, saved = service.send_reaction(db, tenant_id, data)
     return {"ok": True, "message_id": msg_id}
+
+
+@router.delete("/messages/{message_id}/reaction", status_code=204)
+def remove_reaction(
+    message_id: str,
+    db: Session = Depends(get_db),
+    tenant_id: str = Depends(get_tenant_id_flexible),
+    service: MessageService = Depends(get_message_service)
+):
+    """Remove a reaction from a message."""
+    service.remove_reaction(db=db, tenant_id=tenant_id, message_id=message_id)
+    return None
+
 
 @router.post("/send/sticker")
 def send_sticker(
@@ -165,6 +191,18 @@ async def get_media(
     except Exception as e:
         raise HTTPException(status_code=404, detail=f"Media not found: {str(e)}")
 
+
+@router.post("/messages/{message_id}/read", status_code=204)
+def mark_as_read(
+    message_id: str,
+    tenant_id: str = Depends(get_tenant_id_flexible),
+    service: MessageService = Depends(get_message_service)
+):
+    """Mark a message as read."""
+    service.mark_message_as_read(message_id=message_id)
+    return None
+
+
 @router.get("/messages", response_model=List[MessageResponse])
 def list_messages(
     phone: Optional[str] = None,
@@ -211,6 +249,18 @@ def delete_conversation(
     """Delete conversation"""
     deleted = service.delete_conversation(db, tenant_id, phone)
     return {"ok": True, "deleted": deleted}
+
+
+@router.post("/conversations/{phone}/typing", status_code=204)
+def indicate_typing(
+    phone: str,
+    data: TypingIndicatorRequest,
+    tenant_id: str = Depends(get_tenant_id_flexible),
+    service: MessageService = Depends(get_message_service)
+):
+    """Indicate that you are typing a response in a conversation."""
+    service.indicate_typing(message_id=data.message_id)
+    return None
 
 # Templates
 @router.post("/templates", response_model=TemplateResponse)

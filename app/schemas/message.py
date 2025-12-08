@@ -35,6 +35,7 @@ class MessageCreate(BaseModel):
     """Schema for sending a text message"""
     to: str = Field(..., description="Recipient phone number", min_length=10, max_length=15)
     text: str = Field(..., description="Message text", min_length=1, max_length=4096)
+    reply_to_message_id: Optional[str] = Field(None, description="The ID of the message to reply to.")
     
     @field_validator('to')
     @classmethod
@@ -52,6 +53,7 @@ class MediaMessageCreate(BaseModel):
     media_id: str = Field(..., description="WhatsApp media ID")
     media_type: str = Field(..., description="Media type: image, video, audio, document")
     caption: Optional[str] = Field(None, max_length=1024, description="Media caption")
+    reply_to_message_id: Optional[str] = Field(None, description="The ID of the message to reply to.")
     
     @field_validator('media_type')
     @classmethod
@@ -70,7 +72,14 @@ class LocationMessageCreate(BaseModel):
     longitude: float = Field(..., ge=-180, le=180)
     name: Optional[str] = Field(None, max_length=255)
     address: Optional[str] = Field(None, max_length=500)
+    reply_to_message_id: Optional[str] = Field(None, description="The ID of the message to reply to.")
 
+
+class LocationRequestCreate(BaseModel):
+    """Schema for requesting a location."""
+    to: str = Field(..., description="Recipient phone number")
+    text: str = Field(..., description="Message text to send with the location request", max_length=4096)
+    reply_to_message_id: Optional[str] = Field(None, description="The ID of the message to reply to.")
 
 class ReactionMessageCreate(BaseModel):
     """Schema for sending reaction"""
@@ -83,6 +92,7 @@ class StickerMessageCreate(BaseModel):
     """Schema for sending sticker"""
     to: str = Field(..., description="Recipient phone number")
     sticker: str = Field(..., description="Sticker ID or URL")
+    reply_to_message_id: Optional[str] = Field(None, description="The ID of the message to reply to.")
 
 
 class ContactMessageCreate(BaseModel):
@@ -92,11 +102,17 @@ class ContactMessageCreate(BaseModel):
     phone: Optional[str] = Field(None, description="Contact phone")
     email: Optional[str] = Field(None, description="Contact email")
     url: Optional[str] = Field(None, description="Contact URL")
+    reply_to_message_id: Optional[str] = Field(None, description="The ID of the message to reply to.")
 
 
 class MarkAsReadRequest(BaseModel):
     """Schema for marking message as read"""
     message_id: str = Field(..., description="WhatsApp message ID")
+
+
+class TypingIndicatorRequest(BaseModel):
+    """Schema for indicating typing."""
+    message_id: str = Field(..., description="The ID of the message being replied to.")
 
 
 # ────────────────────────────────────────────

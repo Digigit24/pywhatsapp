@@ -17,6 +17,9 @@ from app.models.webhook import WebhookLog
 from datetime import datetime
 from app.core.config import DEFAULT_TENANT_ID
 from app.ws.manager import notify_clients_sync
+from pywa import filters
+from pywa.types import Button, CallbackButton, CallbackSelection
+from pywa.listeners import ListenerTimeout, ListenerCanceled, UserUpdateListenerIdentifier
 
 log = logging.getLogger("whatspy.handlers")
 
@@ -268,60 +271,59 @@ def register_handlers(wa_client):
                         caption = getattr(image_obj, "caption", None)
                         text = caption if caption else "(image)"
 
-                        # Download and save media
                         if image_obj:
-                            media_id = service.download_and_save_incoming_media(
+                            media_id = service.save_incoming_media_metadata(
                                 db=db,
                                 tenant_id=tenant_id,
                                 media_obj=image_obj,
                                 media_type="image"
                             )
-                            log.info(f"📥 Image downloaded and saved: {media_id}")
+                            log.info(f"📝 Image metadata saved: {media_id}")
 
                     elif msg_type == "video":
                         video_obj = getattr(message, "video", None)
                         caption = getattr(video_obj, "caption", None)
                         text = caption if caption else "(video)"
 
-                        # Download and save media
+                        # Save media metadata
                         if video_obj:
-                            media_id = service.download_and_save_incoming_media(
+                            media_id = service.save_incoming_media_metadata(
                                 db=db,
                                 tenant_id=tenant_id,
                                 media_obj=video_obj,
                                 media_type="video"
                             )
-                            log.info(f"📥 Video downloaded and saved: {media_id}")
+                            log.info(f"📝 Video metadata saved: {media_id}")
 
                     elif msg_type == "audio":
                         audio_obj = getattr(message, "audio", None)
                         text = "(audio)"
 
-                        # Download and save media
+                        # Save media metadata
                         if audio_obj:
-                            media_id = service.download_and_save_incoming_media(
+                            media_id = service.save_incoming_media_metadata(
                                 db=db,
                                 tenant_id=tenant_id,
                                 media_obj=audio_obj,
                                 media_type="audio"
                             )
-                            log.info(f"📥 Audio downloaded and saved: {media_id}")
+                            log.info(f"📝 Audio metadata saved: {media_id}")
 
                     elif msg_type == "document":
                         doc_obj = getattr(message, "document", None)
                         filename = getattr(doc_obj, "filename", None)
                         text = filename if filename else "(document)"
 
-                        # Download and save media
+                        # Save media metadata
                         if doc_obj:
-                            media_id = service.download_and_save_incoming_media(
+                            media_id = service.save_incoming_media_metadata(
                                 db=db,
                                 tenant_id=tenant_id,
                                 media_obj=doc_obj,
                                 media_type="document",
                                 filename=filename
                             )
-                            log.info(f"📥 Document downloaded and saved: {media_id}")
+                            log.info(f"📝 Document metadata saved: {media_id}")
 
                     else:
                         text = f"({msg_type})"
@@ -456,10 +458,30 @@ def register_handlers(wa_client):
                         low = text.lower().strip()
                         reply = None
                         
-                        if low in {"hi", "hello", "hey"}:
+                        if low == "/poll":
+                            message.reply_text(
+                                text="What is your favorite color?",
+                                buttons=[Button("Cancel", data="cancel_poll")]
+                            )
+                            try:
+                                reply_msg = wa_client.listen(
+                                    to=UserUpdateListenerIdentifier(sender=formatted_phone),
+                                    filters=filters.text,
+                                    cancelers=filters.callback.data_matches("cancel_poll"),
+                                    timeout=20
+                                )
+                                if reply_msg:
+                                    reply_msg.reply_text(f"You chose {reply_msg.text}!")
+                            except ListenerTimeout:
+                                message.reply_text("You took too long to answer.")
+                            except ListenerCanceled:
+                                message.reply_text("Poll canceled.")
+                            return  # Stop processing to not send other replies
+
+                        elif low in {"hi", "hello", "hey"}:
                             reply = "👋 Hello! Send /help for commands."
                         elif low == "/help":
-                            reply = "Commands:\n• /help - Show help\n• /ping - Test bot\n• /status - Check status"
+                            reply = "Commands:\n• /help - Show help\n• /ping - Test bot\n• /status - Check status\n• /poll - Start a poll"
                         elif low == "/ping":
                             reply = "🏓 Pong!"
                         elif low == "/status":
@@ -554,7 +576,77 @@ def register_handlers(wa_client):
         except Exception as e:
             log.error(f"❌ Status handler error: {e}")
     
-    
+    @wa_client.on_callback_button()
+    def handle_button_callback(client, clb: CallbackButton):
+        """Handle callback button clicks"""
+        try:
+            tenant_id = DEFAULT_TENANT_ID
+            phone = format_phone_number(clb.from_user.wa_id)
+            name = clb.from_user.name
+            data = clb.data
+            
+            log.info(f"🔘 Button clicked by {phone}: {data}")
+
+            with get_db_session() as db:
+                # Save interaction as incoming message
+                service.save_incoming_message(
+                    db=db,
+                    tenant_id=tenant_id,
+                    message_id=clb.id,
+                    phone=phone,
+                    contact_name=name,
+                    text=f"[Button Click] {clb.title}",
+                    message_type="button_reply",
+                    metadata={
+                        "callback_data": data,
+                        "title": clb.title,
+                        "timestamp": str(clb.timestamp)
+                    }
+                )
+                
+                # Example response logic
+                if "cancel" in data:
+                    clb.reply_text("❌ Operation cancelled")
+                else:
+                    clb.reply_text(f"✅ You clicked: {clb.title}")
+
+        except Exception as e:
+            log.error(f"❌ Button callback handler error: {e}")
+
+    @wa_client.on_callback_selection()
+    def handle_selection_callback(client, sel: CallbackSelection):
+        """Handle list/menu selections"""
+        try:
+            tenant_id = DEFAULT_TENANT_ID
+            phone = format_phone_number(sel.from_user.wa_id)
+            name = sel.from_user.name
+            data = sel.data
+            
+            log.info(f"📋 Menu selection by {phone}: {data} ({sel.title})")
+
+            with get_db_session() as db:
+                # Save interaction
+                service.save_incoming_message(
+                    db=db,
+                    tenant_id=tenant_id,
+                    message_id=sel.id,
+                    phone=phone,
+                    contact_name=name,
+                    text=f"[Menu Selection] {sel.title}",
+                    message_type="list_reply",
+                    metadata={
+                        "callback_data": data,
+                        "title": sel.title,
+                        "description": sel.description,
+                        "timestamp": str(sel.timestamp)
+                    }
+                )
+            
+            sel.reply_text(f"✅ You selected: {sel.title}")
+
+        except Exception as e:
+            log.error(f"❌ Selection callback handler error: {e}")
+
     log.info("✅ WhatsApp message handlers registered")
     log.info(f"🏢 Using tenant_id from .env: {DEFAULT_TENANT_ID}")
     log.info("📝 All incoming messages will be saved to this tenant")
