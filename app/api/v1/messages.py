@@ -8,7 +8,7 @@ from app.api.deps import get_current_user_flexible, get_tenant_id_flexible
 from app.services import get_message_service
 from app.services.message_service import MessageService
 from app.schemas.message import (
-    MessageCreate, MediaMessageCreate, LocationMessageCreate, LocationRequestCreate,
+    MessageCreate, MediaMessageCreate, VoiceMessageCreate, CatalogMessageCreate, ProductMessageCreate, ProductsMessageCreate, LocationMessageCreate, LocationRequestCreate,
     ReactionMessageCreate, StickerMessageCreate, ContactMessageCreate,
     MessageResponse, MessageSendResponse, ConversationPreview,
     TemplateSendRequest, TemplateCreate, TemplateResponse,
@@ -63,6 +63,367 @@ def send_media(
     """Send media message"""
     msg_id, saved = service.send_media_message(db, tenant_id, data)
     return {"ok": True, "message_id": msg_id}
+
+
+@router.post("/send/voice")
+
+
+def send_voice(
+
+
+    data: VoiceMessageCreate,
+
+
+    db: Session = Depends(get_db),
+
+
+    tenant_id: str = Depends(get_tenant_id_flexible),
+
+
+    service: MessageService = Depends(get_message_service)
+
+
+):
+
+
+    """Send voice message"""
+
+
+    msg_id, saved = service.send_voice(db, tenant_id, data)
+
+
+    return {"ok": True, "message_id": msg_id}
+
+
+
+
+
+
+
+
+@router.post("/send/catalog")
+
+
+
+
+
+
+
+
+def send_catalog(
+
+
+
+
+
+
+
+
+    data: CatalogMessageCreate,
+
+
+
+
+
+
+
+
+    db: Session = Depends(get_db),
+
+
+
+
+
+
+
+
+    tenant_id: str = Depends(get_tenant_id_flexible),
+
+
+
+
+
+
+
+
+    service: MessageService = Depends(get_message_service)
+
+
+
+
+
+
+
+
+):
+
+
+
+
+
+
+
+
+    """Send catalog message"""
+
+
+
+
+
+
+
+
+    msg_id, saved = service.send_catalog(db, tenant_id, data)
+
+
+
+
+
+
+
+
+    return {"ok": True, "message_id": msg_id}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@router.post("/send/product")
+
+
+
+
+
+
+
+
+def send_product(
+
+
+
+
+
+
+
+
+    data: ProductMessageCreate,
+
+
+
+
+
+
+
+
+    db: Session = Depends(get_db),
+
+
+
+
+
+
+
+
+    tenant_id: str = Depends(get_tenant_id_flexible),
+
+
+
+
+
+
+
+
+    service: MessageService = Depends(get_message_service)
+
+
+
+
+
+
+
+
+):
+
+
+
+
+
+
+
+
+    """Send a single product message"""
+
+
+
+
+
+
+
+
+    msg_id, saved = service.send_product(db, tenant_id, data)
+
+
+
+
+
+
+
+
+    return {"ok": True, "message_id": msg_id}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@router.post("/send/products")
+
+
+
+
+
+
+
+
+def send_products(
+
+
+
+
+
+
+
+
+    data: ProductsMessageCreate,
+
+
+
+
+
+
+
+
+    db: Session = Depends(get_db),
+
+
+
+
+
+
+
+
+    tenant_id: str = Depends(get_tenant_id_flexible),
+
+
+
+
+
+
+
+
+    service: MessageService = Depends(get_message_service)
+
+
+
+
+
+
+
+
+):
+
+
+
+
+
+
+
+
+    """Send a multi-product message"""
+
+
+
+
+
+
+
+
+    msg_id, saved = service.send_products(db, tenant_id, data)
+
+
+
+
+
+
+
+
+    return {"ok": True, "message_id": msg_id}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 @router.post("/send/location")
 def send_location(

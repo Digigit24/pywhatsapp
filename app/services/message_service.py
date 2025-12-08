@@ -10,11 +10,13 @@ FIXES:
 - ✅ WebSocket broadcasting for incoming messages
 - ✅ Media persistence (local storage + DB)
 """
+from __future__ import annotations
 import logging
 import os
 import uuid
 import mimetypes
 from typing import List, Optional, Dict, Any, Tuple
+from pywa.types import Button as PywaButton # Add this import
 from datetime import datetime
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, or_, func
@@ -22,9 +24,10 @@ from sqlalchemy import desc, or_, func
 from app.models.message import Message, MessageTemplate
 from app.models.media import Media
 from app.schemas.message import (
-    MessageCreate, MediaMessageCreate, LocationMessageCreate, LocationRequestCreate,
+    MessageCreate, MediaMessageCreate, VoiceMessageCreate, CatalogMessageCreate, ProductMessageCreate, ProductsMessageCreate, LocationMessageCreate, LocationRequestCreate,
     TemplateCreate, TemplateUpdate, TemplateSendRequest
 )
+from pywa.types import Button as PywaButton, Product as PywaProduct, ProductsSection as PywaProductsSection
 
 log = logging.getLogger("whatspy.message_service")
 
@@ -87,9 +90,23 @@ class MessageService:
 
         if self.wa:
             try:
+                pywa_buttons = None
+                if data.buttons:
+                    pywa_buttons = [
+                        PywaButton(
+                            title=btn.title,
+                            callback_data=btn.callback_data,
+                            url=btn.url
+                        ) for btn in data.buttons
+                    ]
+                
                 response = self.wa.send_text(
                     to=data.to, 
                     text=data.text,
+                    header=data.header,
+                    footer=data.footer,
+                    buttons=pywa_buttons,
+                    preview_url=data.preview_url,
                     reply_to_message_id=data.reply_to_message_id
                 )
                 if hasattr(response, 'id'):
@@ -105,6 +122,15 @@ class MessageService:
         else:
             log.warning("WhatsApp client not available - message not sent")
 
+        metadata = {
+            "reply_to": data.reply_to_message_id,
+            "header": data.header,
+            "footer": data.footer,
+            "buttons": [btn.model_dump() for btn in data.buttons] if data.buttons else None,
+            "preview_url": data.preview_url
+        }
+        metadata = {k: v for k, v in metadata.items() if v is not None}
+
         saved_message = self._save_message(
             db=db,
             tenant_id=tenant_id,
@@ -113,7 +139,7 @@ class MessageService:
             text=data.text,
             message_type="text",
             direction="outgoing",
-            metadata={"reply_to": data.reply_to_message_id} if data.reply_to_message_id else None
+            metadata=metadata
         )
         return message_id, saved_message
 
@@ -174,6 +200,196 @@ class MessageService:
             phone=normalized_phone,
             text=data.caption or f"({data.media_type})",
             message_type=data.media_type,
+            direction="outgoing",
+            metadata=metadata
+        )
+        return message_id, saved_message
+
+    def send_voice(
+        self,
+        db: Session,
+        tenant_id: str,
+        data: VoiceMessageCreate
+    ) -> Tuple[Optional[str], Message]:
+        """Send voice message"""
+        message_id = None
+        normalized_phone = _normalize_phone(data.to)
+
+        if self.wa:
+            try:
+                response = self.wa.send_voice(
+                    to=data.to,
+                    voice=data.media_id,
+                    reply_to_message_id=data.reply_to_message_id
+                )
+                message_id = str(response) if response else None
+                log.info(f"✅ Voice message sent to {normalized_phone}")
+            except Exception as e:
+                log.error(f"❌ Failed to send voice message: {e}")
+                raise
+
+        saved_message = self._save_message(
+            db=db,
+            tenant_id=tenant_id,
+            message_id=message_id,
+            phone=normalized_phone,
+            text="(voice message)",
+            message_type="voice",
+            direction="outgoing",
+            metadata={
+                "media_id": data.media_id,
+                "reply_to": data.reply_to_message_id
+            } if data.reply_to_message_id else {"media_id": data.media_id}
+        )
+        return message_id, saved_message
+
+    def send_catalog(
+        self,
+        db: Session,
+        tenant_id: str,
+        data: CatalogMessageCreate
+    ) -> Tuple[Optional[str], Message]:
+        """Send catalog message"""
+        message_id = None
+        normalized_phone = _normalize_phone(data.to)
+
+        if self.wa:
+            try:
+                response = self.wa.send_catalog(
+                    to=data.to,
+                    body=data.body,
+                    footer=data.footer,
+                    thumbnail_product_sku=data.thumbnail_product_sku,
+                    reply_to_message_id=data.reply_to_message_id
+                )
+                message_id = str(response) if response else None
+                log.info(f"✅ Catalog sent to {normalized_phone}")
+            except Exception as e:
+                log.error(f"❌ Failed to send catalog: {e}")
+                raise
+
+        metadata = {
+            "body": data.body,
+            "footer": data.footer,
+            "thumbnail_product_sku": data.thumbnail_product_sku
+        }
+        if data.reply_to_message_id:
+            metadata["reply_to"] = data.reply_to_message_id
+        
+        metadata = {k: v for k, v in metadata.items() if v is not None}
+
+        saved_message = self._save_message(
+            db=db,
+            tenant_id=tenant_id,
+            message_id=message_id,
+            phone=normalized_phone,
+            text=f"Catalog: {data.body[:50]}...",
+            message_type="catalog",
+            direction="outgoing",
+            metadata=metadata
+        )
+        return message_id, saved_message
+
+    def send_product(
+        self,
+        db: Session,
+        tenant_id: str,
+        data: ProductMessageCreate
+    ) -> Tuple[Optional[str], Message]:
+        """Send a single product message."""
+        message_id = None
+        normalized_phone = _normalize_phone(data.to)
+
+        if self.wa:
+            try:
+                response = self.wa.send_product(
+                    to=data.to,
+                    catalog_id=data.catalog_id,
+                    sku=data.sku,
+                    body=data.body,
+                    footer=data.footer,
+                    reply_to_message_id=data.reply_to_message_id
+                )
+                message_id = str(response) if response else None
+                log.info(f"✅ Product message sent to {normalized_phone}")
+            except Exception as e:
+                log.error(f"❌ Failed to send product message: {e}")
+                raise
+
+        metadata = {
+            "catalog_id": data.catalog_id,
+            "sku": data.sku,
+            "body": data.body,
+            "footer": data.footer
+        }
+        if data.reply_to_message_id:
+            metadata["reply_to"] = data.reply_to_message_id
+        
+        metadata = {k: v for k, v in metadata.items() if v is not None}
+
+        saved_message = self._save_message(
+            db=db,
+            tenant_id=tenant_id,
+            message_id=message_id,
+            phone=normalized_phone,
+            text=f"Product: {data.sku} from {data.catalog_id}",
+            message_type="product",
+            direction="outgoing",
+            metadata=metadata
+        )
+        return message_id, saved_message
+
+    def send_products(
+        self,
+        db: Session,
+        tenant_id: str,
+        data: ProductsMessageCreate
+    ) -> Tuple[Optional[str], Message]:
+        """Send a multi-product message."""
+        message_id = None
+        normalized_phone = _normalize_phone(data.to)
+
+        if self.wa:
+            try:
+                pywa_product_sections = []
+                for section in data.product_sections:
+                    pywa_product_sections.append(PywaProductsSection(
+                        title=section.title,
+                        skus=section.skus
+                    ))
+
+                response = self.wa.send_products(
+                    to=data.to,
+                    catalog_id=data.catalog_id,
+                    product_sections=pywa_product_sections,
+                    body=data.body,
+                    footer=data.footer,
+                    reply_to_message_id=data.reply_to_message_id
+                )
+                message_id = str(response) if response else None
+                log.info(f"✅ Multi-product message sent to {normalized_phone}")
+            except Exception as e:
+                log.error(f"❌ Failed to send multi-product message: {e}")
+                raise
+
+        metadata = {
+            "catalog_id": data.catalog_id,
+            "product_sections": [section.model_dump() for section in data.product_sections],
+            "body": data.body,
+            "footer": data.footer
+        }
+        if data.reply_to_message_id:
+            metadata["reply_to"] = data.reply_to_message_id
+        
+        metadata = {k: v for k, v in metadata.items() if v is not None}
+
+        saved_message = self._save_message(
+            db=db,
+            tenant_id=tenant_id,
+            message_id=message_id,
+            phone=normalized_phone,
+            text=f"Multi-product message from {data.catalog_id}",
+            message_type="products",
             direction="outgoing",
             metadata=metadata
         )
@@ -542,12 +758,10 @@ class MessageService:
             Tuple of (media_bytes, mime_type, filename)
         """
         try:
-            # 1. Look up in DB by internal UUID
-            media_record = db.query(Media).filter(Media.id == media_id).first()
-
-            # 2. If not found, try looking up by WhatsApp Media ID
-            if not media_record:
-                media_record = db.query(Media).filter(Media.whatsapp_media_id == media_id).first()
+            # 1. Look up in DB by internal UUID or WhatsApp Media ID
+            media_record = db.query(Media).filter(
+                (Media.id == media_id) | (Media.whatsapp_media_id == media_id)
+            ).first()
 
             # If we have a record, decide how to fetch it
             if media_record:
