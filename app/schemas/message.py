@@ -199,11 +199,12 @@ class MessageResponse(BaseModel):
     text: Optional[str]
     message_type: str
     direction: str  # incoming or outgoing
+    status: Optional[str] = 'sent'  # 'sent', 'delivered', 'read', 'failed'
     tenant_id: str
     created_at: datetime
     updated_at: datetime
     meta_data: Optional[Dict[str, Any]] = None
-    
+
     class Config:
         from_attributes = True  # Allow creation from ORM models
 

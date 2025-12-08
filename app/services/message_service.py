@@ -670,7 +670,7 @@ class MessageService:
         if not self.wa:
             log.warning("WhatsApp client not available - cannot mark message as read")
             return False
-        
+
         try:
             log.info(f"Marking message as read: {message_id}")
             success = self.wa.mark_message_as_read(message_id=message_id)
@@ -678,6 +678,48 @@ class MessageService:
         except Exception as e:
             log.error(f"❌ Failed to mark message as read: {e}")
             return False
+
+    def update_message_status(
+        self,
+        db: Session,
+        tenant_id: str,
+        message_id: str,
+        status: str
+    ) -> Optional[Message]:
+        """
+        Update message delivery/read status in database.
+
+        Args:
+            db: Database session
+            tenant_id: Tenant ID
+            message_id: WhatsApp message ID
+            status: New status ('sent', 'delivered', 'read', 'failed')
+
+        Returns:
+            Updated Message object or None if not found
+        """
+        try:
+            message = db.query(Message).filter(
+                Message.message_id == message_id,
+                Message.tenant_id == tenant_id
+            ).first()
+
+            if not message:
+                log.warning(f"⚠️ Message not found for status update: {message_id}")
+                return None
+
+            log.info(f"📊 Updating message {message_id} status: {message.status} -> {status}")
+            message.status = status
+            db.commit()
+            db.refresh(message)
+
+            log.info(f"✅ Message status updated successfully: {message_id} -> {status}")
+            return message
+
+        except Exception as e:
+            log.error(f"❌ Failed to update message status: {e}")
+            db.rollback()
+            return None
 
     def upload_media(
         self,

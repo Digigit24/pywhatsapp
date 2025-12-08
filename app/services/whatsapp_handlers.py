@@ -542,39 +542,106 @@ def register_handlers(wa_client):
     
     @wa_client.on_message_status()
     def handle_status(client, status):
-        """Handle message status updates (sent, delivered, read)"""
+        """Handle message status updates (sent, delivered, read) and broadcast via WebSocket"""
         try:
             tenant_id = DEFAULT_TENANT_ID
-            
-            log.info(f"📊 Message status update: {status}")
-            
+
+            log.info("="*80)
+            log.info(f"📊 MESSAGE STATUS UPDATE WEBHOOK RECEIVED")
+            log.info("="*80)
+
             with get_db_session() as db:
                 msg_id = getattr(status, 'id', None)
                 status_type = getattr(status, 'status', None)
                 recipient_id = getattr(status, 'recipient_id', None)
-                
-                # Log status update
-                webhook_log = WebhookLog(
-                    tenant_id=tenant_id,
-                    log_type='status',
-                    phone=recipient_id,
-                    message_id=msg_id,
-                    status=status_type,
-                    context=f"Status update: {status_type}",
-                    raw_data={
-                        'message_id': msg_id,
-                        'status': status_type,
-                        'recipient_id': recipient_id,
-                        'timestamp': str(getattr(status, 'timestamp', None))
+                timestamp = getattr(status, 'timestamp', None)
+
+                log.info(f"📊 Status Details:")
+                log.info(f"   - Message ID: {msg_id}")
+                log.info(f"   - Status: {status_type}")
+                log.info(f"   - Recipient: {recipient_id}")
+                log.info(f"   - Timestamp: {timestamp}")
+
+                # Format phone number
+                formatted_phone = format_phone_number(recipient_id) if recipient_id else None
+
+                # Update message status in database
+                try:
+                    updated_message = service.update_message_status(
+                        db=db,
+                        tenant_id=tenant_id,
+                        message_id=msg_id,
+                        status=status_type
+                    )
+
+                    if updated_message:
+                        log.info(f"✅ Message status updated in database: {msg_id} -> {status_type}")
+                    else:
+                        log.warning(f"⚠️ Message not found in database for status update: {msg_id}")
+
+                except Exception as e:
+                    log.error(f"❌ Failed to update message status in database: {e}")
+
+                # Log status update to webhook log
+                try:
+                    webhook_log = WebhookLog(
+                        tenant_id=tenant_id,
+                        log_type='status',
+                        phone=formatted_phone,
+                        message_id=msg_id,
+                        status=status_type,
+                        context=f"Status update: {status_type}",
+                        raw_data={
+                            'message_id': msg_id,
+                            'status': status_type,
+                            'recipient_id': recipient_id,
+                            'timestamp': str(timestamp)
+                        }
+                    )
+                    db.add(webhook_log)
+                    db.commit()
+                    log.info(f"✅ Status logged to webhook_logs: {msg_id} -> {status_type}")
+                except Exception as e:
+                    log.error(f"❌ Failed to log webhook status: {e}")
+                    db.rollback()
+
+                # Broadcast status update via WebSocket
+                log.info("━"*80)
+                log.info("📡 BROADCASTING STATUS UPDATE TO WEBSOCKET CLIENTS")
+                log.info("━"*80)
+                try:
+                    ws_payload = {
+                        "event": "message_status",
+                        "data": {
+                            "message_id": msg_id,
+                            "status": status_type,
+                            "phone": formatted_phone,
+                            "timestamp": str(timestamp) if timestamp else None
+                        }
                     }
-                )
-                db.add(webhook_log)
-                db.commit()
-                
-                log.info(f"✅ Status logged: {msg_id} -> {status_type}")
-                
+
+                    log.info(f"📡 WebSocket status payload:")
+                    log.info(f"   - Event: message_status")
+                    log.info(f"   - Message ID: {msg_id}")
+                    log.info(f"   - Status: {status_type}")
+                    log.debug(f"📦 Full payload: {ws_payload}")
+
+                    notify_clients_sync(tenant_id, ws_payload)
+                    log.info(f"✅ ✅ ✅ Status update broadcasted via WebSocket! ✅ ✅ ✅")
+
+                except Exception as e:
+                    log.error(f"❌ WebSocket status broadcast FAILED: {e}")
+                    import traceback
+                    log.error(traceback.format_exc())
+
+                log.info("="*80)
+                log.info(f"✅ STATUS HANDLER COMPLETED: {msg_id} -> {status_type}")
+                log.info("="*80)
+
         except Exception as e:
-            log.error(f"❌ Status handler error: {e}")
+            log.error(f"❌ CRITICAL: Status handler error: {e}")
+            import traceback
+            log.error(traceback.format_exc())
     
     @wa_client.on_callback_button()
     def handle_button_callback(client, clb: CallbackButton):
