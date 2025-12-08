@@ -55,6 +55,11 @@ class ContactResponse(ContactBase):
     last_seen: Optional[str] = None
     created_at: datetime
     updated_at: datetime
-    
+
+    # 24-hour conversation window
+    last_message_from_user: Optional[datetime] = None
+    conversation_window_expires_at: Optional[datetime] = None
+    window_is_open: Optional[bool] = None  # Computed: True if within 24h window
+
     class Config:
         from_attributes = True

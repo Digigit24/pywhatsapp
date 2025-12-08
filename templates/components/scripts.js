@@ -195,6 +195,18 @@ function formatTime(timestamp) {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
+function formatSeconds(seconds) {
+    if (seconds === null || seconds < 0) return '';
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = Math.floor(seconds % 60);
+    return [
+        h,
+        m > 9 ? m : (h > 0 ? '0' + m : m),
+        s > 9 ? s : '0' + s,
+    ].filter(a => a).join(':');
+}
+
 function escapeHtml(text) {
   const div = document.createElement('div');
   div.textContent = text;

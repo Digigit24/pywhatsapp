@@ -14,7 +14,7 @@ from app.services.message_service import MessageService
 from app.models.contact import Contact
 from app.models.message import Message
 from app.models.webhook import WebhookLog
-from datetime import datetime
+from datetime import datetime, timedelta
 from app.core.config import DEFAULT_TENANT_ID
 from app.ws.manager import notify_clients_sync
 from pywa import filters
@@ -149,28 +149,45 @@ def register_handlers(wa_client):
                     if contact:
                         # Update existing contact
                         is_new_contact = False
-                        log.info(f"🔄 Updating existing contact: {formatted_phone}")
+                        log.info(f"🔄 [DIAGNOSTIC] Updating existing contact. Current expiry: {contact.conversation_window_expires_at}")
 
                         if name and name != contact.name:
                             log.debug(f"📝 Updating contact name: {contact.name} -> {name}")
                             contact.name = name
-                        contact.last_seen = datetime.utcnow().isoformat()
+
+                        # Update 24-hour conversation window
+
+                        now = datetime.utcnow()
+                        window_expires = now + timedelta(hours=24)
+
+                        contact.last_seen = now.isoformat()
+                        contact.last_message_from_user = now
+                        contact.conversation_window_expires_at = window_expires
+                        log.info(f"⏰ [DIAGNOSTIC] Set new expiry in memory: {contact.conversation_window_expires_at}")
 
                     else:
                         # Create new contact
                         is_new_contact = True
                         log.info(f"➕ Creating new contact: {formatted_phone}")
 
+                        # Calculate 24-hour window expiry
+
+                        now = datetime.utcnow()
+                        window_expires = now + timedelta(hours=24)
+
                         contact = Contact(
                             tenant_id=tenant_id,
                             phone=formatted_phone,
                             name=name,
-                            last_seen=datetime.utcnow().isoformat()
+                            last_seen=now.isoformat(),
+                            last_message_from_user=now,
+                            conversation_window_expires_at=window_expires
                         )
                         db.add(contact)
 
                     # Commit changes
                     try:
+                        log.info("💾 [DIAGNOSTIC] Attempting to commit contact update...")
                         db.commit()
                         contact_saved = True
                         log.info(f"✅ Contact {'created' if is_new_contact else 'updated'} successfully: {formatted_phone}")
@@ -189,8 +206,8 @@ def register_handlers(wa_client):
                         }
 
                     except Exception as commit_error:
+                        log.error(f"❌ [DIAGNOSTIC] Contact commit failed, rolling back. Error: {commit_error}")
                         # If commit fails (e.g., duplicate due to race condition)
-                        log.warning(f"⚠️ Contact commit failed (likely race condition): {commit_error}")
                         db.rollback()
 
                         # Try to fetch the contact that must exist now
@@ -205,6 +222,16 @@ def register_handlers(wa_client):
                                 is_new_contact = False  # It existed
                                 contact_saved = True  # We have the contact
                                 log.info(f"✅ Found existing contact after conflict: {formatted_phone}")
+
+                                # --- FIX: Re-apply timestamp update on fetched contact ---
+                                now = datetime.utcnow()
+                                window_expires = now + timedelta(hours=24)
+                                contact.last_seen = now.isoformat()
+                                contact.last_message_from_user = now
+                                contact.conversation_window_expires_at = window_expires
+                                db.commit()  # Commit the update for the re-fetched contact
+                                log.info(f"⏰ 24h window updated for contact after race condition: {formatted_phone}")
+                                # --- END FIX ---
 
                                 contact_info = {
                                     "id": str(contact.id),
@@ -232,7 +259,7 @@ def register_handlers(wa_client):
                             }
 
                 except Exception as e:
-                    log.error(f"❌ Contact operation error: {e}")
+                    log.error(f"❌ [DIAGNOSTIC] Unhandled contact operation error, rolling back. Error: {e}")
                     import traceback
                     log.debug(traceback.format_exc())
 

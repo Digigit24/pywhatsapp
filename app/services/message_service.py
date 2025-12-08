@@ -1022,10 +1022,12 @@ class MessageService:
         tenant_id: str
     ) -> List[Dict[str, Any]]:
         """
-        Get all conversations with last message preview.
+        Get all conversations with last message preview and 24h window status.
 
         Returns list of conversation summaries.
         """
+        from app.models.contact import Contact
+
         # Get latest message for each phone
         subquery = db.query(
             Message.phone,
@@ -1045,11 +1047,32 @@ class MessageService:
 
         # Build response
         result = []
+        now = datetime.utcnow()
+
         for msg in conversations:
             msg_count = db.query(Message).filter(
                 Message.tenant_id == tenant_id,
                 Message.phone == msg.phone
             ).count()
+
+            # Get contact to fetch 24h window data
+            contact = db.query(Contact).filter(
+                Contact.tenant_id == tenant_id,
+                Contact.phone == msg.phone
+            ).first()
+
+            # Calculate window status
+            window_is_open = False
+            window_expires_at = None
+            time_remaining_seconds = None
+
+            if contact and contact.conversation_window_expires_at:
+                window_expires_at = contact.conversation_window_expires_at
+                window_is_open = now < window_expires_at
+
+                if window_is_open:
+                    time_remaining = window_expires_at - now
+                    time_remaining_seconds = int(time_remaining.total_seconds())
 
             result.append({
                 "phone": msg.phone,
@@ -1058,7 +1081,12 @@ class MessageService:
                 "last_timestamp": msg.created_at.isoformat() if msg.created_at else None,
                 "unread_count": 0,  # TODO: Implement read status
                 "message_count": msg_count,
-                "direction": msg.direction
+                "direction": msg.direction,
+                # 24-hour window data
+                "window_is_open": window_is_open,
+                "window_expires_at": window_expires_at.isoformat() if window_expires_at else None,
+                "time_remaining_seconds": time_remaining_seconds,
+                "requires_template": not window_is_open  # True if window closed
             })
 
         return result
