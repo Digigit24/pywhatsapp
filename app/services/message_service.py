@@ -101,7 +101,7 @@ class MessageService:
                     ]
                 
                 response = self.wa.send_text(
-                    to=data.to, 
+                    to=data.to,
                     text=data.text,
                     header=data.header,
                     footer=data.footer,
@@ -109,8 +109,13 @@ class MessageService:
                     preview_url=data.preview_url,
                     reply_to_message_id=data.reply_to_message_id
                 )
-                if hasattr(response, 'id'):
+                # Extract message_id from response
+                if hasattr(response, 'message_id'):
+                    message_id = response.message_id
+                elif hasattr(response, 'id'):
                     message_id = response.id
+                elif isinstance(response, dict) and 'messages' in response:
+                    message_id = response['messages'][0]['id']
                 elif isinstance(response, str):
                     message_id = response
                 else:

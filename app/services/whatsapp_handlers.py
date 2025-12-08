@@ -491,14 +491,23 @@ def register_handlers(wa_client):
                         
                         if reply:
                             log.info(f"🤖 Sending auto-reply: {reply[:50]}...")
-                            message.reply_text(reply)
-                            
+                            response = message.reply_text(reply)
+
+                            # Extract message_id from response
+                            reply_message_id = None
+                            if hasattr(response, 'message_id'):
+                                reply_message_id = response.message_id
+                            elif hasattr(response, 'id'):
+                                reply_message_id = response.id
+                            elif isinstance(response, dict) and 'messages' in response:
+                                reply_message_id = response['messages'][0]['id']
+
                             # Save outgoing auto-reply
                             try:
                                 service.save_outgoing_message(
                                     db=db,
                                     tenant_id=tenant_id,
-                                    message_id=None,
+                                    message_id=reply_message_id,
                                     phone=formatted_phone,
                                     contact_name=name,
                                     text=reply,
@@ -610,11 +619,16 @@ def register_handlers(wa_client):
                 log.info("📡 BROADCASTING STATUS UPDATE TO WEBSOCKET CLIENTS")
                 log.info("━"*80)
                 try:
+                    # Convert PyWA enum to string for JSON serialization
+                    status_str = str(status_type) if hasattr(status_type, 'value') else status_type
+                    if hasattr(status_type, 'value'):
+                        status_str = status_type.value
+
                     ws_payload = {
                         "event": "message_status",
                         "data": {
                             "message_id": msg_id,
-                            "status": status_type,
+                            "status": status_str,
                             "phone": formatted_phone,
                             "timestamp": str(timestamp) if timestamp else None
                         }
