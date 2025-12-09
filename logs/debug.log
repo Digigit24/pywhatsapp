@@ -193,3 +193,66 @@
 2025-12-09 04:06:53,115 | INFO     | whatspy.handlers | 🏢 Using tenant_id from .env: d2bcd1ee-e5c5-4c9f-bff2-aaf901d40440
 2025-12-09 04:06:53,115 | INFO     | whatspy.handlers | 📝 All incoming messages will be saved to this tenant
 2025-12-09 04:06:53,115 | INFO     | whatspy | ✅ WhatsApp client initialized
+2025-12-09 15:03:33,009 | INFO     | whatspy | ================================================================================
+2025-12-09 15:03:33,009 | INFO     | whatspy | 🚀 Application starting - Logging to console and logs/debug.log
+2025-12-09 15:03:33,009 | INFO     | whatspy | ================================================================================
+2025-12-09 15:03:42,252 | INFO     | whatspy.database | ✅ Database tables initialized
+2025-12-09 15:03:43,359 | INFO     | whatspy.database | ✅ Database connection successful
+2025-12-09 15:03:43,366 | INFO     | whatspy | ✅ Database initialized
+2025-12-09 15:03:44,456 | WARNING  | pywa.server | No `app_secret` provided. Signature validation will be disabled (not recommended. set `validate_updates=False` to suppress this warning)
+2025-12-09 15:03:44,458 | INFO     | pywa.server | Using FastAPI
+2025-12-09 15:03:44,462 | INFO     | whatspy.handlers | ✅ WhatsApp message handlers registered
+2025-12-09 15:03:44,462 | INFO     | whatspy.handlers | 🏢 Using tenant_id from .env: d2bcd1ee-e5c5-4c9f-bff2-aaf901d40440
+2025-12-09 15:03:44,464 | INFO     | whatspy.handlers | 📝 All incoming messages will be saved to this tenant
+2025-12-09 15:03:44,464 | INFO     | whatspy | ✅ WhatsApp client initialized
+2025-12-09 15:11:34,599 | INFO     | whatspy | ================================================================================
+2025-12-09 15:11:34,599 | INFO     | whatspy | 🚀 Application starting - Logging to console and logs/debug.log
+2025-12-09 15:11:34,599 | INFO     | whatspy | ================================================================================
+2025-12-09 15:11:44,027 | INFO     | whatspy.database | ✅ Database tables initialized
+2025-12-09 15:11:45,172 | INFO     | whatspy.database | ✅ Database connection successful
+2025-12-09 15:11:45,175 | INFO     | whatspy | ✅ Database initialized
+2025-12-09 15:11:45,619 | WARNING  | pywa.server | No `app_secret` provided. Signature validation will be disabled (not recommended. set `validate_updates=False` to suppress this warning)
+2025-12-09 15:11:45,619 | INFO     | pywa.server | Using FastAPI
+2025-12-09 15:11:45,619 | INFO     | whatspy.handlers | ✅ WhatsApp message handlers registered
+2025-12-09 15:11:45,619 | INFO     | whatspy.handlers | 🏢 Using tenant_id from .env: d2bcd1ee-e5c5-4c9f-bff2-aaf901d40440
+2025-12-09 15:11:45,619 | INFO     | whatspy.handlers | 📝 All incoming messages will be saved to this tenant
+2025-12-09 15:11:45,619 | INFO     | whatspy | ✅ WhatsApp client initialized
+2025-12-09 15:11:48,903 | INFO     | whatspy | ================================================================================
+2025-12-09 15:11:48,903 | INFO     | whatspy | 🚀 Application starting - Logging to console and logs/debug.log
+2025-12-09 15:11:48,903 | INFO     | whatspy | ================================================================================
+2025-12-09 15:11:58,221 | INFO     | whatspy.database | ✅ Database tables initialized
+2025-12-09 15:11:59,500 | INFO     | whatspy.database | ✅ Database connection successful
+2025-12-09 15:11:59,500 | INFO     | whatspy | ✅ Database initialized
+2025-12-09 15:11:59,992 | WARNING  | pywa.server | No `app_secret` provided. Signature validation will be disabled (not recommended. set `validate_updates=False` to suppress this warning)
+2025-12-09 15:11:59,997 | INFO     | pywa.server | Using FastAPI
+2025-12-09 15:12:00,000 | INFO     | whatspy.handlers | ✅ WhatsApp message handlers registered
+2025-12-09 15:12:00,001 | INFO     | whatspy.handlers | 🏢 Using tenant_id from .env: d2bcd1ee-e5c5-4c9f-bff2-aaf901d40440
+2025-12-09 15:12:00,001 | INFO     | whatspy.handlers | 📝 All incoming messages will be saved to this tenant
+2025-12-09 15:12:00,001 | INFO     | whatspy | ✅ WhatsApp client initialized
+2025-12-09 15:12:04,323 | INFO     | whatspy | ================================================================================
+2025-12-09 15:12:04,323 | INFO     | whatspy | 🚀 Application starting - Logging to console and logs/debug.log
+2025-12-09 15:12:04,323 | INFO     | whatspy | ================================================================================
+2025-12-09 15:12:13,000 | INFO     | whatspy.database | ✅ Database tables initialized
+2025-12-09 15:12:14,144 | INFO     | whatspy.database | ✅ Database connection successful
+2025-12-09 15:12:14,144 | INFO     | whatspy | ✅ Database initialized
+2025-12-09 15:12:15,296 | WARNING  | pywa.server | No `app_secret` provided. Signature validation will be disabled (not recommended. set `validate_updates=False` to suppress this warning)
+2025-12-09 15:12:15,296 | INFO     | pywa.server | Using FastAPI
+2025-12-09 15:12:15,306 | INFO     | whatspy.handlers | ✅ WhatsApp message handlers registered
+2025-12-09 15:12:15,306 | INFO     | whatspy.handlers | 🏢 Using tenant_id from .env: d2bcd1ee-e5c5-4c9f-bff2-aaf901d40440
+2025-12-09 15:12:15,306 | INFO     | whatspy.handlers | 📝 All incoming messages will be saved to this tenant
+2025-12-09 15:12:15,306 | INFO     | whatspy | ✅ WhatsApp client initialized
+2025-12-09 15:12:42,372 | INFO     | whatspy | ================================================================================
+2025-12-09 15:12:42,372 | INFO     | whatspy | 🚀 Application starting - Logging to console and logs/debug.log
+2025-12-09 15:12:42,381 | INFO     | whatspy | ================================================================================
+2025-12-09 15:12:52,185 | INFO     | whatspy.database | ✅ Database tables initialized
+2025-12-09 15:12:53,310 | INFO     | whatspy.database | ✅ Database connection successful
+2025-12-09 15:12:53,310 | INFO     | whatspy | ✅ Database initialized
+2025-12-09 15:12:54,372 | WARNING  | pywa.server | No `app_secret` provided. Signature validation will be disabled (not recommended. set `validate_updates=False` to suppress this warning)
+2025-12-09 15:12:54,374 | INFO     | pywa.server | Using FastAPI
+2025-12-09 15:12:54,379 | INFO     | whatspy.handlers | ✅ WhatsApp message handlers registered
+2025-12-09 15:12:54,383 | INFO     | whatspy.handlers | 🏢 Using tenant_id from .env: d2bcd1ee-e5c5-4c9f-bff2-aaf901d40440
+2025-12-09 15:12:54,384 | INFO     | whatspy.handlers | 📝 All incoming messages will be saved to this tenant
+2025-12-09 15:12:54,386 | INFO     | whatspy | ✅ WhatsApp client initialized
+2025-12-09 15:24:26,357 | INFO     | whatspy | ================================================================================
+2025-12-09 15:24:26,357 | INFO     | whatspy | 🚀 Application starting - Logging to console and logs/debug.log
+2025-12-09 15:24:26,357 | INFO     | whatspy | ================================================================================

@@ -93,6 +93,9 @@ ALLOWED_ORIGINS = [
     "http://127.0.0.1:5173",
     "https://whatsapp.dglinkup.com",
     "https://hmsceliyo.netlify.app",
+    "https://hms.thedigitechsolutions.com",
+    "https://admin.gorehospital.com",
+    "https://admin.jeevishapainclinic.com"
 ]
 
 # Local origin regex for dynamic ports
