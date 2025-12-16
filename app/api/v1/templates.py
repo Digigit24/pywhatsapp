@@ -379,6 +379,56 @@ def get_template_analytics(
 
 
 # ────────────────────────────────────────────
+# Template Sync
+# ────────────────────────────────────────────
+
+@router.post("/sync")
+def sync_templates(
+    db: Session = Depends(get_db),
+    tenant_id: str = Depends(get_tenant_id_flexible),
+    service: TemplateService = Depends(get_template_service)
+):
+    """
+    Sync templates from Meta WhatsApp Business API.
+
+    **This endpoint will:**
+    - Fetch all templates from your Meta WhatsApp Business Account
+    - Update existing templates (status, quality score, components)
+    - Add new templates that exist on Meta but not in your local database
+    - Return detailed sync statistics
+
+    **Response includes:**
+    - `total_meta_templates`: Total templates found on Meta
+    - `synced`: Total templates successfully synced
+    - `updated`: Number of existing templates updated
+    - `added`: Number of new templates added
+    - `failed`: Number of templates that failed to sync
+    - `errors`: List of error messages for failed syncs
+
+    **Use this endpoint to:**
+    - Keep your local template database in sync with Meta
+    - Update template statuses after Meta approval/rejection
+    - Import templates created via Meta Business Manager
+    """
+    import logging
+    log = logging.getLogger("whatspy.templates_api")
+
+    try:
+        log.info(f"🔄 Template sync requested for tenant: {tenant_id}")
+        result = service.sync_templates(db, tenant_id)
+        log.info(f"✅ Template sync completed: {result}")
+        return result
+    except ValueError as e:
+        log.error(f"❌ Template sync validation error: {e}")
+        raise HTTPException(400, str(e))
+    except Exception as e:
+        log.error(f"❌ Template sync failed: {e}")
+        import traceback
+        log.error(traceback.format_exc())
+        raise HTTPException(500, f"Template sync failed: {str(e)}")
+
+
+# ────────────────────────────────────────────
 # Template Status Webhooks
 # ────────────────────────────────────────────
 
@@ -391,7 +441,7 @@ async def template_status_webhook(
 ):
     """
     Handle template status update webhooks from WhatsApp.
-    
+
     This endpoint receives notifications when:
     - Template is approved
     - Template is rejected
@@ -402,12 +452,12 @@ async def template_status_webhook(
         status = data.get("status")
         quality_score = data.get("quality_score")
         rejection_reason = data.get("rejection_reason")
-        
+
         service.update_template_status(
             db, tenant_id, template_id, status,
             quality_score, rejection_reason
         )
-        
+
         return {"ok": True}
     except Exception as e:
         raise HTTPException(500, str(e))

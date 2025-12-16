@@ -455,15 +455,253 @@ class TemplateService:
         }
     
     # ────────────────────────────────────────────
+    # Sync Templates from Meta
+    # ────────────────────────────────────────────
+
+    def sync_templates(
+        self,
+        db: Session,
+        tenant_id: str
+    ) -> Dict[str, Any]:
+        """
+        Sync templates from Meta WhatsApp Business API.
+
+        - Fetches all templates from Meta
+        - Updates existing templates (status, quality score)
+        - Adds new templates found on Meta
+        - Returns sync statistics
+        """
+        if not self.wa:
+            raise ValueError("WhatsApp client not available")
+
+        try:
+            log.info("🔄 Starting template sync from Meta...")
+
+            # Fetch templates from Meta
+            meta_templates = self._fetch_meta_templates()
+
+            synced = 0
+            updated = 0
+            added = 0
+            failed = 0
+            errors = []
+
+            for meta_template in meta_templates:
+                try:
+                    # Extract template info
+                    template_id = meta_template.get('id')
+                    name = meta_template.get('name')
+                    language = meta_template.get('language')
+                    status = meta_template.get('status', 'PENDING').upper()
+                    category = meta_template.get('category', 'UTILITY').upper()
+                    components = meta_template.get('components', [])
+                    quality_score = meta_template.get('quality_score', {})
+                    rejection_reason = meta_template.get('rejected_reason')
+
+                    # Skip if missing critical fields
+                    if not name or not language:
+                        log.warning(f"⚠️ Skipping template with missing name or language: {meta_template}")
+                        continue
+
+                    # Normalize status values
+                    # Meta API returns: APPROVED, PENDING, REJECTED, PAUSED, DISABLED, etc.
+                    status_map = {
+                        'APPROVED': 'APPROVED',
+                        'PENDING': 'PENDING',
+                        'REJECTED': 'REJECTED',
+                        'PAUSED': 'PAUSED',
+                        'DISABLED': 'REJECTED',
+                        'IN_APPEAL': 'PENDING'
+                    }
+                    normalized_status = status_map.get(status, 'PENDING')
+
+                    # Normalize category values
+                    category_map = {
+                        'AUTHENTICATION': 'AUTHENTICATION',
+                        'MARKETING': 'MARKETING',
+                        'UTILITY': 'UTILITY'
+                    }
+                    normalized_category = category_map.get(category, 'UTILITY')
+
+                    # Check if template exists locally
+                    existing = db.query(WhatsAppTemplate).filter(
+                        WhatsAppTemplate.tenant_id == tenant_id,
+                        WhatsAppTemplate.name == name,
+                        WhatsAppTemplate.language == language
+                    ).first()
+
+                    if existing:
+                        # Update existing template
+                        existing.template_id = template_id
+                        existing.status = TemplateStatus[normalized_status]
+                        existing.category = TemplateCategory[normalized_category]
+                        existing.components = components
+                        existing.quality_score = quality_score.get('score') if isinstance(quality_score, dict) else quality_score
+                        existing.rejection_reason = rejection_reason
+                        updated += 1
+                        log.info(f"✅ Updated template: {name} ({language}) - Status: {normalized_status}")
+                    else:
+                        # Add new template
+                        new_template = WhatsAppTemplate(
+                            tenant_id=tenant_id,
+                            template_id=template_id,
+                            name=name,
+                            language=language,
+                            category=TemplateCategory[normalized_category],
+                            status=TemplateStatus[normalized_status],
+                            components=components,
+                            quality_score=quality_score.get('score') if isinstance(quality_score, dict) else quality_score,
+                            rejection_reason=rejection_reason,
+                            usage_count=0
+                        )
+                        db.add(new_template)
+                        added += 1
+                        log.info(f"✅ Added new template: {name} ({language}) - Status: {normalized_status}")
+
+                    synced += 1
+
+                except Exception as e:
+                    failed += 1
+                    error_msg = f"Failed to sync template {meta_template.get('name', 'unknown')}: {str(e)}"
+                    errors.append(error_msg)
+                    log.error(f"❌ {error_msg}")
+                    import traceback
+                    log.error(traceback.format_exc())
+
+            db.commit()
+
+            result = {
+                "success": True,
+                "total_meta_templates": len(meta_templates),
+                "synced": synced,
+                "updated": updated,
+                "added": added,
+                "failed": failed,
+                "errors": errors
+            }
+
+            log.info(f"✅ Template sync completed: {synced} synced, {updated} updated, {added} added, {failed} failed")
+
+            return result
+
+        except Exception as e:
+            log.error(f"❌ Template sync failed: {e}")
+            raise
+
+    def _fetch_meta_templates(self) -> List[Dict]:
+        """
+        Fetch all templates from Meta WhatsApp Business API.
+        Handles pagination to get all templates including PENDING ones.
+
+        Returns list of template dictionaries.
+        """
+        try:
+            # Get WhatsApp Business Account ID and token from environment
+            import os
+            import httpx
+
+            business_account_id = os.getenv("WHATSAPP_BUSINESS_ACCOUNT_ID")
+            token = os.getenv("WHATSAPP_TOKEN")
+
+            if not business_account_id:
+                log.error("❌ WHATSAPP_BUSINESS_ACCOUNT_ID not configured")
+                return []
+
+            if not token:
+                log.error("❌ WHATSAPP_TOKEN not configured")
+                return []
+
+            # Fetch ALL templates with pagination
+            all_templates = []
+            url = f"https://graph.facebook.com/v24.0/{business_account_id}/message_templates"
+
+            headers = {
+                "Authorization": f"Bearer {token}"
+            }
+
+            params = {
+                "limit": 1000,  # Max per page
+                "fields": "id,name,language,status,category,components,quality_score,rejected_reason"
+            }
+
+            page = 1
+            log.info(f"📡 Fetching templates from Meta API (with pagination): {url}")
+
+            while url:
+                log.info(f"📄 Fetching page {page}...")
+
+                response = httpx.get(url, headers=headers, params=params if page == 1 else None, timeout=30.0)
+
+                if response.status_code != 200:
+                    log.error(f"❌ Meta API returned status {response.status_code}: {response.text}")
+                    raise ValueError(f"Meta API error: {response.status_code} - {response.text}")
+
+                response_data = response.json()
+
+                # Extract templates from current page
+                if isinstance(response_data, dict) and 'data' in response_data:
+                    page_templates = response_data['data']
+                    all_templates.extend(page_templates)
+                    log.info(f"✅ Fetched {len(page_templates)} templates from page {page} (total so far: {len(all_templates)})")
+
+                    # Check for next page
+                    paging = response_data.get('paging', {})
+                    next_url = paging.get('next')
+
+                    if next_url:
+                        url = next_url
+                        page += 1
+                        log.info(f"➡️ More templates available, fetching next page...")
+                    else:
+                        # No more pages
+                        log.info(f"✅ All pages fetched. Total templates: {len(all_templates)}")
+                        break
+                else:
+                    log.warning(f"⚠️ Unexpected response format from Meta API")
+                    break
+
+            log.info(f"✅ Total templates fetched from Meta: {len(all_templates)}")
+
+            # Log status breakdown
+            if all_templates:
+                status_counts = {}
+                for tmpl in all_templates:
+                    status = tmpl.get('status', 'UNKNOWN')
+                    status_counts[status] = status_counts.get(status, 0) + 1
+                log.info(f"📊 Template status breakdown: {status_counts}")
+
+            return all_templates
+
+        except Exception as e:
+            log.error(f"❌ Failed to fetch templates from Meta: {e}")
+            import traceback
+            log.error(traceback.format_exc())
+            raise
+
+    def _normalize_meta_templates(self, templates: Any) -> List[Dict]:
+        """
+        Normalize Meta API templates to a standard format.
+
+        Handles different response formats from the API.
+        """
+        if isinstance(templates, list):
+            return templates
+        elif isinstance(templates, dict):
+            if 'data' in templates:
+                return templates['data']
+            return [templates]
+        return []
+
+    # ────────────────────────────────────────────
     # Helper Methods
     # ────────────────────────────────────────────
-    
+
     def _convert_components_to_pywa(self, components: List[Dict]) -> List[Any]:
         """Convert component dict to PyWa component objects"""
         # This is a placeholder - actual implementation would need
         # to properly convert to PyWa component classes
         return components
-    
+
     def _save_template_message(
         self,
         db: Session,
@@ -483,7 +721,7 @@ class TemplateService:
                 direction="outgoing",
                 meta_data={"template_name": template_name}
             )
-            
+
             db.add(message)
             db.commit()
         except Exception as e:

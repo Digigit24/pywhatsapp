@@ -20,8 +20,8 @@ def resolve_recipients(
     db: Session,
     tenant_id: str,
     recipients: List[str] = None,
-    contact_ids: List[str] = None,
-    group_ids: List[str] = None
+    contact_ids: List[int] = None,
+    group_ids: List[int] = None
 ) -> List[str]:
     """
     Resolve all recipient types into a list of phone numbers
@@ -30,8 +30,8 @@ def resolve_recipients(
         db: Database session
         tenant_id: Tenant ID for filtering
         recipients: Direct phone numbers
-        contact_ids: Contact UUIDs to look up
-        group_ids: Group UUIDs to look up
+        contact_ids: Contact integer IDs to look up
+        group_ids: Group integer IDs to look up
 
     Returns:
         List of unique phone numbers
@@ -109,13 +109,21 @@ async def create_broadcast(
     Create broadcast campaign
 
     Accepts recipients via:
-    - recipients: Direct phone numbers array
-    - contact_ids: Contact UUIDs from database
-    - group_ids: Group UUIDs from database (sends to all participants)
+    - recipients: Direct phone numbers array (e.g., ["919876543210", "919876543211"])
+    - contact_ids: Contact integer IDs from database (e.g., [36, 35])
+    - group_ids: Group integer IDs from database (sends to all participants)
 
     At least one recipient type must be provided.
     """
+    import logging
+    log = logging.getLogger("whatspy.campaigns")
+
     campaign_id = str(uuid.uuid4())
+
+    log.info(f"📢 Creating broadcast campaign: {data.campaign_name}")
+    log.info(f"   Recipients: {data.recipients}")
+    log.info(f"   Contact IDs: {data.contact_ids}")
+    log.info(f"   Group IDs: {data.group_ids}")
 
     # Resolve all recipient types to phone numbers
     phone_numbers = resolve_recipients(
@@ -126,8 +134,11 @@ async def create_broadcast(
         group_ids=data.group_ids
     )
 
+    log.info(f"✅ Resolved {len(phone_numbers)} phone numbers: {phone_numbers}")
+
     # Validate we have recipients
     if not phone_numbers:
+        log.error("❌ No valid recipients found after resolving contact/group IDs")
         raise HTTPException(
             status_code=400,
             detail="No valid recipients found. Please check contact IDs, group IDs, or phone numbers."
@@ -145,6 +156,8 @@ async def create_broadcast(
     db.commit()
     db.refresh(campaign)
 
+    log.info(f"📋 Campaign created: {campaign_id} with {len(phone_numbers)} recipients")
+
     # Start background task with resolved phone numbers
     background_tasks.add_task(
         send_broadcast,
@@ -153,6 +166,8 @@ async def create_broadcast(
         data.message_text,
         phone_numbers
     )
+
+    log.info(f"🚀 Background broadcast task started for campaign {campaign_id}")
 
     return campaign
 

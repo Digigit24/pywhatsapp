@@ -2,6 +2,7 @@
 from fastapi import APIRouter, Depends, Query, UploadFile, File, HTTPException, Response
 from sqlalchemy.orm import Session
 from typing import List, Optional
+import logging
 
 from app.db.session import get_db
 from app.api.deps import get_current_user_flexible, get_tenant_id_flexible
@@ -18,6 +19,7 @@ from app.schemas.message import (
 from datetime import datetime
 from app.ws.manager import notify_clients_sync
 
+log = logging.getLogger("whatspy.messages_api")
 router = APIRouter()
 
 @router.post("/send", response_model=MessageSendResponse)
@@ -29,29 +31,42 @@ def send_text(
     service: MessageService = Depends(get_message_service)
 ):
     """Send text message"""
-    msg_id, saved = service.send_text_message(db, tenant_id, data)
-
-    # Broadcast to tenant websocket clients
     try:
-        notify_clients_sync(tenant_id, {
-            "event": "message_outgoing",
-            "data": {
-                "phone": data.to,
-                "name": None,
-                "message": {
-                    "id": msg_id,
-                    "type": "text",
-                    "text": data.text,
-                    "timestamp": datetime.utcnow().isoformat(),
-                    "direction": "outgoing"
-                }
-            }
-        })
-    except Exception:
-        # Don't fail the request if WS broadcast fails
-        pass
+        msg_id, saved = service.send_text_message(db, tenant_id, data)
 
-    return MessageSendResponse(message_id=msg_id, phone=data.to, text=data.text)
+        # Broadcast to tenant websocket clients
+        try:
+            notify_clients_sync(tenant_id, {
+                "event": "message_outgoing",
+                "data": {
+                    "phone": data.to,
+                    "name": None,
+                    "message": {
+                        "id": msg_id,
+                        "type": "text",
+                        "text": data.text,
+                        "timestamp": datetime.utcnow().isoformat(),
+                        "direction": "outgoing"
+                    }
+                }
+            })
+        except Exception:
+            # Don't fail the request if WS broadcast fails
+            pass
+
+        return MessageSendResponse(message_id=msg_id, phone=data.to, text=data.text)
+
+    except Exception as e:
+        log.error(f"Failed to send text message to {data.to}: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Failed to send message",
+                "message": str(e),
+                "phone": data.to,
+                "success": False
+            }
+        )
 
 @router.post("/send/media")
 def send_media(
@@ -61,38 +76,44 @@ def send_media(
     service: MessageService = Depends(get_message_service)
 ):
     """Send media message"""
-    msg_id, saved = service.send_media_message(db, tenant_id, data)
-    return {"ok": True, "message_id": msg_id}
+    try:
+        msg_id, saved = service.send_media_message(db, tenant_id, data)
+        return {"ok": True, "message_id": msg_id, "success": True}
+    except Exception as e:
+        log.error(f"Failed to send media message to {data.to}: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Failed to send media message",
+                "message": str(e),
+                "phone": data.to,
+                "success": False
+            }
+        )
 
 
 @router.post("/send/voice")
-
-
 def send_voice(
-
-
     data: VoiceMessageCreate,
-
-
     db: Session = Depends(get_db),
-
-
     tenant_id: str = Depends(get_tenant_id_flexible),
-
-
     service: MessageService = Depends(get_message_service)
-
-
 ):
-
-
     """Send voice message"""
-
-
-    msg_id, saved = service.send_voice(db, tenant_id, data)
-
-
-    return {"ok": True, "message_id": msg_id}
+    try:
+        msg_id, saved = service.send_voice(db, tenant_id, data)
+        return {"ok": True, "message_id": msg_id, "success": True}
+    except Exception as e:
+        log.error(f"Failed to send voice message to {data.to}: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Failed to send voice message",
+                "message": str(e),
+                "phone": data.to,
+                "success": False
+            }
+        )
 
 
 
@@ -173,16 +194,20 @@ def send_catalog(
 
 
 
-    msg_id, saved = service.send_catalog(db, tenant_id, data)
-
-
-
-
-
-
-
-
-    return {"ok": True, "message_id": msg_id}
+    try:
+        msg_id, saved = service.send_catalog(db, tenant_id, data)
+        return {"ok": True, "message_id": msg_id, "success": True}
+    except Exception as e:
+        log.error(f"Failed to send catalog message to {data.to}: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Failed to send catalog message",
+                "message": str(e),
+                "phone": data.to,
+                "success": False
+            }
+        )
 
 
 
@@ -281,16 +306,20 @@ def send_product(
 
 
 
-    msg_id, saved = service.send_product(db, tenant_id, data)
-
-
-
-
-
-
-
-
-    return {"ok": True, "message_id": msg_id}
+    try:
+        msg_id, saved = service.send_product(db, tenant_id, data)
+        return {"ok": True, "message_id": msg_id, "success": True}
+    except Exception as e:
+        log.error(f"Failed to send product message to {data.to}: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Failed to send product message",
+                "message": str(e),
+                "phone": data.to,
+                "success": False
+            }
+        )
 
 
 
@@ -389,16 +418,20 @@ def send_products(
 
 
 
-    msg_id, saved = service.send_products(db, tenant_id, data)
-
-
-
-
-
-
-
-
-    return {"ok": True, "message_id": msg_id}
+    try:
+        msg_id, saved = service.send_products(db, tenant_id, data)
+        return {"ok": True, "message_id": msg_id, "success": True}
+    except Exception as e:
+        log.error(f"Failed to send products message to {data.to}: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Failed to send products message",
+                "message": str(e),
+                "phone": data.to,
+                "success": False
+            }
+        )
 
 
 
@@ -433,8 +466,20 @@ def send_location(
     service: MessageService = Depends(get_message_service)
 ):
     """Send location"""
-    msg_id, saved = service.send_location(db, tenant_id, data)
-    return {"ok": True, "message_id": msg_id}
+    try:
+        msg_id, saved = service.send_location(db, tenant_id, data)
+        return {"ok": True, "message_id": msg_id, "success": True}
+    except Exception as e:
+        log.error(f"Failed to send location to {data.to}: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Failed to send location",
+                "message": str(e),
+                "phone": data.to,
+                "success": False
+            }
+        )
 
 
 @router.post("/send/request_location")
@@ -445,8 +490,20 @@ def request_location(
     service: MessageService = Depends(get_message_service)
 ):
     """Request a location from a user."""
-    msg_id, saved = service.request_location(db, tenant_id, data)
-    return {"ok": True, "message_id": msg_id}
+    try:
+        msg_id, saved = service.request_location(db, tenant_id, data)
+        return {"ok": True, "message_id": msg_id, "success": True}
+    except Exception as e:
+        log.error(f"Failed to request location from {data.to}: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Failed to request location",
+                "message": str(e),
+                "phone": data.to,
+                "success": False
+            }
+        )
 
 
 @router.post("/send/reaction")
@@ -457,8 +514,20 @@ def send_reaction(
     service: MessageService = Depends(get_message_service)
 ):
     """Send reaction"""
-    msg_id, saved = service.send_reaction(db, tenant_id, data)
-    return {"ok": True, "message_id": msg_id}
+    try:
+        msg_id, saved = service.send_reaction(db, tenant_id, data)
+        return {"ok": True, "message_id": msg_id, "success": True}
+    except Exception as e:
+        log.error(f"Failed to send reaction to {data.to}: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Failed to send reaction",
+                "message": str(e),
+                "phone": data.to,
+                "success": False
+            }
+        )
 
 
 @router.delete("/messages/{message_id}/reaction", status_code=204)
@@ -481,8 +550,20 @@ def send_sticker(
     service: MessageService = Depends(get_message_service)
 ):
     """Send sticker"""
-    msg_id, saved = service.send_sticker(db, tenant_id, data)
-    return {"ok": True, "message_id": msg_id}
+    try:
+        msg_id, saved = service.send_sticker(db, tenant_id, data)
+        return {"ok": True, "message_id": msg_id, "success": True}
+    except Exception as e:
+        log.error(f"Failed to send sticker to {data.to}: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Failed to send sticker",
+                "message": str(e),
+                "phone": data.to,
+                "success": False
+            }
+        )
 
 @router.post("/send/contact")
 def send_contact(
@@ -492,8 +573,20 @@ def send_contact(
     service: MessageService = Depends(get_message_service)
 ):
     """Send contact"""
-    msg_id, saved = service.send_contact(db, tenant_id, data)
-    return {"ok": True, "message_id": msg_id}
+    try:
+        msg_id, saved = service.send_contact(db, tenant_id, data)
+        return {"ok": True, "message_id": msg_id, "success": True}
+    except Exception as e:
+        log.error(f"Failed to send contact to {data.to}: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Failed to send contact",
+                "message": str(e),
+                "phone": data.to,
+                "success": False
+            }
+        )
 
 @router.post("/upload/media")
 async def upload_media(
@@ -652,8 +745,20 @@ def send_template(
     service: MessageService = Depends(get_message_service)
 ):
     """Send using template"""
-    msg_id, saved = service.send_template_message(db, tenant_id, data)
-    return {"ok": True, "message_id": msg_id}
+    try:
+        msg_id, saved = service.send_template_message(db, tenant_id, data)
+        return {"ok": True, "message_id": msg_id, "success": True}
+    except Exception as e:
+        log.error(f"Failed to send template message to {data.to}: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Failed to send template message",
+                "message": str(e),
+                "phone": data.to,
+                "success": False
+            }
+        )
 
 # ────────────────────────────────────────────
 # Statistics Endpoint

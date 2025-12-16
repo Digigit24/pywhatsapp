@@ -1,5 +1,5 @@
 # app/schemas/campaign.py
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, model_validator
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 
@@ -9,21 +9,19 @@ class CampaignCreate(BaseModel):
 
     # Support multiple recipient types
     recipients: Optional[List[str]] = Field(None, description="Direct phone numbers")
-    contact_ids: Optional[List[str]] = Field(None, description="Contact UUIDs from database")
-    group_ids: Optional[List[str]] = Field(None, description="Group UUIDs from database")
+    contact_ids: Optional[List[int]] = Field(None, description="Contact IDs from database")
+    group_ids: Optional[List[int]] = Field(None, description="Group IDs from database")
 
-    @field_validator('recipients', 'contact_ids', 'group_ids', mode='after')
-    @classmethod
-    def validate_at_least_one_recipient_type(cls, v, info):
+    @model_validator(mode='after')
+    def validate_at_least_one_recipient_type(self):
         """Ensure at least one recipient type is provided"""
-        data = info.data
         if not any([
-            data.get('recipients'),
-            data.get('contact_ids'),
-            data.get('group_ids')
+            self.recipients,
+            self.contact_ids,
+            self.group_ids
         ]):
             raise ValueError('At least one of recipients, contact_ids, or group_ids must be provided')
-        return v
+        return self
 
 class CampaignResponse(BaseModel):
     id: int
