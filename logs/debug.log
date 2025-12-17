@@ -1692,3 +1692,236 @@ AttributeError: 'GraphAPI' object has no attribute 'make_request'
 2025-12-17 03:27:31,221 | DEBUG    | httpcore.http11 | response_closed.complete
 2025-12-17 03:27:31,557 | DEBUG    | whatspy | API HTTPException 401 for GET /api/messages/media/978850574705762: Authentication required. Provide JWT token, login via session, or X-Tenant-Id header for development.
 2025-12-17 03:27:31,566 | DEBUG    | whatspy | API HTTPException 401 for GET /api/messages/media/849562814351672: Authentication required. Provide JWT token, login via session, or X-Tenant-Id header for development.
+2025-12-17 03:32:13,366 | INFO     | whatspy.message_service | ⬇️ Media not stored locally. Fetching 3945758229065657 from WhatsApp...
+2025-12-17 03:32:13,367 | DEBUG    | pywa.api | Making request: GET /3945758229065657 with kwargs: {}
+2025-12-17 03:32:13,370 | DEBUG    | httpcore.connection | close.started
+2025-12-17 03:32:13,373 | DEBUG    | httpcore.connection | close.complete
+2025-12-17 03:32:13,374 | DEBUG    | httpcore.connection | close.started
+2025-12-17 03:32:13,374 | DEBUG    | httpcore.connection | close.complete
+2025-12-17 03:32:13,375 | DEBUG    | httpcore.connection | connect_tcp.started host='graph.facebook.com' port=443 local_address=None timeout=5.0 socket_options=None
+2025-12-17 03:32:13,421 | DEBUG    | httpcore.connection | connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x000001C7F09ED610>
+2025-12-17 03:32:13,422 | DEBUG    | httpcore.connection | start_tls.started ssl_context=<ssl.SSLContext object at 0x000001C7F058EE70> server_hostname='graph.facebook.com' timeout=5.0
+2025-12-17 03:32:13,444 | DEBUG    | httpcore.connection | start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x000001C7F09EE3D0>
+2025-12-17 03:32:13,446 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'GET']>
+2025-12-17 03:32:13,448 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2025-12-17 03:32:13,448 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'GET']>
+2025-12-17 03:32:13,449 | DEBUG    | httpcore.http11 | send_request_body.complete
+2025-12-17 03:32:13,449 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'GET']>
+2025-12-17 03:32:13,725 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Encoding', b'gzip'), (b'ETag', b'"f28992435e89667cfa7357484821ea189f3bd1c3"'), (b'Content-Type', b'application/json; charset=UTF-8'), (b'Vary', b'Origin'), (b'Vary', b'Accept-Encoding'), (b'x-fb-aed', b'693'), (b'x-business-use-case-usage', b'{"750331057695851":[{"type":"whatsapp","call_count":1,"total_cputime":1,"total_time":1,"estimated_time_to_regain_access":0}]}'), (b'Access-Control-Allow-Origin', b'*'), (b'facebook-api-version', b'v24.0'), (b'Strict-Transport-Security', b'max-age=15552000; preload'), (b'Pragma', b'no-cache'), (b'Cache-Control', b'private, no-cache, no-store, must-revalidate'), (b'Expires', b'Sat, 01 Jan 2000 00:00:00 GMT'), (b'x-fb-request-id', b'A0Ni3msATersHidnmT23uOX'), (b'x-fb-trace-id', b'E+dyIbkmAG0'), (b'x-fb-rev', b'1031160574'), (b'X-FB-Debug', b'Sz/EdnXaUIZVUqBBUexlLhjpFYoa5VqfE5wKtgY3+KUKQc2LApgOu3z04WyXhvbfRqe3r4/SPt4tXRZC3M6tmg=='), (b'Date', b'Tue, 16 Dec 2025 22:02:13 GMT'), (b'X-FB-Connection-Quality', b'EXCELLENT; q=0.9, rtt=15, rtx=0, c=10, mss=1230, tbw=3481, tp=-1, tpl=-1, uplat=265, ullat=0'), (b'Alt-Svc', b'h3=":443"; ma=86400'), (b'Connection', b'keep-alive'), (b'Content-Length', b'298')])
+2025-12-17 03:32:13,726 | INFO     | httpx | HTTP Request: GET https://graph.facebook.com/v24.0/3945758229065657 "HTTP/1.1 200 OK"
+2025-12-17 03:32:13,727 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'GET']>
+2025-12-17 03:32:13,727 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2025-12-17 03:32:13,727 | DEBUG    | httpcore.http11 | response_closed.started
+2025-12-17 03:32:13,728 | DEBUG    | httpcore.http11 | response_closed.complete
+2025-12-17 03:32:13,729 | DEBUG    | httpcore.connection | connect_tcp.started host='lookaside.fbsbx.com' port=443 local_address=None timeout=5.0 socket_options=None
+2025-12-17 03:32:13,792 | DEBUG    | httpcore.connection | connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x000001C7F09EDCD0>
+2025-12-17 03:32:13,795 | DEBUG    | httpcore.connection | start_tls.started ssl_context=<ssl.SSLContext object at 0x000001C7F058EE70> server_hostname='lookaside.fbsbx.com' timeout=5.0
+2025-12-17 03:32:13,829 | DEBUG    | httpcore.connection | start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x000001C7F09EFB90>
+2025-12-17 03:32:13,830 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'GET']>
+2025-12-17 03:32:13,832 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2025-12-17 03:32:13,832 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'GET']>
+2025-12-17 03:32:13,835 | DEBUG    | httpcore.http11 | send_request_body.complete
+2025-12-17 03:32:13,836 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'GET']>
+2025-12-17 03:32:14,227 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'content-digest', b'adler32=3813587504'), (b'ETag', b'5123175854029758723'), (b'x-manifold-obj-blobsizebytes', b'229521'), (b'x-manifold-obj-canonicalpath', b'flat/836918699263228'), (b'x-manifold-obj-ctime', b'1764966918'), (b'x-manifold-obj-entrytype', b'1'), (b'x-manifold-obj-expiresat', b'0'), (b'x-manifold-obj-isuserdata', b'0'), (b'x-manifold-obj-propertiesjson', b'{"blob_state":"created","__ctime":"1764966918"}'), (b'x-manifold-obj-symlinktarget', b''), (b'cross-origin-resource-policy', b'cross-origin'), (b'Accept-Ranges', b'bytes'), (b'Date', b'Tue, 16 Dec 2025 22:02:14 GMT'), (b'Cache-Control', b'private, no-cache, no-store, must-revalidate'), (b'Content-Disposition', b"inline;filename=KUMSS_Proposal_3_.pdf;filename*= UTF-8''KUMSS%20Proposal%20%283%29.pdf"), (b'Content-Type', b'application/pdf'), (b'Connection', b'keep-alive'), (b'Content-Length', b'222337')])
+2025-12-17 03:32:14,228 | INFO     | httpx | HTTP Request: GET https://lookaside.fbsbx.com/whatsapp_business/attachments/?mid=3945758229065657&source=getMedia&ext=1765922833&hash=ARmNDh0TGjQjnb404tQe6GjgbpXgniP4RS6NppDYfbITrg "HTTP/1.1 200 OK"
+2025-12-17 03:32:14,229 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'GET']>
+2025-12-17 03:32:14,342 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2025-12-17 03:32:14,343 | DEBUG    | httpcore.http11 | response_closed.started
+2025-12-17 03:32:14,345 | DEBUG    | httpcore.http11 | response_closed.complete
+2025-12-17 03:32:15,143 | INFO     | whatspy.message_service | ⬇️ Media not stored locally. Fetching 726574100498730 from WhatsApp...
+2025-12-17 03:32:15,145 | DEBUG    | pywa.api | Making request: GET /726574100498730 with kwargs: {}
+2025-12-17 03:32:15,146 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'GET']>
+2025-12-17 03:32:15,148 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2025-12-17 03:32:15,149 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'GET']>
+2025-12-17 03:32:15,150 | DEBUG    | httpcore.http11 | send_request_body.complete
+2025-12-17 03:32:15,151 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'GET']>
+2025-12-17 03:32:15,434 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Encoding', b'gzip'), (b'ETag', b'"e090f4250868749e57d0bd8e2a12de21db9a1a83"'), (b'Content-Type', b'application/json; charset=UTF-8'), (b'Vary', b'Origin'), (b'Vary', b'Accept-Encoding'), (b'x-fb-aed', b'693'), (b'x-business-use-case-usage', b'{"750331057695851":[{"type":"whatsapp","call_count":1,"total_cputime":1,"total_time":1,"estimated_time_to_regain_access":0}]}'), (b'Access-Control-Allow-Origin', b'*'), (b'facebook-api-version', b'v24.0'), (b'Strict-Transport-Security', b'max-age=15552000; preload'), (b'Pragma', b'no-cache'), (b'Cache-Control', b'private, no-cache, no-store, must-revalidate'), (b'Expires', b'Sat, 01 Jan 2000 00:00:00 GMT'), (b'x-fb-request-id', b'AXvmE541Ge_0Ep3C7WF5hIT'), (b'x-fb-trace-id', b'AYufZ7AH7/y'), (b'x-fb-rev', b'1031160574'), (b'X-FB-Debug', b'YoF8OkHPx7PwFdin1ycpVab/u3FBv7shXLo0MYgNzUtJ/GDsIliRA6FxPnkqkM2xn+Jtlfd2KZ5V2wUq7JUVbQ=='), (b'Date', b'Tue, 16 Dec 2025 22:02:15 GMT'), (b'X-FB-Connection-Quality', b'EXCELLENT; q=0.9, rtt=14, rtx=1, c=10, mss=1230, tbw=4806, tp=-1, tpl=-1, uplat=272, ullat=0'), (b'Alt-Svc', b'h3=":443"; ma=86400'), (b'Connection', b'keep-alive'), (b'Content-Length', b'297')])
+2025-12-17 03:32:15,436 | INFO     | httpx | HTTP Request: GET https://graph.facebook.com/v24.0/726574100498730 "HTTP/1.1 200 OK"
+2025-12-17 03:32:15,438 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'GET']>
+2025-12-17 03:32:15,439 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2025-12-17 03:32:15,441 | DEBUG    | httpcore.http11 | response_closed.started
+2025-12-17 03:32:15,442 | DEBUG    | httpcore.http11 | response_closed.complete
+2025-12-17 03:32:15,443 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'GET']>
+2025-12-17 03:32:15,443 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2025-12-17 03:32:15,444 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'GET']>
+2025-12-17 03:32:15,444 | DEBUG    | httpcore.http11 | send_request_body.complete
+2025-12-17 03:32:15,445 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'GET']>
+2025-12-17 03:32:16,313 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'content-digest', b'adler32=1136856701'), (b'ETag', b'8774510288275886148'), (b'x-manifold-obj-blobsizebytes', b'107585'), (b'x-manifold-obj-canonicalpath', b'flat/1305261124979111'), (b'x-manifold-obj-ctime', b'1765920210'), (b'x-manifold-obj-entrytype', b'1'), (b'x-manifold-obj-expiresat', b'0'), (b'x-manifold-obj-isuserdata', b'0'), (b'x-manifold-obj-propertiesjson', b'{"blob_state":"created","__ctime":"1765920209"}'), (b'x-manifold-obj-symlinktarget', b''), (b'cross-origin-resource-policy', b'cross-origin'), (b'Accept-Ranges', b'bytes'), (b'Date', b'Tue, 16 Dec 2025 22:02:16 GMT'), (b'Cache-Control', b'private, no-cache, no-store, must-revalidate'), (b'Content-Disposition', b"inline;filename=WhatsApp_Image_2025-12-16_at_12.38.50_AM.jpeg;filename*= UTF-8''WhatsApp%20Image%202025-12-16%20at%2012.38.50%20AM.jpeg"), (b'Content-Type', b'image/jpeg'), (b'Connection', b'keep-alive'), (b'Content-Length', b'104209')])
+2025-12-17 03:32:16,315 | INFO     | httpx | HTTP Request: GET https://lookaside.fbsbx.com/whatsapp_business/attachments/?mid=726574100498730&source=getMedia&ext=1765922835&hash=ARlXaZ1TZ_rkGL4PeG-X_rjTobw3gtS5A0mHPFPpwYmj8A "HTTP/1.1 200 OK"
+2025-12-17 03:32:16,316 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'GET']>
+2025-12-17 03:32:16,367 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2025-12-17 03:32:16,369 | DEBUG    | httpcore.http11 | response_closed.started
+2025-12-17 03:32:16,370 | DEBUG    | httpcore.http11 | response_closed.complete
+2025-12-17 03:33:00,545 | INFO     | whatspy.message_service | ⬇️ Media not stored locally. Fetching 1185339363541350 from WhatsApp...
+2025-12-17 03:33:00,547 | DEBUG    | pywa.api | Making request: GET /1185339363541350 with kwargs: {}
+2025-12-17 03:33:00,548 | DEBUG    | httpcore.connection | close.started
+2025-12-17 03:33:00,550 | DEBUG    | httpcore.connection | close.complete
+2025-12-17 03:33:00,551 | DEBUG    | httpcore.connection | close.started
+2025-12-17 03:33:00,557 | DEBUG    | httpcore.connection | close.complete
+2025-12-17 03:33:00,560 | DEBUG    | httpcore.connection | connect_tcp.started host='graph.facebook.com' port=443 local_address=None timeout=5.0 socket_options=None
+2025-12-17 03:33:00,577 | DEBUG    | httpcore.connection | connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x000001C7F09EFA90>
+2025-12-17 03:33:00,580 | DEBUG    | httpcore.connection | start_tls.started ssl_context=<ssl.SSLContext object at 0x000001C7F058EE70> server_hostname='graph.facebook.com' timeout=5.0
+2025-12-17 03:33:00,607 | DEBUG    | httpcore.connection | start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x000001C7F09EE190>
+2025-12-17 03:33:00,609 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'GET']>
+2025-12-17 03:33:00,611 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2025-12-17 03:33:00,612 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'GET']>
+2025-12-17 03:33:00,614 | DEBUG    | httpcore.http11 | send_request_body.complete
+2025-12-17 03:33:00,616 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'GET']>
+2025-12-17 03:33:00,893 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Encoding', b'gzip'), (b'ETag', b'"d0910d213963413c485c08ad56657cd568d66f1e"'), (b'Content-Type', b'application/json; charset=UTF-8'), (b'Vary', b'Origin'), (b'Vary', b'Accept-Encoding'), (b'x-fb-aed', b'693'), (b'x-business-use-case-usage', b'{"750331057695851":[{"type":"whatsapp","call_count":1,"total_cputime":1,"total_time":1,"estimated_time_to_regain_access":0}]}'), (b'Access-Control-Allow-Origin', b'*'), (b'facebook-api-version', b'v24.0'), (b'Strict-Transport-Security', b'max-age=15552000; preload'), (b'Pragma', b'no-cache'), (b'Cache-Control', b'private, no-cache, no-store, must-revalidate'), (b'Expires', b'Sat, 01 Jan 2000 00:00:00 GMT'), (b'x-fb-request-id', b'AvUG3LRK3fLUT4jtbMAUW-C'), (b'x-fb-trace-id', b'AxBf6qypwig'), (b'x-fb-rev', b'1031160574'), (b'X-FB-Debug', b'lUJUsH0IG6pYsUE634Fr7kp7XeW7q/4MxmS439OXTHTwlH9IramJHdrX7sgMpXSp9LnLyPGE5TsqV2H1KntzaA=='), (b'Date', b'Tue, 16 Dec 2025 22:03:01 GMT'), (b'X-FB-Connection-Quality', b'EXCELLENT; q=0.9, rtt=15, rtx=0, c=10, mss=1230, tbw=3482, tp=-1, tpl=-1, uplat=271, ullat=0'), (b'Alt-Svc', b'h3=":443"; ma=86400'), (b'Connection', b'keep-alive'), (b'Content-Length', b'297')])
+2025-12-17 03:33:00,894 | INFO     | httpx | HTTP Request: GET https://graph.facebook.com/v24.0/1185339363541350 "HTTP/1.1 200 OK"
+2025-12-17 03:33:00,896 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'GET']>
+2025-12-17 03:33:00,897 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2025-12-17 03:33:00,898 | DEBUG    | httpcore.http11 | response_closed.started
+2025-12-17 03:33:00,898 | DEBUG    | httpcore.http11 | response_closed.complete
+2025-12-17 03:33:00,901 | DEBUG    | httpcore.connection | connect_tcp.started host='lookaside.fbsbx.com' port=443 local_address=None timeout=5.0 socket_options=None
+2025-12-17 03:33:00,950 | DEBUG    | httpcore.connection | connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x000001C7F0913FD0>
+2025-12-17 03:33:00,951 | DEBUG    | httpcore.connection | start_tls.started ssl_context=<ssl.SSLContext object at 0x000001C7F058EE70> server_hostname='lookaside.fbsbx.com' timeout=5.0
+2025-12-17 03:33:00,981 | DEBUG    | httpcore.connection | start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x000001C7F09EE4D0>
+2025-12-17 03:33:00,982 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'GET']>
+2025-12-17 03:33:00,983 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2025-12-17 03:33:00,984 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'GET']>
+2025-12-17 03:33:00,985 | DEBUG    | httpcore.http11 | send_request_body.complete
+2025-12-17 03:33:00,987 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'GET']>
+2025-12-17 03:33:01,865 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'content-digest', b'adler32=2764464471'), (b'ETag', b'-8075256817484411709'), (b'x-manifold-obj-blobsizebytes', b'264648'), (b'x-manifold-obj-canonicalpath', b'flat/1910506026168563'), (b'x-manifold-obj-ctime', b'1765277378'), (b'x-manifold-obj-entrytype', b'1'), (b'x-manifold-obj-expiresat', b'0'), (b'x-manifold-obj-isuserdata', b'0'), (b'x-manifold-obj-propertiesjson', b'{"blob_state":"created","__ctime":"1765277378"}'), (b'x-manifold-obj-symlinktarget', b''), (b'cross-origin-resource-policy', b'cross-origin'), (b'Accept-Ranges', b'bytes'), (b'Date', b'Tue, 16 Dec 2025 22:03:02 GMT'), (b'Cache-Control', b'private, no-cache, no-store, must-revalidate'), (b'Content-Disposition', b"inline;filename=Adobe_Express_-_file.png;filename*= UTF-8''Adobe%20Express%20-%20file.png"), (b'Content-Type', b'image/png'), (b'Connection', b'keep-alive'), (b'Content-Length', b'256376')])
+2025-12-17 03:33:01,868 | INFO     | httpx | HTTP Request: GET https://lookaside.fbsbx.com/whatsapp_business/attachments/?mid=1185339363541350&source=getMedia&ext=1765922881&hash=ARmz8AvRmGe7z-sri9-ui8CbMXdCzFT6Wd3cxPZ9Kbj2kQ "HTTP/1.1 200 OK"
+2025-12-17 03:33:01,870 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'GET']>
+2025-12-17 03:33:01,982 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2025-12-17 03:33:01,984 | DEBUG    | httpcore.http11 | response_closed.started
+2025-12-17 03:33:01,985 | DEBUG    | httpcore.http11 | response_closed.complete
+2025-12-17 03:33:02,762 | INFO     | whatspy.message_service | ⬇️ Media not stored locally. Fetching 885008233956921 from WhatsApp...
+2025-12-17 03:33:02,766 | DEBUG    | pywa.api | Making request: GET /885008233956921 with kwargs: {}
+2025-12-17 03:33:02,769 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'GET']>
+2025-12-17 03:33:02,774 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2025-12-17 03:33:02,776 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'GET']>
+2025-12-17 03:33:02,778 | DEBUG    | httpcore.http11 | send_request_body.complete
+2025-12-17 03:33:02,782 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'GET']>
+2025-12-17 03:33:03,046 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Encoding', b'gzip'), (b'ETag', b'"4e92cc582b443872c90bd76428359d7feaa7bc9a"'), (b'Content-Type', b'application/json; charset=UTF-8'), (b'Vary', b'Origin'), (b'Vary', b'Accept-Encoding'), (b'x-fb-aed', b'693'), (b'x-business-use-case-usage', b'{"750331057695851":[{"type":"whatsapp","call_count":1,"total_cputime":1,"total_time":1,"estimated_time_to_regain_access":0}]}'), (b'Access-Control-Allow-Origin', b'*'), (b'facebook-api-version', b'v24.0'), (b'Strict-Transport-Security', b'max-age=15552000; preload'), (b'Pragma', b'no-cache'), (b'Cache-Control', b'private, no-cache, no-store, must-revalidate'), (b'Expires', b'Sat, 01 Jan 2000 00:00:00 GMT'), (b'x-fb-request-id', b'A1RzswJk5UR9NEF7OTRSpkb'), (b'x-fb-trace-id', b'A1OJQeK/Klv'), (b'x-fb-rev', b'1031160574'), (b'X-FB-Debug', b'mZexOFGKz3VkY+3veLEgnrdKBpCIyfxi0RlPhu3DXHL7jBXNSs2qarsJzb+WKQDSE8xeBeVhf86K92c2X4PFzA=='), (b'Date', b'Tue, 16 Dec 2025 22:03:03 GMT'), (b'X-FB-Connection-Quality', b'EXCELLENT; q=0.9, rtt=15, rtx=1, c=10, mss=1230, tbw=4806, tp=-1, tpl=-1, uplat=263, ullat=0'), (b'Alt-Svc', b'h3=":443"; ma=86400'), (b'Connection', b'keep-alive'), (b'Content-Length', b'299')])
+2025-12-17 03:33:03,049 | INFO     | httpx | HTTP Request: GET https://graph.facebook.com/v24.0/885008233956921 "HTTP/1.1 200 OK"
+2025-12-17 03:33:03,051 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'GET']>
+2025-12-17 03:33:03,053 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2025-12-17 03:33:03,055 | DEBUG    | httpcore.http11 | response_closed.started
+2025-12-17 03:33:03,056 | DEBUG    | httpcore.http11 | response_closed.complete
+2025-12-17 03:33:03,059 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'GET']>
+2025-12-17 03:33:03,060 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2025-12-17 03:33:03,061 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'GET']>
+2025-12-17 03:33:03,063 | DEBUG    | httpcore.http11 | send_request_body.complete
+2025-12-17 03:33:03,065 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'GET']>
+2025-12-17 03:33:03,937 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'content-digest', b'adler32=2294971236'), (b'ETag', b'7891669105861197384'), (b'x-manifold-obj-blobsizebytes', b'819582'), (b'x-manifold-obj-canonicalpath', b'flat/2074929979578090'), (b'x-manifold-obj-ctime', b'1765228315'), (b'x-manifold-obj-entrytype', b'1'), (b'x-manifold-obj-expiresat', b'0'), (b'x-manifold-obj-isuserdata', b'0'), (b'x-manifold-obj-propertiesjson', b'{"blob_state":"created","__ctime":"1765228314"}'), (b'x-manifold-obj-symlinktarget', b''), (b'cross-origin-resource-policy', b'cross-origin'), (b'Accept-Ranges', b'bytes'), (b'Date', b'Tue, 16 Dec 2025 22:03:04 GMT'), (b'Cache-Control', b'private, no-cache, no-store, must-revalidate'), (b'Content-Disposition', b'inline;filename=Gemini_Generated_Image_e32y6fe32y6fe32y.png'), (b'Content-Type', b'image/png'), (b'Connection', b'keep-alive'), (b'Content-Length', b'793966')])
+2025-12-17 03:33:03,939 | INFO     | httpx | HTTP Request: GET https://lookaside.fbsbx.com/whatsapp_business/attachments/?mid=885008233956921&source=getMedia&ext=1765922883&hash=ARlURyvJhWdjzkVcX7Yj8ATSqw5OkDBE9IMxDRermISctA "HTTP/1.1 200 OK"
+2025-12-17 03:33:03,943 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'GET']>
+2025-12-17 03:33:04,173 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2025-12-17 03:33:04,174 | DEBUG    | httpcore.http11 | response_closed.started
+2025-12-17 03:33:04,175 | DEBUG    | httpcore.http11 | response_closed.complete
+2025-12-17 03:33:06,730 | INFO     | whatspy.message_service | ⬇️ Media not stored locally. Fetching 1875511230018901 from WhatsApp...
+2025-12-17 03:33:06,731 | DEBUG    | pywa.api | Making request: GET /1875511230018901 with kwargs: {}
+2025-12-17 03:33:06,735 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'GET']>
+2025-12-17 03:33:06,740 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2025-12-17 03:33:06,743 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'GET']>
+2025-12-17 03:33:06,748 | DEBUG    | httpcore.http11 | send_request_body.complete
+2025-12-17 03:33:06,751 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'GET']>
+2025-12-17 03:33:07,014 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Encoding', b'gzip'), (b'ETag', b'"d770dcd6d1d9527a9ea8847502fcc52c06123d03"'), (b'Content-Type', b'application/json; charset=UTF-8'), (b'Vary', b'Origin'), (b'Vary', b'Accept-Encoding'), (b'x-fb-aed', b'693'), (b'x-business-use-case-usage', b'{"750331057695851":[{"type":"whatsapp","call_count":1,"total_cputime":1,"total_time":1,"estimated_time_to_regain_access":0}]}'), (b'Access-Control-Allow-Origin', b'*'), (b'facebook-api-version', b'v24.0'), (b'Strict-Transport-Security', b'max-age=15552000; preload'), (b'Pragma', b'no-cache'), (b'Cache-Control', b'private, no-cache, no-store, must-revalidate'), (b'Expires', b'Sat, 01 Jan 2000 00:00:00 GMT'), (b'x-fb-request-id', b'AF-sij6SN9Z1Wu1QmDSUOVF'), (b'x-fb-trace-id', b'CtJMLLnjLbD'), (b'x-fb-rev', b'1031160574'), (b'X-FB-Debug', b'FkeCW2TGrbQLY8cc/1i/DPiIbn4pxgbDwGGLO+1/ZI9UHFGgGDGqizR4gQTFBY34aaEs5arerG+xKGxS5zCk0A=='), (b'Date', b'Tue, 16 Dec 2025 22:03:07 GMT'), (b'X-FB-Connection-Quality', b'EXCELLENT; q=0.9, rtt=14, rtx=2, c=10, mss=1230, tbw=6132, tp=-1, tpl=-1, uplat=261, ullat=0'), (b'Alt-Svc', b'h3=":443"; ma=86400'), (b'Connection', b'keep-alive'), (b'Content-Length', b'295')])
+2025-12-17 03:33:07,016 | INFO     | httpx | HTTP Request: GET https://graph.facebook.com/v24.0/1875511230018901 "HTTP/1.1 200 OK"
+2025-12-17 03:33:07,016 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'GET']>
+2025-12-17 03:33:07,017 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2025-12-17 03:33:07,018 | DEBUG    | httpcore.http11 | response_closed.started
+2025-12-17 03:33:07,019 | DEBUG    | httpcore.http11 | response_closed.complete
+2025-12-17 03:33:07,023 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'GET']>
+2025-12-17 03:33:07,024 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2025-12-17 03:33:07,024 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'GET']>
+2025-12-17 03:33:07,025 | DEBUG    | httpcore.http11 | send_request_body.complete
+2025-12-17 03:33:07,026 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'GET']>
+2025-12-17 03:33:07,406 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'content-digest', b'adler32=1799757200'), (b'ETag', b'-7348553492594092740'), (b'x-manifold-obj-blobsizebytes', b'819582'), (b'x-manifold-obj-canonicalpath', b'flat/861063659953411'), (b'x-manifold-obj-ctime', b'1765222987'), (b'x-manifold-obj-entrytype', b'1'), (b'x-manifold-obj-expiresat', b'0'), (b'x-manifold-obj-isuserdata', b'0'), (b'x-manifold-obj-propertiesjson', b'{"blob_state":"created","__ctime":"1765222987"}'), (b'x-manifold-obj-symlinktarget', b''), (b'cross-origin-resource-policy', b'cross-origin'), (b'Accept-Ranges', b'bytes'), (b'Date', b'Tue, 16 Dec 2025 22:03:07 GMT'), (b'Cache-Control', b'private, no-cache, no-store, must-revalidate'), (b'Content-Disposition', b'inline;filename=Gemini_Generated_Image_e32y6fe32y6fe32y.png'), (b'Content-Type', b'image/png'), (b'Connection', b'keep-alive'), (b'Content-Length', b'793966')])
+2025-12-17 03:33:07,408 | INFO     | httpx | HTTP Request: GET https://lookaside.fbsbx.com/whatsapp_business/attachments/?mid=1875511230018901&source=getMedia&ext=1765922887&hash=ARmMwuQuaoH09buJORrZr5E8EsoMfuMpeNV6BuGd7tVYiQ "HTTP/1.1 200 OK"
+2025-12-17 03:33:07,409 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'GET']>
+2025-12-17 03:33:07,506 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2025-12-17 03:33:07,507 | DEBUG    | httpcore.http11 | response_closed.started
+2025-12-17 03:33:07,508 | DEBUG    | httpcore.http11 | response_closed.complete
+2025-12-17 03:33:17,587 | INFO     | whatspy.message_service | ⬇️ Media not stored locally. Fetching 3945758229065657 from WhatsApp...
+2025-12-17 03:33:17,590 | DEBUG    | pywa.api | Making request: GET /3945758229065657 with kwargs: {}
+2025-12-17 03:33:17,593 | DEBUG    | httpcore.connection | close.started
+2025-12-17 03:33:17,595 | DEBUG    | httpcore.connection | close.complete
+2025-12-17 03:33:17,597 | DEBUG    | httpcore.connection | close.started
+2025-12-17 03:33:17,599 | DEBUG    | httpcore.connection | close.complete
+2025-12-17 03:33:17,599 | DEBUG    | httpcore.connection | connect_tcp.started host='graph.facebook.com' port=443 local_address=None timeout=5.0 socket_options=None
+2025-12-17 03:33:17,657 | DEBUG    | httpcore.connection | connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x000001C7F0913550>
+2025-12-17 03:33:17,659 | DEBUG    | httpcore.connection | start_tls.started ssl_context=<ssl.SSLContext object at 0x000001C7F058EE70> server_hostname='graph.facebook.com' timeout=5.0
+2025-12-17 03:33:17,693 | DEBUG    | httpcore.connection | start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x000001C7F0912790>
+2025-12-17 03:33:17,695 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'GET']>
+2025-12-17 03:33:17,698 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2025-12-17 03:33:17,699 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'GET']>
+2025-12-17 03:33:17,702 | DEBUG    | httpcore.http11 | send_request_body.complete
+2025-12-17 03:33:17,704 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'GET']>
+2025-12-17 03:33:18,033 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Encoding', b'gzip'), (b'ETag', b'"2d12142cd4b17261c91ed04bb1153fbaa8e0d095"'), (b'Content-Type', b'application/json; charset=UTF-8'), (b'Vary', b'Origin'), (b'Vary', b'Accept-Encoding'), (b'x-fb-aed', b'693'), (b'x-business-use-case-usage', b'{"750331057695851":[{"type":"whatsapp","call_count":1,"total_cputime":1,"total_time":1,"estimated_time_to_regain_access":0}]}'), (b'Access-Control-Allow-Origin', b'*'), (b'facebook-api-version', b'v24.0'), (b'Strict-Transport-Security', b'max-age=15552000; preload'), (b'Pragma', b'no-cache'), (b'Cache-Control', b'private, no-cache, no-store, must-revalidate'), (b'Expires', b'Sat, 01 Jan 2000 00:00:00 GMT'), (b'x-fb-request-id', b'AcvSazvtXizyw5s5ET3_vyZ'), (b'x-fb-trace-id', b'D9ng6plvEZ7'), (b'x-fb-rev', b'1031160574'), (b'X-FB-Debug', b'5JL7OwMF2CgxDHcNy6BBx8xq+lUnMf9gohvrD2WMe4FHIpgKryA4K+WtrEysQuLl5JJrxJddn2/YmRZuqepC/Q=='), (b'Date', b'Tue, 16 Dec 2025 22:03:18 GMT'), (b'X-FB-Connection-Quality', b'EXCELLENT; q=0.9, rtt=29, rtx=0, c=10, mss=1230, tbw=3481, tp=-1, tpl=-1, uplat=310, ullat=0'), (b'Alt-Svc', b'h3=":443"; ma=86400'), (b'Connection', b'keep-alive'), (b'Content-Length', b'302')])
+2025-12-17 03:33:18,034 | INFO     | httpx | HTTP Request: GET https://graph.facebook.com/v24.0/3945758229065657 "HTTP/1.1 200 OK"
+2025-12-17 03:33:18,035 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'GET']>
+2025-12-17 03:33:18,037 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2025-12-17 03:33:18,038 | DEBUG    | httpcore.http11 | response_closed.started
+2025-12-17 03:33:18,044 | DEBUG    | httpcore.http11 | response_closed.complete
+2025-12-17 03:33:18,048 | DEBUG    | httpcore.connection | connect_tcp.started host='lookaside.fbsbx.com' port=443 local_address=None timeout=5.0 socket_options=None
+2025-12-17 03:33:18,077 | DEBUG    | httpcore.connection | connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x000001C7F097B050>
+2025-12-17 03:33:18,079 | DEBUG    | httpcore.connection | start_tls.started ssl_context=<ssl.SSLContext object at 0x000001C7F058EE70> server_hostname='lookaside.fbsbx.com' timeout=5.0
+2025-12-17 03:33:18,106 | DEBUG    | httpcore.connection | start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x000001C7F0979050>
+2025-12-17 03:33:18,109 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'GET']>
+2025-12-17 03:33:18,112 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2025-12-17 03:33:18,114 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'GET']>
+2025-12-17 03:33:18,116 | DEBUG    | httpcore.http11 | send_request_body.complete
+2025-12-17 03:33:18,119 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'GET']>
+2025-12-17 03:33:19,255 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'content-digest', b'adler32=3813587504'), (b'ETag', b'5123175854029758723'), (b'x-manifold-obj-blobsizebytes', b'229521'), (b'x-manifold-obj-canonicalpath', b'flat/836918699263228'), (b'x-manifold-obj-ctime', b'1764966918'), (b'x-manifold-obj-entrytype', b'1'), (b'x-manifold-obj-expiresat', b'0'), (b'x-manifold-obj-isuserdata', b'0'), (b'x-manifold-obj-propertiesjson', b'{"blob_state":"created","__ctime":"1764966918"}'), (b'x-manifold-obj-symlinktarget', b''), (b'cross-origin-resource-policy', b'cross-origin'), (b'Accept-Ranges', b'bytes'), (b'Date', b'Tue, 16 Dec 2025 22:03:19 GMT'), (b'Cache-Control', b'private, no-cache, no-store, must-revalidate'), (b'Content-Disposition', b"inline;filename=KUMSS_Proposal_3_.pdf;filename*= UTF-8''KUMSS%20Proposal%20%283%29.pdf"), (b'Content-Type', b'application/pdf'), (b'Connection', b'keep-alive'), (b'Content-Length', b'222337')])
+2025-12-17 03:33:19,259 | INFO     | httpx | HTTP Request: GET https://lookaside.fbsbx.com/whatsapp_business/attachments/?mid=3945758229065657&source=getMedia&ext=1765922898&hash=ARlEJXsZ39EXOzv-TGF4Uwt-O9j-xevAxGPotQmJGM29cQ "HTTP/1.1 200 OK"
+2025-12-17 03:33:19,263 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'GET']>
+2025-12-17 03:33:19,403 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2025-12-17 03:33:19,413 | DEBUG    | httpcore.http11 | response_closed.started
+2025-12-17 03:33:19,436 | DEBUG    | httpcore.http11 | response_closed.complete
+2025-12-17 03:33:20,240 | INFO     | whatspy.message_service | ⬇️ Media not stored locally. Fetching 726574100498730 from WhatsApp...
+2025-12-17 03:33:20,241 | DEBUG    | pywa.api | Making request: GET /726574100498730 with kwargs: {}
+2025-12-17 03:33:20,241 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'GET']>
+2025-12-17 03:33:20,243 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2025-12-17 03:33:20,244 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'GET']>
+2025-12-17 03:33:20,245 | DEBUG    | httpcore.http11 | send_request_body.complete
+2025-12-17 03:33:20,246 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'GET']>
+2025-12-17 03:33:20,566 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Encoding', b'gzip'), (b'ETag', b'"ce6552e36cd657d569823bed9aec75dc843b8897"'), (b'Content-Type', b'application/json; charset=UTF-8'), (b'Vary', b'Origin'), (b'Vary', b'Accept-Encoding'), (b'x-fb-aed', b'693'), (b'x-business-use-case-usage', b'{"750331057695851":[{"type":"whatsapp","call_count":1,"total_cputime":1,"total_time":1,"estimated_time_to_regain_access":0}]}'), (b'Access-Control-Allow-Origin', b'*'), (b'facebook-api-version', b'v24.0'), (b'Strict-Transport-Security', b'max-age=15552000; preload'), (b'Pragma', b'no-cache'), (b'Cache-Control', b'private, no-cache, no-store, must-revalidate'), (b'Expires', b'Sat, 01 Jan 2000 00:00:00 GMT'), (b'x-fb-request-id', b'AgVQB0Y2CnW_A96dZ5Onjsp'), (b'x-fb-trace-id', b'BG5k1uBKOzq'), (b'x-fb-rev', b'1031160574'), (b'X-FB-Debug', b'WwoC/vceKqEme0JRm0aZUibr7EIEWzHjftz/gTGNfJ2wauVn1LuP9skYF/wqQf1AuFPmNVehZUsM6G1mP4d+Nw=='), (b'Date', b'Tue, 16 Dec 2025 22:03:20 GMT'), (b'X-FB-Connection-Quality', b'EXCELLENT; q=0.9, rtt=29, rtx=1, c=10, mss=1230, tbw=4810, tp=-1, tpl=-1, uplat=296, ullat=0'), (b'Alt-Svc', b'h3=":443"; ma=86400'), (b'Connection', b'keep-alive'), (b'Content-Length', b'296')])
+2025-12-17 03:33:20,571 | INFO     | httpx | HTTP Request: GET https://graph.facebook.com/v24.0/726574100498730 "HTTP/1.1 200 OK"
+2025-12-17 03:33:20,578 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'GET']>
+2025-12-17 03:33:20,581 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2025-12-17 03:33:20,594 | DEBUG    | httpcore.http11 | response_closed.started
+2025-12-17 03:33:20,599 | DEBUG    | httpcore.http11 | response_closed.complete
+2025-12-17 03:33:20,611 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'GET']>
+2025-12-17 03:33:20,616 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2025-12-17 03:33:20,622 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'GET']>
+2025-12-17 03:33:20,625 | DEBUG    | httpcore.http11 | send_request_body.complete
+2025-12-17 03:33:20,629 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'GET']>
+2025-12-17 03:33:22,186 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'content-digest', b'adler32=1136856701'), (b'ETag', b'8774510288275886148'), (b'x-manifold-obj-blobsizebytes', b'107585'), (b'x-manifold-obj-canonicalpath', b'flat/1305261124979111'), (b'x-manifold-obj-ctime', b'1765920210'), (b'x-manifold-obj-entrytype', b'1'), (b'x-manifold-obj-expiresat', b'0'), (b'x-manifold-obj-isuserdata', b'0'), (b'x-manifold-obj-propertiesjson', b'{"blob_state":"created","__ctime":"1765920209"}'), (b'x-manifold-obj-symlinktarget', b''), (b'cross-origin-resource-policy', b'cross-origin'), (b'Accept-Ranges', b'bytes'), (b'Date', b'Tue, 16 Dec 2025 22:03:22 GMT'), (b'Cache-Control', b'private, no-cache, no-store, must-revalidate'), (b'Content-Disposition', b"inline;filename=WhatsApp_Image_2025-12-16_at_12.38.50_AM.jpeg;filename*= UTF-8''WhatsApp%20Image%202025-12-16%20at%2012.38.50%20AM.jpeg"), (b'Content-Type', b'image/jpeg'), (b'Connection', b'keep-alive'), (b'Content-Length', b'104209')])
+2025-12-17 03:33:22,187 | INFO     | httpx | HTTP Request: GET https://lookaside.fbsbx.com/whatsapp_business/attachments/?mid=726574100498730&source=getMedia&ext=1765922900&hash=ARmY8ukT4lbjZuHax4R5fNnU-t-o7EQFagJ06BF-NIrvqg "HTTP/1.1 200 OK"
+2025-12-17 03:33:22,187 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'GET']>
+2025-12-17 03:33:22,199 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2025-12-17 03:33:22,200 | DEBUG    | httpcore.http11 | response_closed.started
+2025-12-17 03:33:22,200 | DEBUG    | httpcore.http11 | response_closed.complete
+2025-12-17 11:20:35,588 | INFO     | whatspy.templates_api | 🔄 Template sync requested for tenant: d2bcd1ee-e5c5-4c9f-bff2-aaf901d40440
+2025-12-17 11:20:35,599 | INFO     | whatspy.template_service | 🔄 Starting template sync from Meta...
+2025-12-17 11:20:35,609 | INFO     | whatspy.template_service | 📡 Fetching templates from Meta API (with pagination): https://graph.facebook.com/v24.0/750331057695851/message_templates
+2025-12-17 11:20:35,611 | INFO     | whatspy.template_service | 📄 Fetching page 1...
+2025-12-17 11:20:36,767 | DEBUG    | httpcore.connection | connect_tcp.started host='graph.facebook.com' port=443 local_address=None timeout=30.0 socket_options=None
+2025-12-17 11:20:36,792 | DEBUG    | httpcore.connection | connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x000001C7F093C950>
+2025-12-17 11:20:36,796 | DEBUG    | httpcore.connection | start_tls.started ssl_context=<ssl.SSLContext object at 0x000001C7F093BDA0> server_hostname='graph.facebook.com' timeout=30.0
+2025-12-17 11:20:36,821 | DEBUG    | httpcore.connection | start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x000001C7F093E510>
+2025-12-17 11:20:36,823 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'GET']>
+2025-12-17 11:20:36,824 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2025-12-17 11:20:36,825 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'GET']>
+2025-12-17 11:20:36,827 | DEBUG    | httpcore.http11 | send_request_body.complete
+2025-12-17 11:20:36,827 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'GET']>
+2025-12-17 11:20:37,345 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Encoding', b'gzip'), (b'ETag', b'"511277131bdafa4b2c68a93126801f839faceb93"'), (b'Content-Type', b'application/json; charset=UTF-8'), (b'Vary', b'Origin'), (b'Vary', b'Accept-Encoding'), (b'x-fb-aed', b'694'), (b'x-business-use-case-usage', b'{"750331057695851":[{"type":"whatsapp_business_management","call_count":0,"total_cputime":0,"total_time":0,"estimated_time_to_regain_access":0}]}'), (b'Access-Control-Allow-Origin', b'*'), (b'facebook-api-version', b'v24.0'), (b'Strict-Transport-Security', b'max-age=15552000; preload'), (b'Pragma', b'no-cache'), (b'Cache-Control', b'private, no-cache, no-store, must-revalidate'), (b'Expires', b'Sat, 01 Jan 2000 00:00:00 GMT'), (b'x-fb-request-id', b'AW5AVDDu9YGn5ijK7338cHQ'), (b'x-fb-trace-id', b'ClS/9iRYxvh'), (b'x-fb-rev', b'1031184459'), (b'X-FB-Debug', b'XqUiuehpUDAWs3t2vC3s4Qxx0sttPijW8SzvcfPn5Zm9wWmGNLbpwtGZDrBgmW00Fy7ALBEsljnWGKnMTzOqvg=='), (b'Date', b'Wed, 17 Dec 2025 05:50:37 GMT'), (b'X-FB-Connection-Quality', b'EXCELLENT; q=0.9, rtt=14, rtx=0, c=10, mss=1230, tbw=3481, tp=-1, tpl=-1, uplat=508, ullat=0'), (b'Alt-Svc', b'h3=":443"; ma=86400'), (b'Connection', b'keep-alive'), (b'Content-Length', b'866')])
+2025-12-17 11:20:37,351 | INFO     | httpx | HTTP Request: GET https://graph.facebook.com/v24.0/750331057695851/message_templates?limit=1000&fields=id%2Cname%2Clanguage%2Cstatus%2Ccategory%2Ccomponents%2Cquality_score%2Crejected_reason "HTTP/1.1 200 OK"
+2025-12-17 11:20:37,354 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'GET']>
+2025-12-17 11:20:37,356 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2025-12-17 11:20:37,359 | DEBUG    | httpcore.http11 | response_closed.started
+2025-12-17 11:20:37,363 | DEBUG    | httpcore.http11 | response_closed.complete
+2025-12-17 11:20:37,365 | DEBUG    | httpcore.connection | close.started
+2025-12-17 11:20:37,371 | DEBUG    | httpcore.connection | close.complete
+2025-12-17 11:20:37,400 | INFO     | whatspy.template_service | ✅ Fetched 2 templates from page 1 (total so far: 2)
+2025-12-17 11:20:37,403 | INFO     | whatspy.template_service | ✅ All pages fetched. Total templates: 2
+2025-12-17 11:20:37,405 | INFO     | whatspy.template_service | ✅ Total templates fetched from Meta: 2
+2025-12-17 11:20:37,407 | INFO     | whatspy.template_service | 📊 Template status breakdown: {'APPROVED': 2}
+2025-12-17 11:20:39,608 | INFO     | whatspy.template_service | ✅ Added new template: services (en) - Status: APPROVED
+2025-12-17 11:20:39,893 | INFO     | whatspy.template_service | ✅ Updated template: hello_ (en_US) - Status: APPROVED
+2025-12-17 11:20:40,480 | INFO     | whatspy.template_service | ✅ Template sync completed: 2 synced, 1 updated, 1 added, 0 failed
+2025-12-17 11:20:40,481 | INFO     | whatspy.templates_api | ✅ Template sync completed: {'success': True, 'total_meta_templates': 2, 'synced': 2, 'updated': 1, 'added': 1, 'failed': 0, 'errors': []}
