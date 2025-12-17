@@ -69,28 +69,106 @@ def resolve_recipients(
 
     return list(phone_numbers)
 
-async def send_broadcast(campaign_id: str, tenant_id: str, message_text: str, recipients: List[str]):
-    """Background task to send messages"""
+async def send_broadcast(
+    campaign_id: str,
+    tenant_id: str,
+    recipients: List[str],
+    message_text: Optional[str] = None,
+    template_name: Optional[str] = None,
+    template_language: str = "en_US",
+    parameters: Optional[Dict[str, Any]] = None,
+    parameters_per_recipient: Optional[List[Dict[str, Any]]] = None
+):
+    """
+    Background task to send messages.
+
+    Supports both:
+    - Regular text messages (requires 24-hour conversation window)
+    - Template messages (can send to any contact anytime)
+    """
     from app.db.session import get_db_session
-    from app.services import get_message_service
-    
-    service = get_message_service()
+    from app.services import get_message_service, get_whatsapp_client
+    from app.services.template_service import TemplateService
+    from app.schemas.template import TemplateSendRequest, TemplateLanguage
+    import logging
+
+    log = logging.getLogger("whatspy.campaigns")
     results = []
     sent = 0
     failed = 0
-    
+
+    # Determine if we're sending templates or text messages
+    is_template_broadcast = bool(template_name)
+
     with get_db_session() as db:
-        for phone in recipients:
+        if is_template_broadcast:
+            # ===== TEMPLATE MESSAGE BROADCAST (works with new contacts) =====
+            log.info(f"📧 Sending TEMPLATE broadcast: {template_name} to {len(recipients)} recipients")
+
+            wa_client = get_whatsapp_client()
+            template_service = TemplateService(wa_client)
+
+            # Convert language string to enum
             try:
-                msg_data = MessageCreate(to=phone, text=message_text)
-                msg_id, _ = service.send_text_message(db, tenant_id, msg_data)
-                results.append({"phone": phone, "status": "sent", "message_id": msg_id})
-                sent += 1
-                await asyncio.sleep(0.5)  # Rate limiting
-            except Exception as e:
-                results.append({"phone": phone, "status": "failed", "error": str(e)})
-                failed += 1
-        
+                lang_enum = TemplateLanguage(template_language)
+            except ValueError:
+                lang_enum = TemplateLanguage.ENGLISH_US
+                log.warning(f"Invalid language {template_language}, defaulting to en_US")
+
+            for idx, phone in enumerate(recipients):
+                try:
+                    # Determine parameters for this recipient
+                    params = None
+                    if parameters_per_recipient and idx < len(parameters_per_recipient):
+                        params = parameters_per_recipient[idx]
+                    elif parameters:
+                        params = parameters
+
+                    # Send template message
+                    send_request = TemplateSendRequest(
+                        to=phone,
+                        template_name=template_name,
+                        language=lang_enum,
+                        parameters=params
+                    )
+
+                    msg_id, send_log = template_service.send_template(db, tenant_id, send_request)
+
+                    if msg_id:
+                        results.append({"phone": phone, "status": "sent", "message_id": msg_id})
+                        sent += 1
+                        log.debug(f"✅ Template sent to {phone}: {msg_id}")
+                    else:
+                        error_msg = send_log.error_message if send_log else "Unknown error"
+                        results.append({"phone": phone, "status": "failed", "error": error_msg})
+                        failed += 1
+                        log.warning(f"❌ Template failed for {phone}: {error_msg}")
+
+                    await asyncio.sleep(0.5)  # Rate limiting
+
+                except Exception as e:
+                    results.append({"phone": phone, "status": "failed", "error": str(e)})
+                    failed += 1
+                    log.error(f"❌ Template failed for {phone}: {e}")
+
+        else:
+            # ===== TEXT MESSAGE BROADCAST (requires 24-hour window) =====
+            log.info(f"💬 Sending TEXT broadcast to {len(recipients)} recipients")
+            log.warning("⚠️ Text messages can only be sent to contacts within 24-hour conversation window")
+
+            service = get_message_service()
+
+            for phone in recipients:
+                try:
+                    msg_data = MessageCreate(to=phone, text=message_text)
+                    msg_id, _ = service.send_text_message(db, tenant_id, msg_data)
+                    results.append({"phone": phone, "status": "sent", "message_id": msg_id})
+                    sent += 1
+                    await asyncio.sleep(0.5)  # Rate limiting
+                except Exception as e:
+                    results.append({"phone": phone, "status": "failed", "error": str(e)})
+                    failed += 1
+
         # Update campaign
         campaign = db.query(Campaign).filter(Campaign.campaign_id == campaign_id).first()
         if campaign:
@@ -98,6 +176,8 @@ async def send_broadcast(campaign_id: str, tenant_id: str, message_text: str, re
             campaign.failed_count = failed
             campaign.results = results
             db.commit()
+
+        log.info(f"📊 Campaign {campaign_id} completed: {sent} sent, {failed} failed")
 
 @router.post("/broadcast", response_model=CampaignResponse)
 async def create_broadcast(
@@ -109,10 +189,38 @@ async def create_broadcast(
     """
     Create broadcast campaign
 
-    Accepts recipients via:
-    - recipients: Direct phone numbers array (e.g., ["919876543210", "919876543211"])
-    - contact_ids: Contact integer IDs from database (e.g., [36, 35])
-    - group_ids: Group integer IDs from database (sends to all participants)
+    **Supports two modes:**
+
+    1. **Template Broadcast** (recommended for new contacts):
+       - Provide `template_name` instead of `message_text`
+       - Can send to contacts OUTSIDE 24-hour conversation window
+       - Perfect for marketing messages to cold contacts
+       - Example:
+         ```json
+         {
+           "campaign_name": "Welcome Campaign",
+           "template_name": "hello_world",
+           "template_language": "en_US",
+           "contact_ids": [36, 35]
+         }
+         ```
+
+    2. **Text Message Broadcast** (for recent conversations):
+       - Provide `message_text` instead of `template_name`
+       - Can ONLY send to contacts WITHIN 24-hour conversation window
+       - Example:
+         ```json
+         {
+           "campaign_name": "Quick Update",
+           "message_text": "Hi! Just checking in.",
+           "contact_ids": [36, 35]
+         }
+         ```
+
+    **Recipients:**
+    - recipients: Direct phone numbers array (e.g., ["919876543210"])
+    - contact_ids: Contact IDs from database (e.g., [36, 35])
+    - group_ids: Group IDs (sends to all group participants)
 
     At least one recipient type must be provided.
     """
@@ -121,7 +229,15 @@ async def create_broadcast(
 
     campaign_id = str(uuid.uuid4())
 
-    log.info(f"📢 Creating broadcast campaign: {data.campaign_name}")
+    # Determine broadcast type
+    is_template = bool(data.template_name)
+    broadcast_type = "TEMPLATE" if is_template else "TEXT"
+
+    log.info(f"📢 Creating {broadcast_type} broadcast campaign: {data.campaign_name}")
+    if is_template:
+        log.info(f"   Template: {data.template_name} ({data.template_language})")
+    else:
+        log.info(f"   Message: {data.message_text[:50]}...")
     log.info(f"   Recipients: {data.recipients}")
     log.info(f"   Contact IDs: {data.contact_ids}")
     log.info(f"   Group IDs: {data.group_ids}")
@@ -135,7 +251,7 @@ async def create_broadcast(
         group_ids=data.group_ids
     )
 
-    log.info(f"✅ Resolved {len(phone_numbers)} phone numbers: {phone_numbers}")
+    log.info(f"✅ Resolved {len(phone_numbers)} phone numbers")
 
     # Validate we have recipients
     if not phone_numbers:
@@ -145,11 +261,13 @@ async def create_broadcast(
             detail="No valid recipients found. Please check contact IDs, group IDs, or phone numbers."
         )
 
+    # Create campaign record
+    campaign_message = f"Template: {data.template_name}" if is_template else data.message_text
     campaign = Campaign(
         tenant_id=tenant_id,
         campaign_id=campaign_id,
         campaign_name=data.campaign_name,
-        message_text=data.message_text,
+        message_text=campaign_message,
         total_recipients=len(phone_numbers)
     )
 
@@ -159,16 +277,20 @@ async def create_broadcast(
 
     log.info(f"📋 Campaign created: {campaign_id} with {len(phone_numbers)} recipients")
 
-    # Start background task with resolved phone numbers
+    # Start background task with all parameters
     background_tasks.add_task(
         send_broadcast,
         campaign_id,
         tenant_id,
+        phone_numbers,
         data.message_text,
-        phone_numbers
+        data.template_name,
+        data.template_language,
+        data.parameters,
+        data.parameters_per_recipient
     )
 
-    log.info(f"🚀 Background broadcast task started for campaign {campaign_id}")
+    log.info(f"🚀 Background {broadcast_type} broadcast task started for campaign {campaign_id}")
 
     return campaign
 
