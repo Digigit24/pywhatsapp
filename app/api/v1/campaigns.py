@@ -1,7 +1,8 @@
 # app/api/v1/campaigns.py
-from fastapi import APIRouter, Depends, BackgroundTasks, HTTPException
+from fastapi import APIRouter, Depends, BackgroundTasks, HTTPException, Query
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional, Dict, Any
+from pydantic import BaseModel
 import uuid
 import asyncio
 
@@ -196,9 +197,227 @@ def get_campaign(
         Campaign.tenant_id == tenant_id,
         Campaign.campaign_id == campaign_id
     ).first()
-    
+
     if not campaign:
         from fastapi import HTTPException
         raise HTTPException(404, "Campaign not found")
-    
+
     return campaign
+
+
+class TemplateBroadcastCreate(BaseModel):
+    campaign_name: str
+    template_name: str
+    template_language: str = "en_US"
+    recipients: Optional[List[str]] = None
+    contact_ids: Optional[List[int]] = None
+    group_ids: Optional[List[int]] = None
+    # Template parameters - for templates with variables like {{1}}, {{2}}
+    parameters: Optional[Dict[str, Any]] = None
+    # Or provide different parameters for each recipient
+    parameters_per_recipient: Optional[List[Dict[str, Any]]] = None
+
+
+@router.post("/broadcast/template", response_model=CampaignResponse)
+async def create_template_broadcast(
+    data: TemplateBroadcastCreate,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    tenant_id: str = Depends(get_tenant_id_flexible)
+):
+    """
+    Create template broadcast campaign.
+
+    Template messages can be sent ANYTIME, even outside the 24-hour window.
+    Use this for marketing broadcasts to users who haven't messaged recently.
+
+    **Required:**
+    - campaign_name: Name of the campaign
+    - template_name: Approved template name from Meta
+    - template_language: Template language (default: en_US)
+
+    **Recipients (at least one):**
+    - recipients: Direct phone numbers
+    - contact_ids: Contact IDs from database
+    - group_ids: Group IDs from database
+
+    **Template Parameters (for templates with variables):**
+    - parameters: Default parameters for all recipients (e.g., {"1": "John", "2": "12345"})
+    - parameters_per_recipient: Different parameters per recipient (list of dicts)
+
+    **Example 1 - Template without variables:**
+    ```json
+    {
+        "campaign_name": "Welcome Campaign",
+        "template_name": "hello_world",
+        "template_language": "en_US",
+        "contact_ids": [36, 35]
+    }
+    ```
+
+    **Example 2 - Template with same parameters for all:**
+    ```json
+    {
+        "campaign_name": "Promo Campaign",
+        "template_name": "discount_offer",
+        "template_language": "en_US",
+        "contact_ids": [36, 35],
+        "parameters": {"1": "20%", "2": "SAVE20"}
+    }
+    ```
+
+    **Example 3 - Template with different parameters per recipient:**
+    ```json
+    {
+        "campaign_name": "Order Updates",
+        "template_name": "order_status",
+        "template_language": "en_US",
+        "recipients": ["919876543210", "919876543211"],
+        "parameters_per_recipient": [
+            {"1": "John", "2": "12345"},
+            {"1": "Jane", "2": "67890"}
+        ]
+    }
+    ```
+    """
+    import logging
+    log = logging.getLogger("whatspy.campaigns")
+
+    campaign_id = str(uuid.uuid4())
+
+    # Validate at least one recipient type provided
+    if not any([data.recipients, data.contact_ids, data.group_ids]):
+        raise HTTPException(
+            status_code=400,
+            detail="At least one of recipients, contact_ids, or group_ids must be provided"
+        )
+
+    log.info(f"📢 Creating TEMPLATE broadcast campaign: {data.campaign_name}")
+    log.info(f"   Template: {data.template_name} ({data.template_language})")
+
+    # Resolve recipients
+    phone_numbers = resolve_recipients(
+        db=db,
+        tenant_id=tenant_id,
+        recipients=data.recipients,
+        contact_ids=data.contact_ids,
+        group_ids=data.group_ids
+    )
+
+    if not phone_numbers:
+        raise HTTPException(400, "No valid recipients found. Check contact IDs, group IDs, or phone numbers.")
+
+    log.info(f"✅ Resolved {len(phone_numbers)} phone numbers for template broadcast")
+
+    # Create campaign
+    campaign = Campaign(
+        tenant_id=tenant_id,
+        campaign_id=campaign_id,
+        campaign_name=data.campaign_name,
+        message_text=f"Template: {data.template_name}",
+        total_recipients=len(phone_numbers)
+    )
+
+    db.add(campaign)
+    db.commit()
+    db.refresh(campaign)
+
+    # Start background task with template
+    background_tasks.add_task(
+        send_template_broadcast,
+        campaign_id,
+        tenant_id,
+        data.template_name,
+        data.template_language,
+        phone_numbers,
+        data.parameters,
+        data.parameters_per_recipient
+    )
+
+    log.info(f"🚀 Template broadcast task started for campaign {campaign_id}")
+
+    return campaign
+
+
+async def send_template_broadcast(
+    campaign_id: str,
+    tenant_id: str,
+    template_name: str,
+    template_language: str,
+    recipients: List[str],
+    default_parameters: Optional[Dict[str, Any]] = None,
+    parameters_per_recipient: Optional[List[Dict[str, Any]]] = None
+):
+    """Background task to send template messages"""
+    from app.db.session import get_db_session
+    from app.services.template_service import TemplateService
+    from app.services import get_whatsapp_client
+    from app.schemas.template import TemplateSendRequest, TemplateLanguage
+    import logging
+
+    log = logging.getLogger("whatspy.campaigns")
+    wa_client = get_whatsapp_client()
+    template_service = TemplateService(wa_client)
+
+    results = []
+    sent = 0
+    failed = 0
+
+    # Convert language string to enum
+    try:
+        lang_enum = TemplateLanguage(template_language)
+    except ValueError:
+        lang_enum = TemplateLanguage.ENGLISH_US
+        log.warning(f"Invalid language {template_language}, defaulting to en_US")
+
+    with get_db_session() as db:
+        for idx, phone in enumerate(recipients):
+            try:
+                # Determine parameters for this recipient
+                params = None
+                if parameters_per_recipient and idx < len(parameters_per_recipient):
+                    # Use specific parameters for this recipient
+                    params = parameters_per_recipient[idx]
+                    log.debug(f"Using specific parameters for {phone}: {params}")
+                elif default_parameters:
+                    # Use default parameters for all
+                    params = default_parameters
+                    log.debug(f"Using default parameters for {phone}: {params}")
+                else:
+                    # No parameters (template has no variables)
+                    log.debug(f"No parameters for {phone}")
+
+                # Send template message
+                send_request = TemplateSendRequest(
+                    to=phone,
+                    template_name=template_name,
+                    language=lang_enum,
+                    parameters=params
+                )
+
+                msg_id, send_log = template_service.send_template(db, tenant_id, send_request)
+
+                if msg_id:
+                    results.append({"phone": phone, "status": "sent", "message_id": msg_id})
+                    sent += 1
+                    log.info(f"✅ Template sent to {phone}: {msg_id}")
+                else:
+                    results.append({"phone": phone, "status": "failed", "error": send_log.error_message})
+                    failed += 1
+                    log.error(f"❌ Template failed for {phone}: {send_log.error_message}")
+
+                await asyncio.sleep(0.5)  # Rate limiting
+
+            except Exception as e:
+                results.append({"phone": phone, "status": "failed", "error": str(e)})
+                failed += 1
+                log.error(f"❌ Template failed for {phone}: {e}")
+
+        # Update campaign
+        campaign = db.query(Campaign).filter(Campaign.campaign_id == campaign_id).first()
+        if campaign:
+            campaign.sent_count = sent
+            campaign.failed_count = failed
+            campaign.results = results
+            db.commit()
+            log.info(f"📊 Campaign {campaign_id} completed: {sent} sent, {failed} failed")

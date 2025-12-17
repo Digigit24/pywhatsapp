@@ -1925,3 +1925,715 @@ AttributeError: 'GraphAPI' object has no attribute 'make_request'
 2025-12-17 11:20:39,893 | INFO     | whatspy.template_service | ✅ Updated template: hello_ (en_US) - Status: APPROVED
 2025-12-17 11:20:40,480 | INFO     | whatspy.template_service | ✅ Template sync completed: 2 synced, 1 updated, 1 added, 0 failed
 2025-12-17 11:20:40,481 | INFO     | whatspy.templates_api | ✅ Template sync completed: {'success': True, 'total_meta_templates': 2, 'synced': 2, 'updated': 1, 'added': 1, 'failed': 0, 'errors': []}
+2025-12-17 11:22:22,485 | INFO     | whatspy.campaigns | 📢 Creating broadcast campaign: services
+2025-12-17 11:22:22,488 | INFO     | whatspy.campaigns |    Recipients: None
+2025-12-17 11:22:22,491 | INFO     | whatspy.campaigns |    Contact IDs: [35, 36]
+2025-12-17 11:22:22,493 | INFO     | whatspy.campaigns |    Group IDs: None
+2025-12-17 11:22:23,294 | INFO     | whatspy.campaigns | ✅ Resolved 2 phone numbers: ['+918793944961', '+919142982138']
+2025-12-17 11:22:24,641 | INFO     | whatspy.campaigns | 📋 Campaign created: 729bddb5-4326-4810-a18e-c71dc3c51d29 with 2 recipients
+2025-12-17 11:22:24,652 | INFO     | whatspy.campaigns | 🚀 Background broadcast task started for campaign 729bddb5-4326-4810-a18e-c71dc3c51d29
+2025-12-17 11:22:24,933 | DEBUG    | pywa.api | Making request: POST /783146548207772/messages with kwargs: {'json': {'messaging_product': 'whatsapp', 'recipient_type': 'individual', 'to': '918793944961', 'type': 'text', 'text': {'body': 'We are group of young individuals , with a strong talent pool ,helping Business grow through Systems and Marketing.\nOur Expertise:\n✔ Web & App Development\n✔ Paid Ad Campaigns (CPC/CPA)\n✔ CRM / CMS / ERP Solutions\n✔ WhatsApp Automation\n✔ SEO | SMO | GMB\n✔ Video Production & Podcast Studio\n\nContact us: +91 98228 57421\nWebsite: https://thedigitechsolutions.com/', 'preview_url': False}}}
+2025-12-17 11:22:24,942 | DEBUG    | httpcore.connection | close.started
+2025-12-17 11:22:24,948 | DEBUG    | httpcore.connection | close.complete
+2025-12-17 11:22:24,948 | DEBUG    | httpcore.connection | close.started
+2025-12-17 11:22:24,952 | DEBUG    | httpcore.connection | close.complete
+2025-12-17 11:22:24,954 | DEBUG    | httpcore.connection | connect_tcp.started host='graph.facebook.com' port=443 local_address=None timeout=5.0 socket_options=None
+2025-12-17 11:22:25,009 | DEBUG    | httpcore.connection | connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x000001C7F0A2AED0>
+2025-12-17 11:22:25,009 | DEBUG    | httpcore.connection | start_tls.started ssl_context=<ssl.SSLContext object at 0x000001C7F058EE70> server_hostname='graph.facebook.com' timeout=5.0
+2025-12-17 11:22:25,033 | DEBUG    | httpcore.connection | start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x000001C7F09C1D90>
+2025-12-17 11:22:25,038 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'POST']>
+2025-12-17 11:22:25,039 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2025-12-17 11:22:25,041 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'POST']>
+2025-12-17 11:22:25,043 | DEBUG    | httpcore.http11 | send_request_body.complete
+2025-12-17 11:22:25,043 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'POST']>
+2025-12-17 11:22:26,909 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json; charset=UTF-8'), (b'Vary', b'Origin'), (b'x-fb-aed', b'694'), (b'x-business-use-case-usage', b'{"750331057695851":[{"type":"whatsapp","call_count":0,"total_cputime":0,"total_time":0,"estimated_time_to_regain_access":0}]}'), (b'Access-Control-Allow-Origin', b'*'), (b'facebook-api-version', b'v24.0'), (b'Strict-Transport-Security', b'max-age=15552000; preload'), (b'Pragma', b'no-cache'), (b'Cache-Control', b'private, no-cache, no-store, must-revalidate'), (b'Expires', b'Sat, 01 Jan 2000 00:00:00 GMT'), (b'x-fb-request-id', b'Ahno2PsMoLvjnx5P6hoqG0f'), (b'x-fb-trace-id', b'Af2MKPKr0ix'), (b'x-fb-rev', b'1031184459'), (b'X-FB-Debug', b'hq0JsZjYsJ1jY3exCZe5PAy+yffKSh3J5bkVRIUlBWUrwKchvo3+7grvdpa19SEoYYNZjcGySF/AA7SftS7LEw=='), (b'Date', b'Wed, 17 Dec 2025 05:52:26 GMT'), (b'X-FB-Connection-Quality', b'EXCELLENT; q=0.9, rtt=14, rtx=0, c=10, mss=1230, tbw=3482, tp=-1, tpl=-1, uplat=1858, ullat=1'), (b'Alt-Svc', b'h3=":443"; ma=86400'), (b'Connection', b'keep-alive'), (b'Content-Length', b'178')])
+2025-12-17 11:22:26,909 | INFO     | httpx | HTTP Request: POST https://graph.facebook.com/v24.0/783146548207772/messages "HTTP/1.1 200 OK"
+2025-12-17 11:22:26,909 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'POST']>
+2025-12-17 11:22:26,909 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2025-12-17 11:22:26,909 | DEBUG    | httpcore.http11 | response_closed.started
+2025-12-17 11:22:26,915 | DEBUG    | httpcore.http11 | response_closed.complete
+2025-12-17 11:22:26,916 | INFO     | whatspy.message_service | ✅ Message sent to +918793944961: wamid.HBgMOTE4NzkzOTQ0OTYxFQIAERgSNjZFMTYwM0M0RUI2QTM5OUU5AA==
+2025-12-17 11:22:26,919 | INFO     | whatspy.message_service | ▶️ _save_message: START
+2025-12-17 11:22:26,922 | DEBUG    | whatspy.message_service | ▶️ Input params: tenant_id=d2bcd1ee-e5c5-4c9f-bff2-aaf901d40440, msg_id=wamid.HBgMOTE4NzkzOTQ0OTYxFQIAERgSNjZFMTYwM0M0RUI2QTM5OUU5AA==, phone=+918793944961, direction=outgoing
+2025-12-17 11:22:26,922 | DEBUG    | whatspy.message_service | ▶️ Phone normalized: +918793944961
+2025-12-17 11:22:26,923 | INFO     | whatspy.message_service | 💾 Saving message: outgoing text to/from +918793944961
+2025-12-17 11:22:26,923 | DEBUG    | whatspy.message_service | ▶️ Checking for duplicate message_id: wamid.HBgMOTE4NzkzOTQ0OTYxFQIAERgSNjZFMTYwM0M0RUI2QTM5OUU5AA==
+2025-12-17 11:22:27,757 | DEBUG    | whatspy.message_service | ▶️ No duplicate found, proceeding with insert
+2025-12-17 11:22:27,764 | DEBUG    | whatspy.message_service | ▶️ Creating Message object with direction=outgoing
+2025-12-17 11:22:27,766 | DEBUG    | whatspy.message_service | ▶️ Adding message to session
+2025-12-17 11:22:27,778 | DEBUG    | whatspy.message_service | ▶️ Committing to database...
+2025-12-17 11:22:28,341 | DEBUG    | whatspy.message_service | ▶️ Refreshing message object...
+2025-12-17 11:22:29,155 | INFO     | whatspy.message_service | ✅ ✅ ✅ Message committed and refreshed successfully! ✅ ✅ ✅
+2025-12-17 11:22:29,156 | INFO     | whatspy.message_service | ✅ Message saved: ID=266, outgoing, +918793944961
+2025-12-17 11:22:29,162 | DEBUG    | whatspy.message_service | ✅ Full message: {'_sa_instance_state': <sqlalchemy.orm.state.InstanceState object at 0x000001C7F0803E90>, 'message_type': 'text', 'status': 'sent', 'tenant_id': 'd2bcd1ee-e5c5-4c9f-bff2-aaf901d40440', 'updated_at': datetime.datetime(2025, 12, 17, 5, 52, 27, 785025), 'phone': '+918793944961', 'contact_name': None, 'message_id': 'wamid.HBgMOTE4NzkzOTQ0OTYxFQIAERgSNjZFMTYwM0M0RUI2QTM5OUU5AA==', 'text': 'We are group of young individuals , with a strong talent pool ,helping Business grow through Systems and Marketing.\nOur Expertise:\n✔ Web & App Development\n✔ Paid Ad Campaigns (CPC/CPA)\n✔ CRM / CMS / ERP Solutions\n✔ WhatsApp Automation\n✔ SEO | SMO | GMB\n✔ Video Production & Podcast Studio\n\nContact us: +91 98228 57421\nWebsite: https://thedigitechsolutions.com/', 'direction': 'outgoing', 'meta_data': {'preview_url': False}, 'id': 266, 'created_at': datetime.datetime(2025, 12, 17, 5, 52, 27, 785025)}
+2025-12-17 11:22:29,668 | DEBUG    | pywa.api | Making request: POST /783146548207772/messages with kwargs: {'json': {'messaging_product': 'whatsapp', 'recipient_type': 'individual', 'to': '919142982138', 'type': 'text', 'text': {'body': 'We are group of young individuals , with a strong talent pool ,helping Business grow through Systems and Marketing.\nOur Expertise:\n✔ Web & App Development\n✔ Paid Ad Campaigns (CPC/CPA)\n✔ CRM / CMS / ERP Solutions\n✔ WhatsApp Automation\n✔ SEO | SMO | GMB\n✔ Video Production & Podcast Studio\n\nContact us: +91 98228 57421\nWebsite: https://thedigitechsolutions.com/', 'preview_url': False}}}
+2025-12-17 11:22:29,669 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'POST']>
+2025-12-17 11:22:29,670 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2025-12-17 11:22:29,670 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'POST']>
+2025-12-17 11:22:29,673 | DEBUG    | httpcore.http11 | send_request_body.complete
+2025-12-17 11:22:29,676 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'POST']>
+2025-12-17 11:22:30,669 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json; charset=UTF-8'), (b'Vary', b'Origin'), (b'x-fb-aed', b'694'), (b'x-business-use-case-usage', b'{"750331057695851":[{"type":"whatsapp","call_count":1,"total_cputime":1,"total_time":1,"estimated_time_to_regain_access":0}]}'), (b'Access-Control-Allow-Origin', b'*'), (b'facebook-api-version', b'v24.0'), (b'Strict-Transport-Security', b'max-age=15552000; preload'), (b'Pragma', b'no-cache'), (b'Cache-Control', b'private, no-cache, no-store, must-revalidate'), (b'Expires', b'Sat, 01 Jan 2000 00:00:00 GMT'), (b'x-fb-request-id', b'AhJzLJNVTr0TIsK1ibQC4Ug'), (b'x-fb-trace-id', b'EBzLzcdPzIc'), (b'x-fb-rev', b'1031184459'), (b'X-FB-Debug', b'KE7k3lTXoau95tdvqW6QFeqkNXE+S6hUwtFbw6P3Je1wz9/Dz/pUGOOGn1Ur4Ef0Mn7mENYlQKg0xoGBplZYtQ=='), (b'x-fb-server-load', b'6'), (b'Date', b'Wed, 17 Dec 2025 05:52:30 GMT'), (b'X-FB-Connection-Quality', b'EXCELLENT; q=0.9, rtt=19, rtx=0, c=10, mss=1230, tbw=4591, tp=-1, tpl=-1, uplat=987, ullat=2'), (b'Alt-Svc', b'h3=":443"; ma=86400'), (b'Connection', b'keep-alive'), (b'Content-Length', b'178')])
+2025-12-17 11:22:30,669 | INFO     | httpx | HTTP Request: POST https://graph.facebook.com/v24.0/783146548207772/messages "HTTP/1.1 200 OK"
+2025-12-17 11:22:30,673 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'POST']>
+2025-12-17 11:22:30,673 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2025-12-17 11:22:30,676 | DEBUG    | httpcore.http11 | response_closed.started
+2025-12-17 11:22:30,679 | DEBUG    | httpcore.http11 | response_closed.complete
+2025-12-17 11:22:30,680 | INFO     | whatspy.message_service | ✅ Message sent to +919142982138: wamid.HBgMOTE5MTQyOTgyMTM4FQIAERgSQzc3RDMzRUY1MzNFMDA1ODA3AA==
+2025-12-17 11:22:30,686 | INFO     | whatspy.message_service | ▶️ _save_message: START
+2025-12-17 11:22:30,686 | DEBUG    | whatspy.message_service | ▶️ Input params: tenant_id=d2bcd1ee-e5c5-4c9f-bff2-aaf901d40440, msg_id=wamid.HBgMOTE5MTQyOTgyMTM4FQIAERgSQzc3RDMzRUY1MzNFMDA1ODA3AA==, phone=+919142982138, direction=outgoing
+2025-12-17 11:22:30,686 | DEBUG    | whatspy.message_service | ▶️ Phone normalized: +919142982138
+2025-12-17 11:22:30,686 | INFO     | whatspy.message_service | 💾 Saving message: outgoing text to/from +919142982138
+2025-12-17 11:22:30,696 | DEBUG    | whatspy.message_service | ▶️ Checking for duplicate message_id: wamid.HBgMOTE5MTQyOTgyMTM4FQIAERgSQzc3RDMzRUY1MzNFMDA1ODA3AA==
+2025-12-17 11:22:30,966 | DEBUG    | whatspy.message_service | ▶️ No duplicate found, proceeding with insert
+2025-12-17 11:22:30,966 | DEBUG    | whatspy.message_service | ▶️ Creating Message object with direction=outgoing
+2025-12-17 11:22:30,976 | DEBUG    | whatspy.message_service | ▶️ Adding message to session
+2025-12-17 11:22:30,986 | DEBUG    | whatspy.message_service | ▶️ Committing to database...
+2025-12-17 11:22:31,537 | DEBUG    | whatspy.message_service | ▶️ Refreshing message object...
+2025-12-17 11:22:32,321 | INFO     | whatspy.message_service | ✅ ✅ ✅ Message committed and refreshed successfully! ✅ ✅ ✅
+2025-12-17 11:22:32,326 | INFO     | whatspy.message_service | ✅ Message saved: ID=267, outgoing, +919142982138
+2025-12-17 11:22:32,329 | DEBUG    | whatspy.message_service | ✅ Full message: {'_sa_instance_state': <sqlalchemy.orm.state.InstanceState object at 0x000001C7F09145F0>, 'message_type': 'text', 'status': 'sent', 'tenant_id': 'd2bcd1ee-e5c5-4c9f-bff2-aaf901d40440', 'updated_at': datetime.datetime(2025, 12, 17, 5, 52, 30, 996671), 'phone': '+919142982138', 'contact_name': None, 'message_id': 'wamid.HBgMOTE5MTQyOTgyMTM4FQIAERgSQzc3RDMzRUY1MzNFMDA1ODA3AA==', 'text': 'We are group of young individuals , with a strong talent pool ,helping Business grow through Systems and Marketing.\nOur Expertise:\n✔ Web & App Development\n✔ Paid Ad Campaigns (CPC/CPA)\n✔ CRM / CMS / ERP Solutions\n✔ WhatsApp Automation\n✔ SEO | SMO | GMB\n✔ Video Production & Podcast Studio\n\nContact us: +91 98228 57421\nWebsite: https://thedigitechsolutions.com/', 'direction': 'outgoing', 'meta_data': {'preview_url': False}, 'id': 267, 'created_at': datetime.datetime(2025, 12, 17, 5, 52, 30, 996671)}
+2025-12-17 11:23:17,541 | INFO     | whatspy.message_service | ⬇️ Media not stored locally. Fetching 3945758229065657 from WhatsApp...
+2025-12-17 11:23:17,542 | DEBUG    | pywa.api | Making request: GET /3945758229065657 with kwargs: {}
+2025-12-17 11:23:17,542 | DEBUG    | httpcore.connection | close.started
+2025-12-17 11:23:17,546 | DEBUG    | httpcore.connection | close.complete
+2025-12-17 11:23:17,548 | DEBUG    | httpcore.connection | connect_tcp.started host='graph.facebook.com' port=443 local_address=None timeout=5.0 socket_options=None
+2025-12-17 11:23:17,577 | DEBUG    | httpcore.connection | connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x000001C7F099B850>
+2025-12-17 11:23:17,577 | DEBUG    | httpcore.connection | start_tls.started ssl_context=<ssl.SSLContext object at 0x000001C7F058EE70> server_hostname='graph.facebook.com' timeout=5.0
+2025-12-17 11:23:17,597 | DEBUG    | httpcore.connection | start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x000001C7F07DD850>
+2025-12-17 11:23:17,597 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'GET']>
+2025-12-17 11:23:17,604 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2025-12-17 11:23:17,604 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'GET']>
+2025-12-17 11:23:17,606 | DEBUG    | httpcore.http11 | send_request_body.complete
+2025-12-17 11:23:17,606 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'GET']>
+2025-12-17 11:23:17,874 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Encoding', b'gzip'), (b'ETag', b'"16767b50ae0e761fd7e1c0a2eab1cf8847542a4d"'), (b'Content-Type', b'application/json; charset=UTF-8'), (b'Vary', b'Origin'), (b'Vary', b'Accept-Encoding'), (b'x-fb-aed', b'694'), (b'x-business-use-case-usage', b'{"750331057695851":[{"type":"whatsapp","call_count":1,"total_cputime":1,"total_time":1,"estimated_time_to_regain_access":0}]}'), (b'Access-Control-Allow-Origin', b'*'), (b'facebook-api-version', b'v24.0'), (b'Strict-Transport-Security', b'max-age=15552000; preload'), (b'Pragma', b'no-cache'), (b'Cache-Control', b'private, no-cache, no-store, must-revalidate'), (b'Expires', b'Sat, 01 Jan 2000 00:00:00 GMT'), (b'x-fb-request-id', b'AYRFube6gKvAKHE-r_cP-RG'), (b'x-fb-trace-id', b'HTDIXHqVvT/'), (b'x-fb-rev', b'1031184459'), (b'X-FB-Debug', b'krPZrlz/FjrYe1QK+0ebVrf0BE7OpdMTjOsTK7EttRgOLgOlcu7sSARe/AlLOlBVMWX0Y+dYhO1M/w0nX4TFqg=='), (b'Date', b'Wed, 17 Dec 2025 05:53:17 GMT'), (b'X-FB-Connection-Quality', b'EXCELLENT; q=0.9, rtt=14, rtx=0, c=10, mss=1230, tbw=3482, tp=-1, tpl=-1, uplat=258, ullat=0'), (b'Alt-Svc', b'h3=":443"; ma=86400'), (b'Connection', b'keep-alive'), (b'Content-Length', b'301')])
+2025-12-17 11:23:17,877 | INFO     | httpx | HTTP Request: GET https://graph.facebook.com/v24.0/3945758229065657 "HTTP/1.1 200 OK"
+2025-12-17 11:23:17,878 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'GET']>
+2025-12-17 11:23:17,882 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2025-12-17 11:23:17,884 | DEBUG    | httpcore.http11 | response_closed.started
+2025-12-17 11:23:17,886 | DEBUG    | httpcore.http11 | response_closed.complete
+2025-12-17 11:23:17,889 | DEBUG    | httpcore.connection | connect_tcp.started host='lookaside.fbsbx.com' port=443 local_address=None timeout=5.0 socket_options=None
+2025-12-17 11:23:17,937 | DEBUG    | httpcore.connection | connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x000001C7F09533D0>
+2025-12-17 11:23:17,937 | DEBUG    | httpcore.connection | start_tls.started ssl_context=<ssl.SSLContext object at 0x000001C7F058EE70> server_hostname='lookaside.fbsbx.com' timeout=5.0
+2025-12-17 11:23:17,976 | DEBUG    | httpcore.connection | start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x000001C7F0950D50>
+2025-12-17 11:23:17,979 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'GET']>
+2025-12-17 11:23:17,979 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2025-12-17 11:23:17,979 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'GET']>
+2025-12-17 11:23:17,985 | DEBUG    | httpcore.http11 | send_request_body.complete
+2025-12-17 11:23:17,989 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'GET']>
+2025-12-17 11:23:18,399 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'content-digest', b'adler32=3813587504'), (b'ETag', b'5123175854029758723'), (b'x-manifold-obj-blobsizebytes', b'229521'), (b'x-manifold-obj-canonicalpath', b'flat/836918699263228'), (b'x-manifold-obj-ctime', b'1764966918'), (b'x-manifold-obj-entrytype', b'1'), (b'x-manifold-obj-expiresat', b'0'), (b'x-manifold-obj-isuserdata', b'0'), (b'x-manifold-obj-propertiesjson', b'{"blob_state":"created","__ctime":"1764966918"}'), (b'x-manifold-obj-symlinktarget', b''), (b'cross-origin-resource-policy', b'cross-origin'), (b'Accept-Ranges', b'bytes'), (b'Date', b'Wed, 17 Dec 2025 05:53:18 GMT'), (b'Cache-Control', b'private, no-cache, no-store, must-revalidate'), (b'Content-Disposition', b"inline;filename=KUMSS_Proposal_3_.pdf;filename*= UTF-8''KUMSS%20Proposal%20%283%29.pdf"), (b'Content-Type', b'application/pdf'), (b'Connection', b'keep-alive'), (b'Content-Length', b'222337')])
+2025-12-17 11:23:18,402 | INFO     | httpx | HTTP Request: GET https://lookaside.fbsbx.com/whatsapp_business/attachments/?mid=3945758229065657&source=getMedia&ext=1765951097&hash=ARlMFPZ2NzR94CDlfINww7hWZ6n4ZK0W-tINVpo_CGm-Mw "HTTP/1.1 200 OK"
+2025-12-17 11:23:18,403 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'GET']>
+2025-12-17 11:23:18,520 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2025-12-17 11:23:18,529 | DEBUG    | httpcore.http11 | response_closed.started
+2025-12-17 11:23:18,542 | DEBUG    | httpcore.http11 | response_closed.complete
+2025-12-17 11:23:20,088 | INFO     | whatspy.message_service | ⬇️ Media not stored locally. Fetching 726574100498730 from WhatsApp...
+2025-12-17 11:23:20,089 | DEBUG    | pywa.api | Making request: GET /726574100498730 with kwargs: {}
+2025-12-17 11:23:20,092 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'GET']>
+2025-12-17 11:23:20,092 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2025-12-17 11:23:20,096 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'GET']>
+2025-12-17 11:23:20,099 | DEBUG    | httpcore.http11 | send_request_body.complete
+2025-12-17 11:23:20,100 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'GET']>
+2025-12-17 11:23:20,431 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Encoding', b'gzip'), (b'ETag', b'"d0865a2e8db49800973413774e6487fe6d8ae4ed"'), (b'Content-Type', b'application/json; charset=UTF-8'), (b'Vary', b'Origin'), (b'Vary', b'Accept-Encoding'), (b'x-fb-aed', b'694'), (b'x-business-use-case-usage', b'{"750331057695851":[{"type":"whatsapp","call_count":1,"total_cputime":1,"total_time":1,"estimated_time_to_regain_access":0}]}'), (b'Access-Control-Allow-Origin', b'*'), (b'facebook-api-version', b'v24.0'), (b'Strict-Transport-Security', b'max-age=15552000; preload'), (b'Pragma', b'no-cache'), (b'Cache-Control', b'private, no-cache, no-store, must-revalidate'), (b'Expires', b'Sat, 01 Jan 2000 00:00:00 GMT'), (b'x-fb-request-id', b'AfOQygD4rpIiJv0X_7RDpxq'), (b'x-fb-trace-id', b'A32csK0g+TU'), (b'x-fb-rev', b'1031184459'), (b'X-FB-Debug', b'ZcdVt9HKSneUhK95eCUekcH6bGA6tup70nDr3Ux0/7KdM2uHDeVgb6svs/+Avhx0UzmUj8UVtQOoeH7JuSQXkQ=='), (b'Date', b'Wed, 17 Dec 2025 05:53:20 GMT'), (b'X-FB-Connection-Quality', b'EXCELLENT; q=0.9, rtt=14, rtx=1, c=10, mss=1230, tbw=4810, tp=-1, tpl=-1, uplat=322, ullat=0'), (b'Alt-Svc', b'h3=":443"; ma=86400'), (b'Connection', b'keep-alive'), (b'Content-Length', b'294')])
+2025-12-17 11:23:20,433 | INFO     | httpx | HTTP Request: GET https://graph.facebook.com/v24.0/726574100498730 "HTTP/1.1 200 OK"
+2025-12-17 11:23:20,434 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'GET']>
+2025-12-17 11:23:20,435 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2025-12-17 11:23:20,437 | DEBUG    | httpcore.http11 | response_closed.started
+2025-12-17 11:23:20,438 | DEBUG    | httpcore.http11 | response_closed.complete
+2025-12-17 11:23:20,441 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'GET']>
+2025-12-17 11:23:20,446 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2025-12-17 11:23:20,450 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'GET']>
+2025-12-17 11:23:20,451 | DEBUG    | httpcore.http11 | send_request_body.complete
+2025-12-17 11:23:20,454 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'GET']>
+2025-12-17 11:23:20,868 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'content-digest', b'adler32=1136856701'), (b'ETag', b'8774510288275886148'), (b'x-manifold-obj-blobsizebytes', b'107585'), (b'x-manifold-obj-canonicalpath', b'flat/1305261124979111'), (b'x-manifold-obj-ctime', b'1765920210'), (b'x-manifold-obj-entrytype', b'1'), (b'x-manifold-obj-expiresat', b'0'), (b'x-manifold-obj-isuserdata', b'0'), (b'x-manifold-obj-propertiesjson', b'{"blob_state":"created","__ctime":"1765920209"}'), (b'x-manifold-obj-symlinktarget', b''), (b'cross-origin-resource-policy', b'cross-origin'), (b'Accept-Ranges', b'bytes'), (b'Date', b'Wed, 17 Dec 2025 05:53:21 GMT'), (b'Cache-Control', b'private, no-cache, no-store, must-revalidate'), (b'Content-Disposition', b"inline;filename=WhatsApp_Image_2025-12-16_at_12.38.50_AM.jpeg;filename*= UTF-8''WhatsApp%20Image%202025-12-16%20at%2012.38.50%20AM.jpeg"), (b'Content-Type', b'image/jpeg'), (b'Connection', b'keep-alive'), (b'Content-Length', b'104209')])
+2025-12-17 11:23:20,868 | INFO     | httpx | HTTP Request: GET https://lookaside.fbsbx.com/whatsapp_business/attachments/?mid=726574100498730&source=getMedia&ext=1765951100&hash=ARm_5P3rN2aHjKzaFzHkes1u7SqEZxO6hauQE4HbeyoCmA "HTTP/1.1 200 OK"
+2025-12-17 11:23:20,875 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'GET']>
+2025-12-17 11:23:20,882 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2025-12-17 11:23:20,882 | DEBUG    | httpcore.http11 | response_closed.started
+2025-12-17 11:23:20,882 | DEBUG    | httpcore.http11 | response_closed.complete
+2025-12-17 11:38:25,705 | INFO     | whatspy | ================================================================================
+2025-12-17 11:38:25,705 | INFO     | whatspy | 🚀 Application starting - Logging to console and logs/debug.log
+2025-12-17 11:38:25,705 | INFO     | whatspy | ================================================================================
+2025-12-17 11:38:37,046 | INFO     | whatspy.database | ✅ Database tables initialized
+2025-12-17 11:38:38,330 | INFO     | whatspy.database | ✅ Database connection successful
+2025-12-17 11:38:38,330 | INFO     | whatspy | ✅ Database initialized
+2025-12-17 11:38:38,641 | WARNING  | pywa.server | No `app_secret` provided. Signature validation will be disabled (not recommended. set `validate_updates=False` to suppress this warning)
+2025-12-17 11:38:38,641 | INFO     | pywa.server | Using FastAPI
+2025-12-17 11:38:38,641 | INFO     | whatspy.handlers | ✅ WhatsApp message handlers registered
+2025-12-17 11:38:38,641 | INFO     | whatspy.handlers | 🏢 Using tenant_id from .env: d2bcd1ee-e5c5-4c9f-bff2-aaf901d40440
+2025-12-17 11:38:38,641 | INFO     | whatspy.handlers | 📝 All incoming messages will be saved to this tenant
+2025-12-17 11:38:38,641 | INFO     | whatspy | ✅ WhatsApp client initialized
+2025-12-17 11:40:36,020 | INFO     | whatspy | ================================================================================
+2025-12-17 11:40:36,021 | INFO     | whatspy | 🚀 Application starting - Logging to console and logs/debug.log
+2025-12-17 11:40:36,021 | INFO     | whatspy | ================================================================================
+2025-12-17 11:40:46,356 | INFO     | whatspy.database | ✅ Database tables initialized
+2025-12-17 11:40:47,656 | INFO     | whatspy.database | ✅ Database connection successful
+2025-12-17 11:40:47,663 | INFO     | whatspy | ✅ Database initialized
+2025-12-17 11:40:47,976 | WARNING  | pywa.server | No `app_secret` provided. Signature validation will be disabled (not recommended. set `validate_updates=False` to suppress this warning)
+2025-12-17 11:40:47,977 | INFO     | pywa.server | Using FastAPI
+2025-12-17 11:40:47,979 | INFO     | whatspy.handlers | ✅ WhatsApp message handlers registered
+2025-12-17 11:40:47,979 | INFO     | whatspy.handlers | 🏢 Using tenant_id from .env: d2bcd1ee-e5c5-4c9f-bff2-aaf901d40440
+2025-12-17 11:40:47,979 | INFO     | whatspy.handlers | 📝 All incoming messages will be saved to this tenant
+2025-12-17 11:40:47,979 | INFO     | whatspy | ✅ WhatsApp client initialized
+2025-12-17 11:41:06,587 | INFO     | whatspy | ================================================================================
+2025-12-17 11:41:06,588 | INFO     | whatspy | 🚀 Application starting - Logging to console and logs/debug.log
+2025-12-17 11:41:06,588 | INFO     | whatspy | ================================================================================
+2025-12-17 11:41:16,855 | INFO     | whatspy.database | ✅ Database tables initialized
+2025-12-17 11:41:18,174 | INFO     | whatspy.database | ✅ Database connection successful
+2025-12-17 11:41:18,174 | INFO     | whatspy | ✅ Database initialized
+2025-12-17 11:41:18,470 | WARNING  | pywa.server | No `app_secret` provided. Signature validation will be disabled (not recommended. set `validate_updates=False` to suppress this warning)
+2025-12-17 11:41:18,470 | INFO     | pywa.server | Using FastAPI
+2025-12-17 11:41:18,470 | INFO     | whatspy.handlers | ✅ WhatsApp message handlers registered
+2025-12-17 11:41:18,470 | INFO     | whatspy.handlers | 🏢 Using tenant_id from .env: d2bcd1ee-e5c5-4c9f-bff2-aaf901d40440
+2025-12-17 11:41:18,470 | INFO     | whatspy.handlers | 📝 All incoming messages will be saved to this tenant
+2025-12-17 11:41:18,470 | INFO     | whatspy | ✅ WhatsApp client initialized
+2025-12-17 11:46:18,929 | INFO     | whatspy.campaigns | 📢 Creating TEMPLATE broadcast campaign: services
+2025-12-17 11:46:18,936 | INFO     | whatspy.campaigns |    Template: services (en)
+2025-12-17 11:46:19,899 | INFO     | whatspy.campaigns | ✅ Resolved 2 phone numbers for template broadcast
+2025-12-17 11:46:21,547 | INFO     | whatspy.campaigns | 🚀 Template broadcast task started for campaign 9dcfb772-5a89-4c42-a109-8df09bdd3b92
+2025-12-17 11:46:22,790 | ERROR    | whatspy.template_service | ❌ Failed to send template: WhatsApp.send_template() got an unexpected keyword argument 'template'
+2025-12-17 11:46:24,430 | ERROR    | whatspy.campaigns | ❌ Template failed for +918793944961: WhatsApp.send_template() got an unexpected keyword argument 'template'
+2025-12-17 11:46:25,296 | ERROR    | whatspy.template_service | ❌ Failed to send template: WhatsApp.send_template() got an unexpected keyword argument 'template'
+2025-12-17 11:46:26,823 | ERROR    | whatspy.campaigns | ❌ Template failed for +919142982138: WhatsApp.send_template() got an unexpected keyword argument 'template'
+2025-12-17 11:46:28,317 | INFO     | whatspy.campaigns | 📊 Campaign 9dcfb772-5a89-4c42-a109-8df09bdd3b92 completed: 0 sent, 2 failed
+2025-12-17 11:50:15,869 | INFO     | whatspy.campaigns | 📢 Creating TEMPLATE broadcast campaign: services
+2025-12-17 11:50:15,872 | INFO     | whatspy.campaigns |    Template: services (en)
+2025-12-17 11:50:16,755 | INFO     | whatspy.campaigns | ✅ Resolved 2 phone numbers for template broadcast
+2025-12-17 11:50:18,379 | INFO     | whatspy.campaigns | 🚀 Template broadcast task started for campaign 57b92132-baaf-4dc5-bbc7-a1d72fe41dbf
+2025-12-17 11:50:19,539 | ERROR    | whatspy.template_service | ❌ Failed to send template: WhatsApp.send_template() got an unexpected keyword argument 'template'
+2025-12-17 11:50:21,151 | ERROR    | whatspy.campaigns | ❌ Template failed for +918793944961: WhatsApp.send_template() got an unexpected keyword argument 'template'
+2025-12-17 11:50:21,935 | ERROR    | whatspy.template_service | ❌ Failed to send template: WhatsApp.send_template() got an unexpected keyword argument 'template'
+2025-12-17 11:50:23,532 | ERROR    | whatspy.campaigns | ❌ Template failed for +919142982138: WhatsApp.send_template() got an unexpected keyword argument 'template'
+2025-12-17 11:50:25,008 | INFO     | whatspy.campaigns | 📊 Campaign 57b92132-baaf-4dc5-bbc7-a1d72fe41dbf completed: 0 sent, 2 failed
+2025-12-17 11:50:27,735 | INFO     | whatspy | ================================================================================
+2025-12-17 11:50:27,735 | INFO     | whatspy | 🚀 Application starting - Logging to console and logs/debug.log
+2025-12-17 11:50:27,735 | INFO     | whatspy | ================================================================================
+2025-12-17 11:50:38,235 | INFO     | whatspy.database | ✅ Database tables initialized
+2025-12-17 11:50:39,555 | INFO     | whatspy.database | ✅ Database connection successful
+2025-12-17 11:50:39,559 | INFO     | whatspy | ✅ Database initialized
+2025-12-17 11:50:39,872 | WARNING  | pywa.server | No `app_secret` provided. Signature validation will be disabled (not recommended. set `validate_updates=False` to suppress this warning)
+2025-12-17 11:50:39,873 | INFO     | pywa.server | Using FastAPI
+2025-12-17 11:50:39,874 | INFO     | whatspy.handlers | ✅ WhatsApp message handlers registered
+2025-12-17 11:50:39,875 | INFO     | whatspy.handlers | 🏢 Using tenant_id from .env: d2bcd1ee-e5c5-4c9f-bff2-aaf901d40440
+2025-12-17 11:50:39,875 | INFO     | whatspy.handlers | 📝 All incoming messages will be saved to this tenant
+2025-12-17 11:50:39,875 | INFO     | whatspy | ✅ WhatsApp client initialized
+2025-12-17 11:50:41,975 | INFO     | whatspy | ================================================================================
+2025-12-17 11:50:41,975 | INFO     | whatspy | 🚀 Application starting - Logging to console and logs/debug.log
+2025-12-17 11:50:41,975 | INFO     | whatspy | ================================================================================
+2025-12-17 11:50:52,265 | INFO     | whatspy.database | ✅ Database tables initialized
+2025-12-17 11:50:53,607 | INFO     | whatspy.database | ✅ Database connection successful
+2025-12-17 11:50:53,607 | INFO     | whatspy | ✅ Database initialized
+2025-12-17 11:50:53,925 | WARNING  | pywa.server | No `app_secret` provided. Signature validation will be disabled (not recommended. set `validate_updates=False` to suppress this warning)
+2025-12-17 11:50:53,925 | INFO     | pywa.server | Using FastAPI
+2025-12-17 11:50:53,927 | INFO     | whatspy.handlers | ✅ WhatsApp message handlers registered
+2025-12-17 11:50:53,928 | INFO     | whatspy.handlers | 🏢 Using tenant_id from .env: d2bcd1ee-e5c5-4c9f-bff2-aaf901d40440
+2025-12-17 11:50:53,928 | INFO     | whatspy.handlers | 📝 All incoming messages will be saved to this tenant
+2025-12-17 11:50:53,928 | INFO     | whatspy | ✅ WhatsApp client initialized
+2025-12-17 11:53:09,074 | INFO     | whatspy.campaigns | 📢 Creating TEMPLATE broadcast campaign: services
+2025-12-17 11:53:09,075 | INFO     | whatspy.campaigns |    Template: services (en)
+2025-12-17 11:53:10,129 | INFO     | whatspy.campaigns | ✅ Resolved 2 phone numbers for template broadcast
+2025-12-17 11:53:12,316 | INFO     | whatspy.campaigns | 🚀 Template broadcast task started for campaign 08c952c2-53c5-4a7f-9de3-9aeede5833c2
+2025-12-17 11:53:13,661 | INFO     | whatspy.template_service | 📤 Sending template 'services' to 918793944961 with language en
+2025-12-17 11:53:13,665 | DEBUG    | whatspy.template_service |    Parameters: None
+2025-12-17 11:53:13,665 | DEBUG    | pywa.api | Making request: POST /783146548207772/messages with kwargs: {'json': {'messaging_product': 'whatsapp', 'recipient_type': 'individual', 'to': '918793944961', 'type': 'template', 'template': {'name': 'services', 'language': {'code': 'en'}}}}
+2025-12-17 11:53:13,669 | DEBUG    | httpcore.connection | connect_tcp.started host='graph.facebook.com' port=443 local_address=None timeout=5.0 socket_options=None
+2025-12-17 11:53:13,739 | DEBUG    | httpcore.connection | connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x000002672B1BF010>
+2025-12-17 11:53:13,739 | DEBUG    | httpcore.connection | start_tls.started ssl_context=<ssl.SSLContext object at 0x000002674EDD6E70> server_hostname='graph.facebook.com' timeout=5.0
+2025-12-17 11:53:13,803 | DEBUG    | httpcore.connection | start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x00000267501D62D0>
+2025-12-17 11:53:13,806 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'POST']>
+2025-12-17 11:53:13,808 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2025-12-17 11:53:13,811 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'POST']>
+2025-12-17 11:53:13,818 | DEBUG    | httpcore.http11 | send_request_body.complete
+2025-12-17 11:53:13,820 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'POST']>
+2025-12-17 11:53:15,005 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json; charset=UTF-8'), (b'Vary', b'Origin'), (b'x-fb-aed', b'694'), (b'x-business-use-case-usage', b'{"750331057695851":[{"type":"whatsapp","call_count":1,"total_cputime":1,"total_time":1,"estimated_time_to_regain_access":0}]}'), (b'Access-Control-Allow-Origin', b'*'), (b'facebook-api-version', b'v24.0'), (b'Strict-Transport-Security', b'max-age=15552000; preload'), (b'Pragma', b'no-cache'), (b'Cache-Control', b'private, no-cache, no-store, must-revalidate'), (b'Expires', b'Sat, 01 Jan 2000 00:00:00 GMT'), (b'x-fb-request-id', b'AE2crqAHNvmtuYSW5LBqYgU'), (b'x-fb-trace-id', b'G+JjbxpTGuN'), (b'x-fb-rev', b'1031193669'), (b'X-FB-Debug', b'OcmhDTQuXmahIr48kUQqw4AmMCa30356gRuhNyWqH0IGznapFJ30Elz5Ksyi6Gnyp+avo8sELfZpIOq8UEWTOw=='), (b'x-fb-server-load', b'14'), (b'Date', b'Wed, 17 Dec 2025 06:23:15 GMT'), (b'X-FB-Connection-Quality', b'EXCELLENT; q=0.9, rtt=35, rtx=0, c=10, mss=1230, tbw=3480, tp=-1, tpl=-1, uplat=1167, ullat=9'), (b'Alt-Svc', b'h3=":443"; ma=86400'), (b'Connection', b'keep-alive'), (b'Content-Length', b'206')])
+2025-12-17 11:53:15,009 | INFO     | httpx | HTTP Request: POST https://graph.facebook.com/v24.0/783146548207772/messages "HTTP/1.1 200 OK"
+2025-12-17 11:53:15,009 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'POST']>
+2025-12-17 11:53:15,015 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2025-12-17 11:53:15,018 | DEBUG    | httpcore.http11 | response_closed.started
+2025-12-17 11:53:15,019 | DEBUG    | httpcore.http11 | response_closed.complete
+2025-12-17 11:53:15,021 | INFO     | whatspy.template_service | ✅ Template 'services' sent to 918793944961: SentTemplate(id='wamid.HBgMOTE4NzkzOTQ0OTYxFQIAERgSOEIxQTBFRTM5MDk0MkNDMEIwAA==', to_user=User(wa_id='918793944961', name=None, identity_key_hash=None), from_phone_id='783146548207772', input='918793944961', status=SentTemplateStatus.ACCEPTED)
+2025-12-17 11:53:19,135 | INFO     | whatspy.campaigns | ✅ Template sent to +918793944961: SentTemplate(id='wamid.HBgMOTE4NzkzOTQ0OTYxFQIAERgSOEIxQTBFRTM5MDk0MkNDMEIwAA==', to_user=User(wa_id='918793944961', name=None, identity_key_hash=None), from_phone_id='783146548207772', input='918793944961', status=SentTemplateStatus.ACCEPTED)
+2025-12-17 11:53:19,985 | INFO     | whatspy.template_service | 📤 Sending template 'services' to 919142982138 with language en
+2025-12-17 11:53:19,985 | DEBUG    | whatspy.template_service |    Parameters: None
+2025-12-17 11:53:19,988 | DEBUG    | pywa.api | Making request: POST /783146548207772/messages with kwargs: {'json': {'messaging_product': 'whatsapp', 'recipient_type': 'individual', 'to': '919142982138', 'type': 'template', 'template': {'name': 'services', 'language': {'code': 'en'}}}}
+2025-12-17 11:53:19,988 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'POST']>
+2025-12-17 11:53:19,995 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2025-12-17 11:53:19,995 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'POST']>
+2025-12-17 11:53:19,998 | DEBUG    | httpcore.http11 | send_request_body.complete
+2025-12-17 11:53:20,002 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'POST']>
+2025-12-17 11:53:21,210 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json; charset=UTF-8'), (b'Vary', b'Origin'), (b'x-fb-aed', b'694'), (b'x-business-use-case-usage', b'{"750331057695851":[{"type":"whatsapp","call_count":1,"total_cputime":1,"total_time":1,"estimated_time_to_regain_access":0}]}'), (b'Access-Control-Allow-Origin', b'*'), (b'facebook-api-version', b'v24.0'), (b'Strict-Transport-Security', b'max-age=15552000; preload'), (b'Pragma', b'no-cache'), (b'Cache-Control', b'private, no-cache, no-store, must-revalidate'), (b'Expires', b'Sat, 01 Jan 2000 00:00:00 GMT'), (b'x-fb-request-id', b'A-dvA3vaqePPxacwkiY2KnE'), (b'x-fb-trace-id', b'AmqAmuL9AZo'), (b'x-fb-rev', b'1031196555'), (b'X-FB-Debug', b'2nAiwDvlXbGmwaz1Bd+ldgKTcbrJ5yLbrFqLdr1RGD27Q/3MG1g+cdHieWFYCD6OebJmiIeFpT0FaaCLF3zrsw=='), (b'Date', b'Wed, 17 Dec 2025 06:23:21 GMT'), (b'X-FB-Connection-Quality', b'EXCELLENT; q=0.9, rtt=39, rtx=0, c=10, mss=1230, tbw=4639, tp=-1, tpl=-1, uplat=1188, ullat=0'), (b'Alt-Svc', b'h3=":443"; ma=86400'), (b'Connection', b'keep-alive'), (b'Content-Length', b'206')])
+2025-12-17 11:53:21,213 | INFO     | httpx | HTTP Request: POST https://graph.facebook.com/v24.0/783146548207772/messages "HTTP/1.1 200 OK"
+2025-12-17 11:53:21,213 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'POST']>
+2025-12-17 11:53:21,213 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2025-12-17 11:53:21,213 | DEBUG    | httpcore.http11 | response_closed.started
+2025-12-17 11:53:21,213 | DEBUG    | httpcore.http11 | response_closed.complete
+2025-12-17 11:53:21,215 | INFO     | whatspy.template_service | ✅ Template 'services' sent to 919142982138: SentTemplate(id='wamid.HBgMOTE5MTQyOTgyMTM4FQIAERgSM0M4NzE5QzI1OTI5QUFFMTE3AA==', to_user=User(wa_id='919142982138', name=None, identity_key_hash=None), from_phone_id='783146548207772', input='919142982138', status=SentTemplateStatus.ACCEPTED)
+2025-12-17 11:53:25,345 | INFO     | whatspy.campaigns | ✅ Template sent to +919142982138: SentTemplate(id='wamid.HBgMOTE5MTQyOTgyMTM4FQIAERgSM0M4NzE5QzI1OTI5QUFFMTE3AA==', to_user=User(wa_id='919142982138', name=None, identity_key_hash=None), from_phone_id='783146548207772', input='919142982138', status=SentTemplateStatus.ACCEPTED)
+2025-12-17 11:53:27,567 | INFO     | whatspy.campaigns | 📊 Campaign 08c952c2-53c5-4a7f-9de3-9aeede5833c2 completed: 2 sent, 0 failed
+2025-12-17 11:55:43,268 | INFO     | whatspy | ================================================================================
+2025-12-17 11:55:43,268 | INFO     | whatspy | 🚀 Application starting - Logging to console and logs/debug.log
+2025-12-17 11:55:43,268 | INFO     | whatspy | ================================================================================
+2025-12-17 11:55:53,562 | INFO     | whatspy.database | ✅ Database tables initialized
+2025-12-17 11:55:54,855 | INFO     | whatspy.database | ✅ Database connection successful
+2025-12-17 11:55:54,855 | INFO     | whatspy | ✅ Database initialized
+2025-12-17 11:55:55,180 | WARNING  | pywa.server | No `app_secret` provided. Signature validation will be disabled (not recommended. set `validate_updates=False` to suppress this warning)
+2025-12-17 11:55:55,181 | INFO     | pywa.server | Using FastAPI
+2025-12-17 11:55:55,183 | INFO     | whatspy.handlers | ✅ WhatsApp message handlers registered
+2025-12-17 11:55:55,183 | INFO     | whatspy.handlers | 🏢 Using tenant_id from .env: d2bcd1ee-e5c5-4c9f-bff2-aaf901d40440
+2025-12-17 11:55:55,183 | INFO     | whatspy.handlers | 📝 All incoming messages will be saved to this tenant
+2025-12-17 11:55:55,183 | INFO     | whatspy | ✅ WhatsApp client initialized
+2025-12-17 11:58:21,232 | INFO     | whatspy | ================================================================================
+2025-12-17 11:58:21,232 | INFO     | whatspy | 🚀 Application starting - Logging to console and logs/debug.log
+2025-12-17 11:58:21,232 | INFO     | whatspy | ================================================================================
+2025-12-17 11:58:29,921 | INFO     | whatspy.database | ✅ Database tables initialized
+2025-12-17 11:58:31,029 | INFO     | whatspy.database | ✅ Database connection successful
+2025-12-17 11:58:31,031 | INFO     | whatspy | ✅ Database initialized
+2025-12-17 11:58:31,317 | WARNING  | pywa.server | No `app_secret` provided. Signature validation will be disabled (not recommended. set `validate_updates=False` to suppress this warning)
+2025-12-17 11:58:31,317 | INFO     | pywa.server | Using FastAPI
+2025-12-17 11:58:31,319 | INFO     | whatspy.handlers | ✅ WhatsApp message handlers registered
+2025-12-17 11:58:31,319 | INFO     | whatspy.handlers | 🏢 Using tenant_id from .env: d2bcd1ee-e5c5-4c9f-bff2-aaf901d40440
+2025-12-17 11:58:31,319 | INFO     | whatspy.handlers | 📝 All incoming messages will be saved to this tenant
+2025-12-17 11:58:31,319 | INFO     | whatspy | ✅ WhatsApp client initialized
+2025-12-17 11:58:33,504 | INFO     | whatspy | ================================================================================
+2025-12-17 11:58:33,504 | INFO     | whatspy | 🚀 Application starting - Logging to console and logs/debug.log
+2025-12-17 11:58:33,504 | INFO     | whatspy | ================================================================================
+2025-12-17 11:58:42,158 | INFO     | whatspy.database | ✅ Database tables initialized
+2025-12-17 11:58:43,244 | INFO     | whatspy.database | ✅ Database connection successful
+2025-12-17 11:58:43,244 | INFO     | whatspy | ✅ Database initialized
+2025-12-17 11:58:43,545 | WARNING  | pywa.server | No `app_secret` provided. Signature validation will be disabled (not recommended. set `validate_updates=False` to suppress this warning)
+2025-12-17 11:58:43,547 | INFO     | pywa.server | Using FastAPI
+2025-12-17 11:58:43,548 | INFO     | whatspy.handlers | ✅ WhatsApp message handlers registered
+2025-12-17 11:58:43,548 | INFO     | whatspy.handlers | 🏢 Using tenant_id from .env: d2bcd1ee-e5c5-4c9f-bff2-aaf901d40440
+2025-12-17 11:58:43,548 | INFO     | whatspy.handlers | 📝 All incoming messages will be saved to this tenant
+2025-12-17 11:58:43,548 | INFO     | whatspy | ✅ WhatsApp client initialized
+2025-12-17 11:58:45,716 | INFO     | whatspy | ================================================================================
+2025-12-17 11:58:45,716 | INFO     | whatspy | 🚀 Application starting - Logging to console and logs/debug.log
+2025-12-17 11:58:45,716 | INFO     | whatspy | ================================================================================
+2025-12-17 11:58:54,314 | INFO     | whatspy.database | ✅ Database tables initialized
+2025-12-17 11:58:55,355 | INFO     | whatspy.database | ✅ Database connection successful
+2025-12-17 11:58:55,359 | INFO     | whatspy | ✅ Database initialized
+2025-12-17 11:58:55,645 | WARNING  | pywa.server | No `app_secret` provided. Signature validation will be disabled (not recommended. set `validate_updates=False` to suppress this warning)
+2025-12-17 11:58:55,646 | INFO     | pywa.server | Using FastAPI
+2025-12-17 11:58:55,648 | INFO     | whatspy.handlers | ✅ WhatsApp message handlers registered
+2025-12-17 11:58:55,648 | INFO     | whatspy.handlers | 🏢 Using tenant_id from .env: d2bcd1ee-e5c5-4c9f-bff2-aaf901d40440
+2025-12-17 11:58:55,648 | INFO     | whatspy.handlers | 📝 All incoming messages will be saved to this tenant
+2025-12-17 11:58:55,648 | INFO     | whatspy | ✅ WhatsApp client initialized
+2025-12-17 11:59:34,043 | INFO     | whatspy.campaigns | 📢 Creating TEMPLATE broadcast campaign: services
+2025-12-17 11:59:34,045 | INFO     | whatspy.campaigns |    Template: services (en)
+2025-12-17 11:59:34,828 | INFO     | whatspy.campaigns | ✅ Resolved 2 phone numbers for template broadcast
+2025-12-17 11:59:36,149 | INFO     | whatspy.campaigns | 🚀 Template broadcast task started for campaign 45a91a0f-a76e-42c9-8f0a-5b489f3e2fa0
+2025-12-17 11:59:36,429 | DEBUG    | whatspy.campaigns | No parameters for +919142982138
+2025-12-17 11:59:37,249 | INFO     | whatspy.template_service | 📤 Sending template 'services' to 919142982138 with language en
+2025-12-17 11:59:37,249 | DEBUG    | whatspy.template_service |    Parameters: None
+2025-12-17 11:59:37,249 | DEBUG    | pywa.api | Making request: POST /783146548207772/messages with kwargs: {'json': {'messaging_product': 'whatsapp', 'recipient_type': 'individual', 'to': '919142982138', 'type': 'template', 'template': {'name': 'services', 'language': {'code': 'en'}}}}
+2025-12-17 11:59:37,254 | DEBUG    | httpcore.connection | connect_tcp.started host='graph.facebook.com' port=443 local_address=None timeout=5.0 socket_options=None
+2025-12-17 11:59:37,305 | DEBUG    | httpcore.connection | connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x000001DFC8B8EE10>
+2025-12-17 11:59:37,308 | DEBUG    | httpcore.connection | start_tls.started ssl_context=<ssl.SSLContext object at 0x000001DFC8AA2E70> server_hostname='graph.facebook.com' timeout=5.0
+2025-12-17 11:59:37,353 | DEBUG    | httpcore.connection | start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x000001DFC87004D0>
+2025-12-17 11:59:37,355 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'POST']>
+2025-12-17 11:59:37,359 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2025-12-17 11:59:37,359 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'POST']>
+2025-12-17 11:59:37,365 | DEBUG    | httpcore.http11 | send_request_body.complete
+2025-12-17 11:59:37,366 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'POST']>
+2025-12-17 11:59:38,188 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json; charset=UTF-8'), (b'Vary', b'Origin'), (b'x-fb-aed', b'694'), (b'x-business-use-case-usage', b'{"750331057695851":[{"type":"whatsapp","call_count":1,"total_cputime":1,"total_time":1,"estimated_time_to_regain_access":0}]}'), (b'Access-Control-Allow-Origin', b'*'), (b'facebook-api-version', b'v24.0'), (b'Strict-Transport-Security', b'max-age=15552000; preload'), (b'Pragma', b'no-cache'), (b'Cache-Control', b'private, no-cache, no-store, must-revalidate'), (b'Expires', b'Sat, 01 Jan 2000 00:00:00 GMT'), (b'x-fb-request-id', b'AclTt0GiUxuyk_T-i-BTyG9'), (b'x-fb-trace-id', b'DTkCkQ2q6ZU'), (b'x-fb-rev', b'1031196555'), (b'X-FB-Debug', b'3hvHjTdTSYAgt/aqecasC/939zwUOYE76AKJaMhchLqGvCQWx17Sb+9YZaF97PQRFwEwCmbDLhrXq1xf7lLBVQ=='), (b'Date', b'Wed, 17 Dec 2025 06:29:38 GMT'), (b'X-FB-Connection-Quality', b'EXCELLENT; q=0.9, rtt=35, rtx=0, c=10, mss=1230, tbw=3480, tp=-1, tpl=-1, uplat=795, ullat=5'), (b'Alt-Svc', b'h3=":443"; ma=86400'), (b'Connection', b'keep-alive'), (b'Content-Length', b'206')])
+2025-12-17 11:59:38,188 | INFO     | httpx | HTTP Request: POST https://graph.facebook.com/v24.0/783146548207772/messages "HTTP/1.1 200 OK"
+2025-12-17 11:59:38,188 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'POST']>
+2025-12-17 11:59:38,195 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2025-12-17 11:59:38,198 | DEBUG    | httpcore.http11 | response_closed.started
+2025-12-17 11:59:38,200 | DEBUG    | httpcore.http11 | response_closed.complete
+2025-12-17 11:59:38,200 | INFO     | whatspy.template_service | ✅ Template 'services' sent to 919142982138: SentTemplate(id='wamid.HBgMOTE5MTQyOTgyMTM4FQIAERgSREM5NzgzMDFDNzBERTIxOURBAA==', to_user=User(wa_id='919142982138', name=None, identity_key_hash=None), from_phone_id='783146548207772', input='919142982138', status=SentTemplateStatus.ACCEPTED)
+2025-12-17 11:59:41,042 | INFO     | whatspy.campaigns | ✅ Template sent to +919142982138: SentTemplate(id='wamid.HBgMOTE5MTQyOTgyMTM4FQIAERgSREM5NzgzMDFDNzBERTIxOURBAA==', to_user=User(wa_id='919142982138', name=None, identity_key_hash=None), from_phone_id='783146548207772', input='919142982138', status=SentTemplateStatus.ACCEPTED)
+2025-12-17 11:59:41,542 | DEBUG    | whatspy.campaigns | No parameters for +918793944961
+2025-12-17 11:59:41,799 | INFO     | whatspy.template_service | 📤 Sending template 'services' to 918793944961 with language en
+2025-12-17 11:59:41,800 | DEBUG    | whatspy.template_service |    Parameters: None
+2025-12-17 11:59:41,800 | DEBUG    | pywa.api | Making request: POST /783146548207772/messages with kwargs: {'json': {'messaging_product': 'whatsapp', 'recipient_type': 'individual', 'to': '918793944961', 'type': 'template', 'template': {'name': 'services', 'language': {'code': 'en'}}}}
+2025-12-17 11:59:41,801 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'POST']>
+2025-12-17 11:59:41,801 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2025-12-17 11:59:41,801 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'POST']>
+2025-12-17 11:59:41,802 | DEBUG    | httpcore.http11 | send_request_body.complete
+2025-12-17 11:59:41,802 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'POST']>
+2025-12-17 11:59:42,790 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json; charset=UTF-8'), (b'Vary', b'Origin'), (b'x-fb-aed', b'694'), (b'x-business-use-case-usage', b'{"750331057695851":[{"type":"whatsapp","call_count":1,"total_cputime":1,"total_time":1,"estimated_time_to_regain_access":0}]}'), (b'Access-Control-Allow-Origin', b'*'), (b'facebook-api-version', b'v24.0'), (b'Strict-Transport-Security', b'max-age=15552000; preload'), (b'Pragma', b'no-cache'), (b'Cache-Control', b'private, no-cache, no-store, must-revalidate'), (b'Expires', b'Sat, 01 Jan 2000 00:00:00 GMT'), (b'x-fb-request-id', b'AkT3-o3V4T75dJbI5qtvG1s'), (b'x-fb-trace-id', b'EPTrCSKl460'), (b'x-fb-rev', b'1031196555'), (b'X-FB-Debug', b'cSZ5+acGkHDQnSWYxYjgcNoKWqvGnppeGMB/AxWBM65tMAoOHG+pt3jvmy4MqIg+HKYCyuelfGjP0CAlTktoyA=='), (b'Date', b'Wed, 17 Dec 2025 06:29:42 GMT'), (b'X-FB-Connection-Quality', b'EXCELLENT; q=0.9, rtt=39, rtx=0, c=10, mss=1230, tbw=4616, tp=-1, tpl=-1, uplat=960, ullat=0'), (b'Alt-Svc', b'h3=":443"; ma=86400'), (b'Connection', b'keep-alive'), (b'Content-Length', b'206')])
+2025-12-17 11:59:42,790 | INFO     | httpx | HTTP Request: POST https://graph.facebook.com/v24.0/783146548207772/messages "HTTP/1.1 200 OK"
+2025-12-17 11:59:42,790 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'POST']>
+2025-12-17 11:59:42,794 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2025-12-17 11:59:42,794 | DEBUG    | httpcore.http11 | response_closed.started
+2025-12-17 11:59:42,794 | DEBUG    | httpcore.http11 | response_closed.complete
+2025-12-17 11:59:42,797 | INFO     | whatspy.template_service | ✅ Template 'services' sent to 918793944961: SentTemplate(id='wamid.HBgMOTE4NzkzOTQ0OTYxFQIAERgSQjZFREFDMkI2MkNDMTZDNzY0AA==', to_user=User(wa_id='918793944961', name=None, identity_key_hash=None), from_phone_id='783146548207772', input='918793944961', status=SentTemplateStatus.ACCEPTED)
+2025-12-17 11:59:45,667 | INFO     | whatspy.campaigns | ✅ Template sent to +918793944961: SentTemplate(id='wamid.HBgMOTE4NzkzOTQ0OTYxFQIAERgSQjZFREFDMkI2MkNDMTZDNzY0AA==', to_user=User(wa_id='918793944961', name=None, identity_key_hash=None), from_phone_id='783146548207772', input='918793944961', status=SentTemplateStatus.ACCEPTED)
+2025-12-17 11:59:46,940 | INFO     | whatspy.campaigns | 📊 Campaign 45a91a0f-a76e-42c9-8f0a-5b489f3e2fa0 completed: 2 sent, 0 failed
+2025-12-17 12:01:42,299 | INFO     | whatspy.message_service | ⬇️ Media not stored locally. Fetching 3945758229065657 from WhatsApp...
+2025-12-17 12:01:42,303 | DEBUG    | pywa.api | Making request: GET /3945758229065657 with kwargs: {}
+2025-12-17 12:01:42,305 | DEBUG    | httpcore.connection | close.started
+2025-12-17 12:01:42,312 | DEBUG    | httpcore.connection | close.complete
+2025-12-17 12:01:42,314 | DEBUG    | httpcore.connection | connect_tcp.started host='graph.facebook.com' port=443 local_address=None timeout=5.0 socket_options=None
+2025-12-17 12:01:42,374 | DEBUG    | httpcore.connection | connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x000001DFC8EA10D0>
+2025-12-17 12:01:42,377 | DEBUG    | httpcore.connection | start_tls.started ssl_context=<ssl.SSLContext object at 0x000001DFC8AA2E70> server_hostname='graph.facebook.com' timeout=5.0
+2025-12-17 12:01:42,421 | DEBUG    | httpcore.connection | start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x000001DFC8EA0FD0>
+2025-12-17 12:01:42,424 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'GET']>
+2025-12-17 12:01:42,430 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2025-12-17 12:01:42,437 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'GET']>
+2025-12-17 12:01:42,439 | DEBUG    | httpcore.http11 | send_request_body.complete
+2025-12-17 12:01:42,439 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'GET']>
+2025-12-17 12:01:42,863 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Encoding', b'gzip'), (b'ETag', b'"3a92475873326ecfc5c4ca54559bd3bea060cac9"'), (b'Content-Type', b'application/json; charset=UTF-8'), (b'Vary', b'Origin'), (b'Vary', b'Accept-Encoding'), (b'x-fb-aed', b'694'), (b'x-business-use-case-usage', b'{"750331057695851":[{"type":"whatsapp","call_count":1,"total_cputime":1,"total_time":1,"estimated_time_to_regain_access":0}]}'), (b'Access-Control-Allow-Origin', b'*'), (b'facebook-api-version', b'v24.0'), (b'Strict-Transport-Security', b'max-age=15552000; preload'), (b'Pragma', b'no-cache'), (b'Cache-Control', b'private, no-cache, no-store, must-revalidate'), (b'Expires', b'Sat, 01 Jan 2000 00:00:00 GMT'), (b'x-fb-request-id', b'AKq9TYhM27ir5wHXp4mtKmz'), (b'x-fb-trace-id', b'F46umw0UVML'), (b'x-fb-rev', b'1031196555'), (b'X-FB-Debug', b'ZdN1StU+eLvCfDCi+mS9FNKAaQMO2vcCGik9KEfuDJx60Q52JIrb3R+aY5B8v1eLAe2GRoCOhpizK3oevdpboQ=='), (b'Date', b'Wed, 17 Dec 2025 06:31:42 GMT'), (b'X-FB-Connection-Quality', b'EXCELLENT; q=0.9, rtt=34, rtx=0, c=10, mss=1230, tbw=3482, tp=-1, tpl=-1, uplat=403, ullat=0'), (b'Alt-Svc', b'h3=":443"; ma=86400'), (b'Connection', b'keep-alive'), (b'Content-Length', b'302')])
+2025-12-17 12:01:42,865 | INFO     | httpx | HTTP Request: GET https://graph.facebook.com/v24.0/3945758229065657 "HTTP/1.1 200 OK"
+2025-12-17 12:01:42,872 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'GET']>
+2025-12-17 12:01:42,875 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2025-12-17 12:01:42,880 | DEBUG    | httpcore.http11 | response_closed.started
+2025-12-17 12:01:42,884 | DEBUG    | httpcore.http11 | response_closed.complete
+2025-12-17 12:01:42,888 | DEBUG    | httpcore.connection | connect_tcp.started host='lookaside.fbsbx.com' port=443 local_address=None timeout=5.0 socket_options=None
+2025-12-17 12:01:42,956 | DEBUG    | httpcore.connection | connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x000001DFC8EA2A50>
+2025-12-17 12:01:42,958 | DEBUG    | httpcore.connection | start_tls.started ssl_context=<ssl.SSLContext object at 0x000001DFC8AA2E70> server_hostname='lookaside.fbsbx.com' timeout=5.0
+2025-12-17 12:01:42,999 | DEBUG    | httpcore.connection | start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x000001DFC8EA2990>
+2025-12-17 12:01:43,001 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'GET']>
+2025-12-17 12:01:43,005 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2025-12-17 12:01:43,007 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'GET']>
+2025-12-17 12:01:43,012 | DEBUG    | httpcore.http11 | send_request_body.complete
+2025-12-17 12:01:43,012 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'GET']>
+2025-12-17 12:01:43,359 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'content-digest', b'adler32=3813587504'), (b'ETag', b'5123175854029758723'), (b'x-manifold-obj-blobsizebytes', b'229521'), (b'x-manifold-obj-canonicalpath', b'flat/836918699263228'), (b'x-manifold-obj-ctime', b'1764966918'), (b'x-manifold-obj-entrytype', b'1'), (b'x-manifold-obj-expiresat', b'0'), (b'x-manifold-obj-isuserdata', b'0'), (b'x-manifold-obj-propertiesjson', b'{"blob_state":"created","__ctime":"1764966918"}'), (b'x-manifold-obj-symlinktarget', b''), (b'cross-origin-resource-policy', b'cross-origin'), (b'Accept-Ranges', b'bytes'), (b'Date', b'Wed, 17 Dec 2025 06:31:43 GMT'), (b'Cache-Control', b'private, no-cache, no-store, must-revalidate'), (b'Content-Disposition', b"inline;filename=KUMSS_Proposal_3_.pdf;filename*= UTF-8''KUMSS%20Proposal%20%283%29.pdf"), (b'Content-Type', b'application/pdf'), (b'Connection', b'keep-alive'), (b'Content-Length', b'222337')])
+2025-12-17 12:01:43,364 | INFO     | httpx | HTTP Request: GET https://lookaside.fbsbx.com/whatsapp_business/attachments/?mid=3945758229065657&source=getMedia&ext=1765953402&hash=ARlhbcYfVbkdX7xYBMJS-9hFQJW1GJOvcUzKBEzz3XEUFg "HTTP/1.1 200 OK"
+2025-12-17 12:01:43,367 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'GET']>
+2025-12-17 12:01:43,484 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2025-12-17 12:01:43,485 | DEBUG    | httpcore.http11 | response_closed.started
+2025-12-17 12:01:43,487 | DEBUG    | httpcore.http11 | response_closed.complete
+2025-12-17 12:01:43,507 | DEBUG    | pywa.api | Making request: POST /783146548207772/messages with kwargs: {'json': {'messaging_product': 'whatsapp', 'recipient_type': 'individual', 'to': '919142982138', 'type': 'text', 'text': {'body': 'hello', 'preview_url': False}}}
+2025-12-17 12:01:43,511 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'POST']>
+2025-12-17 12:01:43,512 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2025-12-17 12:01:43,514 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'POST']>
+2025-12-17 12:01:43,514 | DEBUG    | httpcore.http11 | send_request_body.complete
+2025-12-17 12:01:43,518 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'POST']>
+2025-12-17 12:01:44,159 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json; charset=UTF-8'), (b'Vary', b'Origin'), (b'x-fb-aed', b'694'), (b'x-business-use-case-usage', b'{"750331057695851":[{"type":"whatsapp","call_count":1,"total_cputime":1,"total_time":1,"estimated_time_to_regain_access":0}]}'), (b'Access-Control-Allow-Origin', b'*'), (b'facebook-api-version', b'v24.0'), (b'Strict-Transport-Security', b'max-age=15552000; preload'), (b'Pragma', b'no-cache'), (b'Cache-Control', b'private, no-cache, no-store, must-revalidate'), (b'Expires', b'Sat, 01 Jan 2000 00:00:00 GMT'), (b'x-fb-request-id', b'A-XYn3sgNYEKhsLU45XlPlZ'), (b'x-fb-trace-id', b'AJNFGrnI4Gb'), (b'x-fb-rev', b'1031196555'), (b'X-FB-Debug', b'1mYctJgUqouSs6W7s57sf3eXNmvNSNHQwlTpJLwrWT97UqZ264g3pn7L9DVpU3Feb7rPl77s5N1MB0L1XlpkcQ=='), (b'Date', b'Wed, 17 Dec 2025 06:31:44 GMT'), (b'X-FB-Connection-Quality', b'EXCELLENT; q=0.9, rtt=39, rtx=0, c=10, mss=1230, tbw=4811, tp=-1, tpl=-1, uplat=615, ullat=4'), (b'Alt-Svc', b'h3=":443"; ma=86400'), (b'Connection', b'keep-alive'), (b'Content-Length', b'178')])
+2025-12-17 12:01:44,159 | INFO     | httpx | HTTP Request: POST https://graph.facebook.com/v24.0/783146548207772/messages "HTTP/1.1 200 OK"
+2025-12-17 12:01:44,159 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'POST']>
+2025-12-17 12:01:44,159 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2025-12-17 12:01:44,164 | DEBUG    | httpcore.http11 | response_closed.started
+2025-12-17 12:01:44,169 | DEBUG    | httpcore.http11 | response_closed.complete
+2025-12-17 12:01:44,171 | INFO     | whatspy.message_service | ✅ Message sent to +919142982138: wamid.HBgMOTE5MTQyOTgyMTM4FQIAERgSMDA1QTUyMEVBQ0MyNUYxQjE5AA==
+2025-12-17 12:01:44,172 | INFO     | whatspy.message_service | ▶️ _save_message: START
+2025-12-17 12:01:44,179 | DEBUG    | whatspy.message_service | ▶️ Input params: tenant_id=d2bcd1ee-e5c5-4c9f-bff2-aaf901d40440, msg_id=wamid.HBgMOTE5MTQyOTgyMTM4FQIAERgSMDA1QTUyMEVBQ0MyNUYxQjE5AA==, phone=+919142982138, direction=outgoing
+2025-12-17 12:01:44,179 | DEBUG    | whatspy.message_service | ▶️ Phone normalized: +919142982138
+2025-12-17 12:01:44,179 | INFO     | whatspy.message_service | 💾 Saving message: outgoing text to/from +919142982138
+2025-12-17 12:01:44,186 | DEBUG    | whatspy.message_service | ▶️ Checking for duplicate message_id: wamid.HBgMOTE5MTQyOTgyMTM4FQIAERgSMDA1QTUyMEVBQ0MyNUYxQjE5AA==
+2025-12-17 12:01:44,970 | DEBUG    | whatspy.message_service | ▶️ No duplicate found, proceeding with insert
+2025-12-17 12:01:44,974 | DEBUG    | whatspy.message_service | ▶️ Creating Message object with direction=outgoing
+2025-12-17 12:01:44,977 | DEBUG    | whatspy.message_service | ▶️ Adding message to session
+2025-12-17 12:01:44,977 | DEBUG    | whatspy.message_service | ▶️ Committing to database...
+2025-12-17 12:01:45,485 | DEBUG    | whatspy.message_service | ▶️ Refreshing message object...
+2025-12-17 12:01:46,249 | INFO     | whatspy.message_service | ✅ ✅ ✅ Message committed and refreshed successfully! ✅ ✅ ✅
+2025-12-17 12:01:46,255 | INFO     | whatspy.message_service | ✅ Message saved: ID=272, outgoing, +919142982138
+2025-12-17 12:01:46,255 | DEBUG    | whatspy.message_service | ✅ Full message: {'_sa_instance_state': <sqlalchemy.orm.state.InstanceState object at 0x000001DFC8D88A10>, 'message_type': 'text', 'status': 'sent', 'tenant_id': 'd2bcd1ee-e5c5-4c9f-bff2-aaf901d40440', 'updated_at': datetime.datetime(2025, 12, 17, 6, 31, 44, 979175), 'phone': '+919142982138', 'contact_name': None, 'message_id': 'wamid.HBgMOTE5MTQyOTgyMTM4FQIAERgSMDA1QTUyMEVBQ0MyNUYxQjE5AA==', 'text': 'hello', 'direction': 'outgoing', 'meta_data': {'preview_url': False}, 'id': 272, 'created_at': datetime.datetime(2025, 12, 17, 6, 31, 44, 979175)}
+2025-12-17 12:01:46,259 | INFO     | whatspy.ws | 🔄 notify_clients_sync called for tenant d2bcd1ee-e5c5-4c9f-bff2-aaf901d40440
+2025-12-17 12:01:46,262 | DEBUG    | whatspy.ws | 🔄 Trying anyio.from_thread.run...
+2025-12-17 12:01:46,264 | INFO     | whatspy.ws | 🔔 notify_clients called for tenant d2bcd1ee-e5c5-4c9f-bff2-aaf901d40440
+2025-12-17 12:01:46,270 | INFO     | whatspy.ws | 🔔 Active connections for d2bcd1ee-e5c5-4c9f-bff2-aaf901d40440: 0
+2025-12-17 12:01:46,270 | DEBUG    | whatspy.ws | 🔔 Message data: {'event': 'message_outgoing', 'data': {'phone': '919142982138', 'name': None, 'message': {'id': 'wamid.HBgMOTE5MTQyOTgyMTM4FQIAERgSMDA1QTUyMEVBQ0MyNUYxQjE5AA==', 'type': 'text', 'text': 'hello', 'timestamp': '2025-12-17T06:31:46.259029', 'direction': 'outgoing'}}}
+2025-12-17 12:01:46,270 | WARNING  | whatspy.ws | ⚠️ No WebSocket connections for tenant d2bcd1ee-e5c5-4c9f-bff2-aaf901d40440
+2025-12-17 12:01:46,278 | INFO     | whatspy.ws | ✅ Used anyio.from_thread.run successfully
+2025-12-17 12:03:46,217 | INFO     | whatspy | ================================================================================
+2025-12-17 12:03:46,217 | INFO     | whatspy | 🚀 Application starting - Logging to console and logs/debug.log
+2025-12-17 12:03:46,217 | INFO     | whatspy | ================================================================================
+2025-12-17 12:03:54,747 | INFO     | whatspy.database | ✅ Database tables initialized
+2025-12-17 12:03:55,803 | INFO     | whatspy.database | ✅ Database connection successful
+2025-12-17 12:03:55,804 | INFO     | whatspy | ✅ Database initialized
+2025-12-17 12:03:57,355 | WARNING  | pywa.server | No `app_secret` provided. Signature validation will be disabled (not recommended. set `validate_updates=False` to suppress this warning)
+2025-12-17 12:03:57,357 | INFO     | pywa.server | Using FastAPI
+2025-12-17 12:03:57,362 | INFO     | whatspy.handlers | ✅ WhatsApp message handlers registered
+2025-12-17 12:03:57,362 | INFO     | whatspy.handlers | 🏢 Using tenant_id from .env: d2bcd1ee-e5c5-4c9f-bff2-aaf901d40440
+2025-12-17 12:03:57,364 | INFO     | whatspy.handlers | 📝 All incoming messages will be saved to this tenant
+2025-12-17 12:03:57,365 | INFO     | whatspy | ✅ WhatsApp client initialized
+2025-12-17 12:04:06,564 | INFO     | whatspy | ================================================================================
+2025-12-17 12:04:06,568 | INFO     | whatspy | 🚀 Application starting - Logging to console and logs/debug.log
+2025-12-17 12:04:06,569 | INFO     | whatspy | ================================================================================
+2025-12-17 12:04:14,913 | INFO     | whatspy.database | ✅ Database tables initialized
+2025-12-17 12:04:15,982 | INFO     | whatspy.database | ✅ Database connection successful
+2025-12-17 12:04:15,983 | INFO     | whatspy | ✅ Database initialized
+2025-12-17 12:04:17,351 | WARNING  | pywa.server | No `app_secret` provided. Signature validation will be disabled (not recommended. set `validate_updates=False` to suppress this warning)
+2025-12-17 12:04:17,353 | INFO     | pywa.server | Using FastAPI
+2025-12-17 12:04:17,361 | INFO     | whatspy.handlers | ✅ WhatsApp message handlers registered
+2025-12-17 12:04:17,363 | INFO     | whatspy.handlers | 🏢 Using tenant_id from .env: d2bcd1ee-e5c5-4c9f-bff2-aaf901d40440
+2025-12-17 12:04:17,367 | INFO     | whatspy.handlers | 📝 All incoming messages will be saved to this tenant
+2025-12-17 12:04:17,369 | INFO     | whatspy | ✅ WhatsApp client initialized
+2025-12-17 12:05:33,795 | INFO     | whatspy | ================================================================================
+2025-12-17 12:05:33,795 | INFO     | whatspy | 🚀 Application starting - Logging to console and logs/debug.log
+2025-12-17 12:05:33,797 | INFO     | whatspy | ================================================================================
+2025-12-17 12:05:42,269 | INFO     | whatspy.database | ✅ Database tables initialized
+2025-12-17 12:05:43,325 | INFO     | whatspy.database | ✅ Database connection successful
+2025-12-17 12:05:43,325 | INFO     | whatspy | ✅ Database initialized
+2025-12-17 12:05:43,622 | WARNING  | pywa.server | No `app_secret` provided. Signature validation will be disabled (not recommended. set `validate_updates=False` to suppress this warning)
+2025-12-17 12:05:43,622 | INFO     | pywa.server | Using FastAPI
+2025-12-17 12:05:43,623 | INFO     | whatspy.handlers | ✅ WhatsApp message handlers registered
+2025-12-17 12:05:43,623 | INFO     | whatspy.handlers | 🏢 Using tenant_id from .env: d2bcd1ee-e5c5-4c9f-bff2-aaf901d40440
+2025-12-17 12:05:43,623 | INFO     | whatspy.handlers | 📝 All incoming messages will be saved to this tenant
+2025-12-17 12:05:43,624 | INFO     | whatspy | ✅ WhatsApp client initialized
+2025-12-17 12:05:43,693 | INFO     | whatspy.campaigns | 📢 Creating TEMPLATE broadcast campaign: hello_
+2025-12-17 12:05:43,693 | INFO     | whatspy.campaigns |    Template: hello_ (en_US)
+2025-12-17 12:05:44,499 | INFO     | whatspy.campaigns | ✅ Resolved 2 phone numbers for template broadcast
+2025-12-17 12:05:45,864 | INFO     | whatspy.campaigns | 🚀 Template broadcast task started for campaign 28faa0f9-28e4-473d-89c7-799de44a0eab
+2025-12-17 12:05:46,131 | DEBUG    | whatspy.campaigns | No parameters for +919142982138
+2025-12-17 12:05:46,929 | INFO     | whatspy.template_service | 📤 Sending template 'hello_' to 919142982138 with language en_US
+2025-12-17 12:05:46,930 | DEBUG    | whatspy.template_service |    Parameters: None
+2025-12-17 12:05:46,930 | DEBUG    | pywa.api | Making request: POST /783146548207772/messages with kwargs: {'json': {'messaging_product': 'whatsapp', 'recipient_type': 'individual', 'to': '919142982138', 'type': 'template', 'template': {'name': 'hello_', 'language': {'code': 'en_US'}}}}
+2025-12-17 12:05:46,931 | DEBUG    | httpcore.connection | connect_tcp.started host='graph.facebook.com' port=443 local_address=None timeout=5.0 socket_options=None
+2025-12-17 12:05:46,970 | DEBUG    | httpcore.connection | connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x0000021DFF42E050>
+2025-12-17 12:05:46,971 | DEBUG    | httpcore.connection | start_tls.started ssl_context=<ssl.SSLContext object at 0x0000021DFF5A2E70> server_hostname='graph.facebook.com' timeout=5.0
+2025-12-17 12:05:47,002 | DEBUG    | httpcore.connection | start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x0000021DE46ECC10>
+2025-12-17 12:05:47,003 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'POST']>
+2025-12-17 12:05:47,004 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2025-12-17 12:05:47,005 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'POST']>
+2025-12-17 12:05:47,005 | DEBUG    | httpcore.http11 | send_request_body.complete
+2025-12-17 12:05:47,006 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'POST']>
+2025-12-17 12:05:47,873 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json; charset=UTF-8'), (b'Vary', b'Origin'), (b'x-fb-aed', b'694'), (b'x-business-use-case-usage', b'{"750331057695851":[{"type":"whatsapp","call_count":1,"total_cputime":1,"total_time":1,"estimated_time_to_regain_access":0}]}'), (b'Access-Control-Allow-Origin', b'*'), (b'facebook-api-version', b'v24.0'), (b'Strict-Transport-Security', b'max-age=15552000; preload'), (b'Pragma', b'no-cache'), (b'Cache-Control', b'private, no-cache, no-store, must-revalidate'), (b'Expires', b'Sat, 01 Jan 2000 00:00:00 GMT'), (b'x-fb-request-id', b'A075BluoUDHIrLcCGp4A6fW'), (b'x-fb-trace-id', b'HVyH1Q+E3xi'), (b'x-fb-rev', b'1031196555'), (b'X-FB-Debug', b'ebrQXKfmlWK2j7g+8QEPjo6nIb9xVB6L7oEQHPQpGV8TVJCs3u2Sf/zS2knq8yX6ZNdpmPUQnglVZcwW4gv04w=='), (b'Date', b'Wed, 17 Dec 2025 06:35:47 GMT'), (b'X-FB-Connection-Quality', b'EXCELLENT; q=0.9, rtt=31, rtx=0, c=10, mss=1230, tbw=3480, tp=-1, tpl=-1, uplat=839, ullat=0'), (b'Alt-Svc', b'h3=":443"; ma=86400'), (b'Connection', b'keep-alive'), (b'Content-Length', b'206')])
+2025-12-17 12:05:47,875 | INFO     | httpx | HTTP Request: POST https://graph.facebook.com/v24.0/783146548207772/messages "HTTP/1.1 200 OK"
+2025-12-17 12:05:47,877 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'POST']>
+2025-12-17 12:05:47,878 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2025-12-17 12:05:47,879 | DEBUG    | httpcore.http11 | response_closed.started
+2025-12-17 12:05:47,880 | DEBUG    | httpcore.http11 | response_closed.complete
+2025-12-17 12:05:47,880 | INFO     | whatspy.template_service | ✅ Template 'hello_' sent to 919142982138: SentTemplate(id='wamid.HBgMOTE5MTQyOTgyMTM4FQIAERgSODBGMUI4MzExQTk3MENENzA0AA==', to_user=User(wa_id='919142982138', name=None, identity_key_hash=None), from_phone_id='783146548207772', input='919142982138', status=SentTemplateStatus.ACCEPTED)
+2025-12-17 12:05:50,815 | INFO     | whatspy.campaigns | ✅ Template sent to +919142982138: SentTemplate(id='wamid.HBgMOTE5MTQyOTgyMTM4FQIAERgSODBGMUI4MzExQTk3MENENzA0AA==', to_user=User(wa_id='919142982138', name=None, identity_key_hash=None), from_phone_id='783146548207772', input='919142982138', status=SentTemplateStatus.ACCEPTED)
+2025-12-17 12:05:51,317 | DEBUG    | whatspy.campaigns | No parameters for +918793944961
+2025-12-17 12:05:51,588 | INFO     | whatspy.template_service | 📤 Sending template 'hello_' to 918793944961 with language en_US
+2025-12-17 12:05:51,592 | DEBUG    | whatspy.template_service |    Parameters: None
+2025-12-17 12:05:51,593 | DEBUG    | pywa.api | Making request: POST /783146548207772/messages with kwargs: {'json': {'messaging_product': 'whatsapp', 'recipient_type': 'individual', 'to': '918793944961', 'type': 'template', 'template': {'name': 'hello_', 'language': {'code': 'en_US'}}}}
+2025-12-17 12:05:51,595 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'POST']>
+2025-12-17 12:05:51,597 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2025-12-17 12:05:51,597 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'POST']>
+2025-12-17 12:05:51,598 | DEBUG    | httpcore.http11 | send_request_body.complete
+2025-12-17 12:05:51,599 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'POST']>
+2025-12-17 12:05:52,547 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json; charset=UTF-8'), (b'Vary', b'Origin'), (b'x-fb-aed', b'694'), (b'x-business-use-case-usage', b'{"750331057695851":[{"type":"whatsapp","call_count":1,"total_cputime":1,"total_time":1,"estimated_time_to_regain_access":0}]}'), (b'Access-Control-Allow-Origin', b'*'), (b'facebook-api-version', b'v24.0'), (b'Strict-Transport-Security', b'max-age=15552000; preload'), (b'Pragma', b'no-cache'), (b'Cache-Control', b'private, no-cache, no-store, must-revalidate'), (b'Expires', b'Sat, 01 Jan 2000 00:00:00 GMT'), (b'x-fb-request-id', b'A5jSiC8VPjdkUMM0tJNR-5c'), (b'x-fb-trace-id', b'FqpkeDq3TW2'), (b'x-fb-rev', b'1031196555'), (b'X-FB-Debug', b'zzTx4hWDQqHy7uK5I6vwg9YXPpnM6mjyCJxxtizzD/hmT74ZuQ2GTpYT82AhsTFTkNsmo5HZRzr2NjhhQhmUqg=='), (b'Date', b'Wed, 17 Dec 2025 06:35:52 GMT'), (b'X-FB-Connection-Quality', b'EXCELLENT; q=0.9, rtt=35, rtx=0, c=10, mss=1230, tbw=4616, tp=-1, tpl=-1, uplat=927, ullat=1'), (b'Alt-Svc', b'h3=":443"; ma=86400'), (b'Connection', b'keep-alive'), (b'Content-Length', b'206')])
+2025-12-17 12:05:52,547 | INFO     | httpx | HTTP Request: POST https://graph.facebook.com/v24.0/783146548207772/messages "HTTP/1.1 200 OK"
+2025-12-17 12:05:52,547 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'POST']>
+2025-12-17 12:05:52,547 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2025-12-17 12:05:52,547 | DEBUG    | httpcore.http11 | response_closed.started
+2025-12-17 12:05:52,553 | DEBUG    | httpcore.http11 | response_closed.complete
+2025-12-17 12:05:52,553 | INFO     | whatspy.template_service | ✅ Template 'hello_' sent to 918793944961: SentTemplate(id='wamid.HBgMOTE4NzkzOTQ0OTYxFQIAERgSRjc0RjA0RTYwNjc3N0Q4ODAyAA==', to_user=User(wa_id='918793944961', name=None, identity_key_hash=None), from_phone_id='783146548207772', input='918793944961', status=SentTemplateStatus.ACCEPTED)
+2025-12-17 12:05:55,481 | INFO     | whatspy.campaigns | ✅ Template sent to +918793944961: SentTemplate(id='wamid.HBgMOTE4NzkzOTQ0OTYxFQIAERgSRjc0RjA0RTYwNjc3N0Q4ODAyAA==', to_user=User(wa_id='918793944961', name=None, identity_key_hash=None), from_phone_id='783146548207772', input='918793944961', status=SentTemplateStatus.ACCEPTED)
+2025-12-17 12:05:56,784 | INFO     | whatspy.campaigns | 📊 Campaign 28faa0f9-28e4-473d-89c7-799de44a0eab completed: 2 sent, 0 failed
+2025-12-17 12:06:51,377 | WARNING  | whatspy.template_service | Template deletion from WhatsApp not implemented
+2025-12-17 12:06:51,912 | INFO     | whatspy.template_service | 🗑️  Template hello_ deleted
+2025-12-17 12:06:54,511 | INFO     | whatspy.templates_api | 🔄 Template sync requested for tenant: d2bcd1ee-e5c5-4c9f-bff2-aaf901d40440
+2025-12-17 12:06:54,515 | INFO     | whatspy.template_service | 🔄 Starting template sync from Meta...
+2025-12-17 12:06:54,518 | INFO     | whatspy.template_service | 📡 Fetching templates from Meta API (with pagination): https://graph.facebook.com/v24.0/750331057695851/message_templates
+2025-12-17 12:06:54,520 | INFO     | whatspy.template_service | 📄 Fetching page 1...
+2025-12-17 12:06:55,468 | DEBUG    | httpcore.connection | connect_tcp.started host='graph.facebook.com' port=443 local_address=None timeout=30.0 socket_options=None
+2025-12-17 12:06:55,509 | DEBUG    | httpcore.connection | connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x0000021DFF952810>
+2025-12-17 12:06:55,509 | DEBUG    | httpcore.connection | start_tls.started ssl_context=<ssl.SSLContext object at 0x0000021DFF892960> server_hostname='graph.facebook.com' timeout=30.0
+2025-12-17 12:06:55,547 | DEBUG    | httpcore.connection | start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x0000021DFF9527D0>
+2025-12-17 12:06:55,547 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'GET']>
+2025-12-17 12:06:55,551 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2025-12-17 12:06:55,552 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'GET']>
+2025-12-17 12:06:55,552 | DEBUG    | httpcore.http11 | send_request_body.complete
+2025-12-17 12:06:55,552 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'GET']>
+2025-12-17 12:06:55,907 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Encoding', b'gzip'), (b'ETag', b'"7bb358852e306c5888cea6c2417495fa9b444374"'), (b'Content-Type', b'application/json; charset=UTF-8'), (b'Vary', b'Origin'), (b'Vary', b'Accept-Encoding'), (b'x-fb-aed', b'694'), (b'x-business-use-case-usage', b'{"750331057695851":[{"type":"whatsapp_business_management","call_count":1,"total_cputime":1,"total_time":1,"estimated_time_to_regain_access":0}]}'), (b'Access-Control-Allow-Origin', b'*'), (b'facebook-api-version', b'v24.0'), (b'Strict-Transport-Security', b'max-age=15552000; preload'), (b'Pragma', b'no-cache'), (b'Cache-Control', b'private, no-cache, no-store, must-revalidate'), (b'Expires', b'Sat, 01 Jan 2000 00:00:00 GMT'), (b'x-fb-request-id', b'ATvHFwwPRBxNzKRaaBhPE0O'), (b'x-fb-trace-id', b'HnEXEZy9lzZ'), (b'x-fb-rev', b'1031196555'), (b'X-FB-Debug', b'XV9NgvG78qoOMHP97Zx2IqJeKielI5WWnr+fpkumb3nB6mFm8n63uhyCb+RzwaCJXY/wYfOqztVrlIAV0FoGVQ=='), (b'Date', b'Wed, 17 Dec 2025 06:36:55 GMT'), (b'X-FB-Connection-Quality', b'EXCELLENT; q=0.9, rtt=31, rtx=0, c=10, mss=1230, tbw=3482, tp=-1, tpl=-1, uplat=325, ullat=0'), (b'Alt-Svc', b'h3=":443"; ma=86400'), (b'Connection', b'keep-alive'), (b'Content-Length', b'866')])
+2025-12-17 12:06:55,910 | INFO     | httpx | HTTP Request: GET https://graph.facebook.com/v24.0/750331057695851/message_templates?limit=1000&fields=id%2Cname%2Clanguage%2Cstatus%2Ccategory%2Ccomponents%2Cquality_score%2Crejected_reason "HTTP/1.1 200 OK"
+2025-12-17 12:06:55,912 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'GET']>
+2025-12-17 12:06:55,912 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2025-12-17 12:06:55,918 | DEBUG    | httpcore.http11 | response_closed.started
+2025-12-17 12:06:55,921 | DEBUG    | httpcore.http11 | response_closed.complete
+2025-12-17 12:06:55,927 | DEBUG    | httpcore.connection | close.started
+2025-12-17 12:06:55,929 | DEBUG    | httpcore.connection | close.complete
+2025-12-17 12:06:55,931 | INFO     | whatspy.template_service | ✅ Fetched 2 templates from page 1 (total so far: 2)
+2025-12-17 12:06:55,935 | INFO     | whatspy.template_service | ✅ All pages fetched. Total templates: 2
+2025-12-17 12:06:55,935 | INFO     | whatspy.template_service | ✅ Total templates fetched from Meta: 2
+2025-12-17 12:06:55,935 | INFO     | whatspy.template_service | 📊 Template status breakdown: {'APPROVED': 2}
+2025-12-17 12:06:56,733 | INFO     | whatspy.template_service | ✅ Updated template: services (en) - Status: APPROVED
+2025-12-17 12:06:57,004 | INFO     | whatspy.template_service | ✅ Added new template: hello_ (en_US) - Status: APPROVED
+2025-12-17 12:06:57,588 | INFO     | whatspy.template_service | ✅ Template sync completed: 2 synced, 1 updated, 1 added, 0 failed
+2025-12-17 12:06:57,593 | INFO     | whatspy.templates_api | ✅ Template sync completed: {'success': True, 'total_meta_templates': 2, 'synced': 2, 'updated': 1, 'added': 1, 'failed': 0, 'errors': []}
+2025-12-17 12:07:26,022 | INFO     | whatspy.campaigns | 📢 Creating TEMPLATE broadcast campaign: hello_
+2025-12-17 12:07:26,025 | INFO     | whatspy.campaigns |    Template: hello_ (en_US)
+2025-12-17 12:07:26,818 | INFO     | whatspy.campaigns | ✅ Resolved 2 phone numbers for template broadcast
+2025-12-17 12:07:28,144 | INFO     | whatspy.campaigns | 🚀 Template broadcast task started for campaign 776df8eb-3f4d-4141-801f-fe11979cdf91
+2025-12-17 12:07:28,414 | DEBUG    | whatspy.campaigns | No parameters for +919142982138
+2025-12-17 12:07:29,204 | INFO     | whatspy.template_service | 📤 Sending template 'hello_' to 919142982138 with language en_US
+2025-12-17 12:07:29,205 | DEBUG    | whatspy.template_service |    Parameters: None
+2025-12-17 12:07:29,207 | DEBUG    | pywa.api | Making request: POST /783146548207772/messages with kwargs: {'json': {'messaging_product': 'whatsapp', 'recipient_type': 'individual', 'to': '919142982138', 'type': 'template', 'template': {'name': 'hello_', 'language': {'code': 'en_US'}}}}
+2025-12-17 12:07:29,212 | DEBUG    | httpcore.connection | close.started
+2025-12-17 12:07:29,214 | DEBUG    | httpcore.connection | close.complete
+2025-12-17 12:07:29,214 | DEBUG    | httpcore.connection | connect_tcp.started host='graph.facebook.com' port=443 local_address=None timeout=5.0 socket_options=None
+2025-12-17 12:07:29,261 | DEBUG    | httpcore.connection | connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x0000021DFF954110>
+2025-12-17 12:07:29,261 | DEBUG    | httpcore.connection | start_tls.started ssl_context=<ssl.SSLContext object at 0x0000021DFF5A2E70> server_hostname='graph.facebook.com' timeout=5.0
+2025-12-17 12:07:29,301 | DEBUG    | httpcore.connection | start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x0000021DFF8FCA90>
+2025-12-17 12:07:29,304 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'POST']>
+2025-12-17 12:07:29,315 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2025-12-17 12:07:29,316 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'POST']>
+2025-12-17 12:07:29,318 | DEBUG    | httpcore.http11 | send_request_body.complete
+2025-12-17 12:07:29,318 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'POST']>
+2025-12-17 12:07:29,976 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json; charset=UTF-8'), (b'Vary', b'Origin'), (b'x-fb-aed', b'694'), (b'x-business-use-case-usage', b'{"750331057695851":[{"type":"whatsapp","call_count":1,"total_cputime":1,"total_time":1,"estimated_time_to_regain_access":0}]}'), (b'Access-Control-Allow-Origin', b'*'), (b'facebook-api-version', b'v24.0'), (b'Strict-Transport-Security', b'max-age=15552000; preload'), (b'Pragma', b'no-cache'), (b'Cache-Control', b'private, no-cache, no-store, must-revalidate'), (b'Expires', b'Sat, 01 Jan 2000 00:00:00 GMT'), (b'x-fb-request-id', b'A4mEEBhCrvIOr-dMawiHHwD'), (b'x-fb-trace-id', b'H6IqvFhOxg5'), (b'x-fb-rev', b'1031193669'), (b'X-FB-Debug', b'IG01NmY1dJCwjFBPX76C4Fb0YqecEhrCTYLDq46PTvbACJG/QXfDCA2kBKtRd4C5zANvSSLltjpmvyzmc+Jtwg=='), (b'x-fb-server-load', b'9'), (b'Date', b'Wed, 17 Dec 2025 06:37:30 GMT'), (b'X-FB-Connection-Quality', b'EXCELLENT; q=0.9, rtt=33, rtx=0, c=10, mss=1230, tbw=3480, tp=-1, tpl=-1, uplat=636, ullat=2'), (b'Alt-Svc', b'h3=":443"; ma=86400'), (b'Connection', b'keep-alive'), (b'Content-Length', b'206')])
+2025-12-17 12:07:29,982 | INFO     | httpx | HTTP Request: POST https://graph.facebook.com/v24.0/783146548207772/messages "HTTP/1.1 200 OK"
+2025-12-17 12:07:29,985 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'POST']>
+2025-12-17 12:07:29,987 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2025-12-17 12:07:29,989 | DEBUG    | httpcore.http11 | response_closed.started
+2025-12-17 12:07:29,989 | DEBUG    | httpcore.http11 | response_closed.complete
+2025-12-17 12:07:29,991 | INFO     | whatspy.template_service | ✅ Template 'hello_' sent to 919142982138: SentTemplate(id='wamid.HBgMOTE5MTQyOTgyMTM4FQIAERgSQ0VERjMxODgxM0I3QTE4OTdGAA==', to_user=User(wa_id='919142982138', name=None, identity_key_hash=None), from_phone_id='783146548207772', input='919142982138', status=SentTemplateStatus.ACCEPTED)
+2025-12-17 12:07:32,900 | INFO     | whatspy.campaigns | ✅ Template sent to +919142982138: SentTemplate(id='wamid.HBgMOTE5MTQyOTgyMTM4FQIAERgSQ0VERjMxODgxM0I3QTE4OTdGAA==', to_user=User(wa_id='919142982138', name=None, identity_key_hash=None), from_phone_id='783146548207772', input='919142982138', status=SentTemplateStatus.ACCEPTED)
+2025-12-17 12:07:33,412 | DEBUG    | whatspy.campaigns | No parameters for +918793944961
+2025-12-17 12:07:33,679 | INFO     | whatspy.template_service | 📤 Sending template 'hello_' to 918793944961 with language en_US
+2025-12-17 12:07:33,683 | DEBUG    | whatspy.template_service |    Parameters: None
+2025-12-17 12:07:33,683 | DEBUG    | pywa.api | Making request: POST /783146548207772/messages with kwargs: {'json': {'messaging_product': 'whatsapp', 'recipient_type': 'individual', 'to': '918793944961', 'type': 'template', 'template': {'name': 'hello_', 'language': {'code': 'en_US'}}}}
+2025-12-17 12:07:33,684 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'POST']>
+2025-12-17 12:07:33,686 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2025-12-17 12:07:33,690 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'POST']>
+2025-12-17 12:07:33,692 | DEBUG    | httpcore.http11 | send_request_body.complete
+2025-12-17 12:07:33,694 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'POST']>
+2025-12-17 12:07:34,510 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json; charset=UTF-8'), (b'Vary', b'Origin'), (b'x-fb-aed', b'694'), (b'x-business-use-case-usage', b'{"750331057695851":[{"type":"whatsapp","call_count":1,"total_cputime":1,"total_time":1,"estimated_time_to_regain_access":0}]}'), (b'Access-Control-Allow-Origin', b'*'), (b'facebook-api-version', b'v24.0'), (b'Strict-Transport-Security', b'max-age=15552000; preload'), (b'Pragma', b'no-cache'), (b'Cache-Control', b'private, no-cache, no-store, must-revalidate'), (b'Expires', b'Sat, 01 Jan 2000 00:00:00 GMT'), (b'x-fb-request-id', b'A3CJI2AvGGc45IGUweEBHQm'), (b'x-fb-trace-id', b'Gk4pMMvtZv+'), (b'x-fb-rev', b'1031193669'), (b'X-FB-Debug', b'lrV2l7KquYLDEpol2mwBJA69lTjF7+Vuk5KVe0muspyFaQ2kr2Kb0YCV+Kgu5dRLMQj2+B0tyfPNbsNJ+heqYQ=='), (b'x-fb-server-load', b'2'), (b'Date', b'Wed, 17 Dec 2025 06:37:34 GMT'), (b'X-FB-Connection-Quality', b'EXCELLENT; q=0.9, rtt=38, rtx=0, c=10, mss=1230, tbw=4637, tp=-1, tpl=-1, uplat=792, ullat=3'), (b'Alt-Svc', b'h3=":443"; ma=86400'), (b'Connection', b'keep-alive'), (b'Content-Length', b'206')])
+2025-12-17 12:07:34,511 | INFO     | httpx | HTTP Request: POST https://graph.facebook.com/v24.0/783146548207772/messages "HTTP/1.1 200 OK"
+2025-12-17 12:07:34,512 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'POST']>
+2025-12-17 12:07:34,513 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2025-12-17 12:07:34,514 | DEBUG    | httpcore.http11 | response_closed.started
+2025-12-17 12:07:34,514 | DEBUG    | httpcore.http11 | response_closed.complete
+2025-12-17 12:07:34,516 | INFO     | whatspy.template_service | ✅ Template 'hello_' sent to 918793944961: SentTemplate(id='wamid.HBgMOTE4NzkzOTQ0OTYxFQIAERgSMTYxNUM0N0JERDc5NjA4QkU0AA==', to_user=User(wa_id='918793944961', name=None, identity_key_hash=None), from_phone_id='783146548207772', input='918793944961', status=SentTemplateStatus.ACCEPTED)
+2025-12-17 12:07:37,425 | INFO     | whatspy.campaigns | ✅ Template sent to +918793944961: SentTemplate(id='wamid.HBgMOTE4NzkzOTQ0OTYxFQIAERgSMTYxNUM0N0JERDc5NjA4QkU0AA==', to_user=User(wa_id='918793944961', name=None, identity_key_hash=None), from_phone_id='783146548207772', input='918793944961', status=SentTemplateStatus.ACCEPTED)
+2025-12-17 12:07:38,714 | INFO     | whatspy.campaigns | 📊 Campaign 776df8eb-3f4d-4141-801f-fe11979cdf91 completed: 2 sent, 0 failed
+2025-12-17 12:15:03,313 | INFO     | whatspy.campaigns | 📢 Creating TEMPLATE broadcast campaign: services
+2025-12-17 12:15:03,322 | INFO     | whatspy.campaigns |    Template: services (en)
+2025-12-17 12:15:05,940 | INFO     | whatspy.campaigns | ✅ Resolved 2 phone numbers for template broadcast
+2025-12-17 12:15:08,867 | INFO     | whatspy.campaigns | 🚀 Template broadcast task started for campaign c58cd8ab-07c7-4136-9fcb-85c79f56deac
+2025-12-17 12:15:09,152 | DEBUG    | whatspy.campaigns | No parameters for +919142982138
+2025-12-17 12:15:11,346 | INFO     | whatspy.template_service | 📤 Sending template 'services' to 919142982138 with language en
+2025-12-17 12:15:11,347 | DEBUG    | whatspy.template_service |    Parameters: None
+2025-12-17 12:15:11,348 | DEBUG    | pywa.api | Making request: POST /783146548207772/messages with kwargs: {'json': {'messaging_product': 'whatsapp', 'recipient_type': 'individual', 'to': '919142982138', 'type': 'template', 'template': {'name': 'services', 'language': {'code': 'en'}}}}
+2025-12-17 12:15:11,351 | DEBUG    | httpcore.connection | close.started
+2025-12-17 12:15:11,354 | DEBUG    | httpcore.connection | close.complete
+2025-12-17 12:15:11,354 | DEBUG    | httpcore.connection | connect_tcp.started host='graph.facebook.com' port=443 local_address=None timeout=5.0 socket_options=None
+2025-12-17 12:15:11,416 | DEBUG    | httpcore.connection | connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x0000021DFF976A50>
+2025-12-17 12:15:11,418 | DEBUG    | httpcore.connection | start_tls.started ssl_context=<ssl.SSLContext object at 0x0000021DFF5A2E70> server_hostname='graph.facebook.com' timeout=5.0
+2025-12-17 12:15:11,458 | DEBUG    | httpcore.connection | start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x0000021DFF977450>
+2025-12-17 12:15:11,458 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'POST']>
+2025-12-17 12:15:11,464 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2025-12-17 12:15:11,467 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'POST']>
+2025-12-17 12:15:11,467 | DEBUG    | httpcore.http11 | send_request_body.complete
+2025-12-17 12:15:11,472 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'POST']>
+2025-12-17 12:15:12,445 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json; charset=UTF-8'), (b'Vary', b'Origin'), (b'x-fb-aed', b'694'), (b'x-business-use-case-usage', b'{"750331057695851":[{"type":"whatsapp","call_count":1,"total_cputime":1,"total_time":1,"estimated_time_to_regain_access":0}]}'), (b'Access-Control-Allow-Origin', b'*'), (b'facebook-api-version', b'v24.0'), (b'Strict-Transport-Security', b'max-age=15552000; preload'), (b'Pragma', b'no-cache'), (b'Cache-Control', b'private, no-cache, no-store, must-revalidate'), (b'Expires', b'Sat, 01 Jan 2000 00:00:00 GMT'), (b'x-fb-request-id', b'AryVAcGwtlL4AZ347fZuTlN'), (b'x-fb-trace-id', b'A1D6unfBGKo'), (b'x-fb-rev', b'1031196555'), (b'X-FB-Debug', b'FaeJZR4KOUCW4102wGwrnxJg4mH+mnwlwUIkSFzH/nZytaMu4tVEfB0rE2BDlcG3Z7pO3+0mr1Fz8F6yUP4bvg=='), (b'Date', b'Wed, 17 Dec 2025 06:45:12 GMT'), (b'X-FB-Connection-Quality', b'EXCELLENT; q=0.9, rtt=35, rtx=0, c=10, mss=1230, tbw=3482, tp=-1, tpl=-1, uplat=954, ullat=7'), (b'Alt-Svc', b'h3=":443"; ma=86400'), (b'Connection', b'keep-alive'), (b'Content-Length', b'206')])
+2025-12-17 12:15:12,445 | INFO     | httpx | HTTP Request: POST https://graph.facebook.com/v24.0/783146548207772/messages "HTTP/1.1 200 OK"
+2025-12-17 12:15:12,450 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'POST']>
+2025-12-17 12:15:12,452 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2025-12-17 12:15:12,452 | DEBUG    | httpcore.http11 | response_closed.started
+2025-12-17 12:15:12,452 | DEBUG    | httpcore.http11 | response_closed.complete
+2025-12-17 12:15:12,455 | INFO     | whatspy.template_service | ✅ Template 'services' sent to 919142982138: SentTemplate(id='wamid.HBgMOTE5MTQyOTgyMTM4FQIAERgSNDhDRTY4QUZBQUI3RTc2NkMyAA==', to_user=User(wa_id='919142982138', name=None, identity_key_hash=None), from_phone_id='783146548207772', input='919142982138', status=SentTemplateStatus.ACCEPTED)
+2025-12-17 12:15:16,774 | INFO     | whatspy.campaigns | ✅ Template sent to +919142982138: SentTemplate(id='wamid.HBgMOTE5MTQyOTgyMTM4FQIAERgSNDhDRTY4QUZBQUI3RTc2NkMyAA==', to_user=User(wa_id='919142982138', name=None, identity_key_hash=None), from_phone_id='783146548207772', input='919142982138', status=SentTemplateStatus.ACCEPTED)
+2025-12-17 12:15:17,263 | DEBUG    | whatspy.campaigns | No parameters for +918793944961
+2025-12-17 12:15:17,537 | INFO     | whatspy.template_service | 📤 Sending template 'services' to 918793944961 with language en
+2025-12-17 12:15:17,537 | DEBUG    | whatspy.template_service |    Parameters: None
+2025-12-17 12:15:17,538 | DEBUG    | pywa.api | Making request: POST /783146548207772/messages with kwargs: {'json': {'messaging_product': 'whatsapp', 'recipient_type': 'individual', 'to': '918793944961', 'type': 'template', 'template': {'name': 'services', 'language': {'code': 'en'}}}}
+2025-12-17 12:15:17,539 | DEBUG    | httpcore.connection | close.started
+2025-12-17 12:15:17,540 | DEBUG    | httpcore.connection | close.complete
+2025-12-17 12:15:17,540 | DEBUG    | httpcore.connection | connect_tcp.started host='graph.facebook.com' port=443 local_address=None timeout=5.0 socket_options=None
+2025-12-17 12:15:17,570 | DEBUG    | httpcore.connection | connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x0000021DFF9C9390>
+2025-12-17 12:15:17,571 | DEBUG    | httpcore.connection | start_tls.started ssl_context=<ssl.SSLContext object at 0x0000021DFF5A2E70> server_hostname='graph.facebook.com' timeout=5.0
+2025-12-17 12:15:17,606 | DEBUG    | httpcore.connection | start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x0000021DFF9C8650>
+2025-12-17 12:15:17,607 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'POST']>
+2025-12-17 12:15:17,608 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2025-12-17 12:15:17,608 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'POST']>
+2025-12-17 12:15:17,609 | DEBUG    | httpcore.http11 | send_request_body.complete
+2025-12-17 12:15:17,610 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'POST']>
+2025-12-17 12:15:18,680 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json; charset=UTF-8'), (b'Vary', b'Origin'), (b'x-fb-aed', b'694'), (b'x-business-use-case-usage', b'{"750331057695851":[{"type":"whatsapp","call_count":1,"total_cputime":1,"total_time":1,"estimated_time_to_regain_access":0}]}'), (b'Access-Control-Allow-Origin', b'*'), (b'facebook-api-version', b'v24.0'), (b'Strict-Transport-Security', b'max-age=15552000; preload'), (b'Pragma', b'no-cache'), (b'Cache-Control', b'private, no-cache, no-store, must-revalidate'), (b'Expires', b'Sat, 01 Jan 2000 00:00:00 GMT'), (b'x-fb-request-id', b'ALEzSDWXlr-MsPPBTdIIkOV'), (b'x-fb-trace-id', b'AkwBs9JdQtH'), (b'x-fb-rev', b'1031196555'), (b'X-FB-Debug', b'AMjBXR0klyYTP6JTWNpkhhv9UuhaMhSdWbaWUhC/kLSn4pgxtG84XVoim63d3e8DuxBM/dVm3C6VcTKi+ukf2w=='), (b'Date', b'Wed, 17 Dec 2025 06:45:18 GMT'), (b'X-FB-Connection-Quality', b'EXCELLENT; q=0.9, rtt=33, rtx=0, c=10, mss=1230, tbw=3481, tp=-1, tpl=-1, uplat=1041, ullat=0'), (b'Alt-Svc', b'h3=":443"; ma=86400'), (b'Connection', b'keep-alive'), (b'Content-Length', b'206')])
+2025-12-17 12:15:18,681 | INFO     | httpx | HTTP Request: POST https://graph.facebook.com/v24.0/783146548207772/messages "HTTP/1.1 200 OK"
+2025-12-17 12:15:18,682 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'POST']>
+2025-12-17 12:15:18,682 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2025-12-17 12:15:18,683 | DEBUG    | httpcore.http11 | response_closed.started
+2025-12-17 12:15:18,683 | DEBUG    | httpcore.http11 | response_closed.complete
+2025-12-17 12:15:18,684 | INFO     | whatspy.template_service | ✅ Template 'services' sent to 918793944961: SentTemplate(id='wamid.HBgMOTE4NzkzOTQ0OTYxFQIAERgSRTVBNjY0NzYwRUQyQ0IxODY5AA==', to_user=User(wa_id='918793944961', name=None, identity_key_hash=None), from_phone_id='783146548207772', input='918793944961', status=SentTemplateStatus.ACCEPTED)
+2025-12-17 12:15:21,768 | INFO     | whatspy.campaigns | ✅ Template sent to +918793944961: SentTemplate(id='wamid.HBgMOTE4NzkzOTQ0OTYxFQIAERgSRTVBNjY0NzYwRUQyQ0IxODY5AA==', to_user=User(wa_id='918793944961', name=None, identity_key_hash=None), from_phone_id='783146548207772', input='918793944961', status=SentTemplateStatus.ACCEPTED)
+2025-12-17 12:15:23,290 | INFO     | whatspy.campaigns | 📊 Campaign c58cd8ab-07c7-4136-9fcb-85c79f56deac completed: 2 sent, 0 failed
+2025-12-17 12:15:25,514 | INFO     | whatspy | ================================================================================
+2025-12-17 12:15:25,514 | INFO     | whatspy | 🚀 Application starting - Logging to console and logs/debug.log
+2025-12-17 12:15:25,514 | INFO     | whatspy | ================================================================================
+2025-12-17 12:15:34,278 | INFO     | whatspy.database | ✅ Database tables initialized
+2025-12-17 12:15:35,353 | INFO     | whatspy.database | ✅ Database connection successful
+2025-12-17 12:15:35,354 | INFO     | whatspy | ✅ Database initialized
+2025-12-17 12:15:35,641 | WARNING  | pywa.server | No `app_secret` provided. Signature validation will be disabled (not recommended. set `validate_updates=False` to suppress this warning)
+2025-12-17 12:15:35,642 | INFO     | pywa.server | Using FastAPI
+2025-12-17 12:15:35,644 | INFO     | whatspy.handlers | ✅ WhatsApp message handlers registered
+2025-12-17 12:15:35,644 | INFO     | whatspy.handlers | 🏢 Using tenant_id from .env: d2bcd1ee-e5c5-4c9f-bff2-aaf901d40440
+2025-12-17 12:15:35,644 | INFO     | whatspy.handlers | 📝 All incoming messages will be saved to this tenant
+2025-12-17 12:15:35,644 | INFO     | whatspy | ✅ WhatsApp client initialized
+2025-12-17 12:15:37,817 | INFO     | whatspy | ================================================================================
+2025-12-17 12:15:37,818 | INFO     | whatspy | 🚀 Application starting - Logging to console and logs/debug.log
+2025-12-17 12:15:37,818 | INFO     | whatspy | ================================================================================
+2025-12-17 12:15:46,254 | INFO     | whatspy.database | ✅ Database tables initialized
+2025-12-17 12:15:47,299 | INFO     | whatspy.database | ✅ Database connection successful
+2025-12-17 12:15:47,299 | INFO     | whatspy | ✅ Database initialized
+2025-12-17 12:15:47,586 | WARNING  | pywa.server | No `app_secret` provided. Signature validation will be disabled (not recommended. set `validate_updates=False` to suppress this warning)
+2025-12-17 12:15:47,586 | INFO     | pywa.server | Using FastAPI
+2025-12-17 12:15:47,586 | INFO     | whatspy.handlers | ✅ WhatsApp message handlers registered
+2025-12-17 12:15:47,586 | INFO     | whatspy.handlers | 🏢 Using tenant_id from .env: d2bcd1ee-e5c5-4c9f-bff2-aaf901d40440
+2025-12-17 12:15:47,586 | INFO     | whatspy.handlers | 📝 All incoming messages will be saved to this tenant
+2025-12-17 12:15:47,586 | INFO     | whatspy | ✅ WhatsApp client initialized
+2025-12-17 12:17:18,417 | INFO     | whatspy.campaigns | 📢 Creating TEMPLATE broadcast campaign: hello_
+2025-12-17 12:17:18,419 | INFO     | whatspy.campaigns |    Template: hello_ (en_US)
+2025-12-17 12:17:19,254 | INFO     | whatspy.campaigns | ✅ Resolved 2 phone numbers for template broadcast
+2025-12-17 12:17:20,582 | INFO     | whatspy.campaigns | 🚀 Template broadcast task started for campaign ff25eee0-d379-45ef-ba58-000dcfb5cb36
+2025-12-17 12:17:20,858 | DEBUG    | whatspy.campaigns | No parameters for +918793944961
+2025-12-17 12:17:21,663 | DEBUG    | whatspy.template_service |    No parameters for template 'hello_' - template has no variables
+2025-12-17 12:17:21,666 | INFO     | whatspy.template_service | 📤 Sending template 'hello_' to 918793944961
+2025-12-17 12:17:21,666 | INFO     | whatspy.template_service |    Language: en_US
+2025-12-17 12:17:21,666 | INFO     | whatspy.template_service |    Parameters: None
+2025-12-17 12:17:21,672 | DEBUG    | pywa.api | Making request: POST /783146548207772/messages with kwargs: {'json': {'messaging_product': 'whatsapp', 'recipient_type': 'individual', 'to': '918793944961', 'type': 'template', 'template': {'name': 'hello_', 'language': {'code': 'en_US'}}}}
+2025-12-17 12:17:21,673 | DEBUG    | httpcore.connection | connect_tcp.started host='graph.facebook.com' port=443 local_address=None timeout=5.0 socket_options=None
+2025-12-17 12:17:21,728 | DEBUG    | httpcore.connection | connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x00000254F80D6010>
+2025-12-17 12:17:21,728 | DEBUG    | httpcore.connection | start_tls.started ssl_context=<ssl.SSLContext object at 0x00000254F84A6E70> server_hostname='graph.facebook.com' timeout=5.0
+2025-12-17 12:17:21,784 | DEBUG    | httpcore.connection | start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x00000254F8304650>
+2025-12-17 12:17:21,784 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'POST']>
+2025-12-17 12:17:21,791 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2025-12-17 12:17:21,794 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'POST']>
+2025-12-17 12:17:21,798 | DEBUG    | httpcore.http11 | send_request_body.complete
+2025-12-17 12:17:21,798 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'POST']>
+2025-12-17 12:17:22,687 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json; charset=UTF-8'), (b'Vary', b'Origin'), (b'x-fb-aed', b'694'), (b'x-business-use-case-usage', b'{"750331057695851":[{"type":"whatsapp","call_count":1,"total_cputime":1,"total_time":1,"estimated_time_to_regain_access":0}]}'), (b'Access-Control-Allow-Origin', b'*'), (b'facebook-api-version', b'v24.0'), (b'Strict-Transport-Security', b'max-age=15552000; preload'), (b'Pragma', b'no-cache'), (b'Cache-Control', b'private, no-cache, no-store, must-revalidate'), (b'Expires', b'Sat, 01 Jan 2000 00:00:00 GMT'), (b'x-fb-request-id', b'ADs9aOEynXFdnPyA7asKKFL'), (b'x-fb-trace-id', b'HGdWP8OHaIc'), (b'x-fb-rev', b'1031196555'), (b'X-FB-Debug', b'/joGJiQoFJeGvQxOBE6RMUxAF5xgdnTVoJw1Gt4cipWX7IKF/aEb3exmWXHo8BTiJ32Yn4wYc2XBn1XKZLmFzA=='), (b'Date', b'Wed, 17 Dec 2025 06:47:22 GMT'), (b'X-FB-Connection-Quality', b'EXCELLENT; q=0.9, rtt=35, rtx=0, c=10, mss=1230, tbw=3480, tp=-1, tpl=-1, uplat=865, ullat=9'), (b'Alt-Svc', b'h3=":443"; ma=86400'), (b'Connection', b'keep-alive'), (b'Content-Length', b'206')])
+2025-12-17 12:17:22,694 | INFO     | httpx | HTTP Request: POST https://graph.facebook.com/v24.0/783146548207772/messages "HTTP/1.1 200 OK"
+2025-12-17 12:17:22,699 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'POST']>
+2025-12-17 12:17:22,704 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2025-12-17 12:17:22,709 | DEBUG    | httpcore.http11 | response_closed.started
+2025-12-17 12:17:22,713 | DEBUG    | httpcore.http11 | response_closed.complete
+2025-12-17 12:17:22,718 | INFO     | whatspy.template_service | ✅ Template sent to 918793944961: SentTemplate(id='wamid.HBgMOTE4NzkzOTQ0OTYxFQIAERgSODJCMTcyMkE1OUQ1MThDMTBDAA==', to_user=User(wa_id='918793944961', name=None, identity_key_hash=None), from_phone_id='783146548207772', input='918793944961', status=SentTemplateStatus.ACCEPTED)
+2025-12-17 12:17:25,618 | INFO     | whatspy.campaigns | ✅ Template sent to +918793944961: SentTemplate(id='wamid.HBgMOTE4NzkzOTQ0OTYxFQIAERgSODJCMTcyMkE1OUQ1MThDMTBDAA==', to_user=User(wa_id='918793944961', name=None, identity_key_hash=None), from_phone_id='783146548207772', input='918793944961', status=SentTemplateStatus.ACCEPTED)
+2025-12-17 12:17:26,123 | DEBUG    | whatspy.campaigns | No parameters for +919142982138
+2025-12-17 12:17:26,388 | DEBUG    | whatspy.template_service |    No parameters for template 'hello_' - template has no variables
+2025-12-17 12:17:26,389 | INFO     | whatspy.template_service | 📤 Sending template 'hello_' to 919142982138
+2025-12-17 12:17:26,391 | INFO     | whatspy.template_service |    Language: en_US
+2025-12-17 12:17:26,392 | INFO     | whatspy.template_service |    Parameters: None
+2025-12-17 12:17:26,392 | DEBUG    | pywa.api | Making request: POST /783146548207772/messages with kwargs: {'json': {'messaging_product': 'whatsapp', 'recipient_type': 'individual', 'to': '919142982138', 'type': 'template', 'template': {'name': 'hello_', 'language': {'code': 'en_US'}}}}
+2025-12-17 12:17:26,394 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'POST']>
+2025-12-17 12:17:26,394 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2025-12-17 12:17:26,394 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'POST']>
+2025-12-17 12:17:26,401 | DEBUG    | httpcore.http11 | send_request_body.complete
+2025-12-17 12:17:26,403 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'POST']>
+2025-12-17 12:17:27,429 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json; charset=UTF-8'), (b'Vary', b'Origin'), (b'x-fb-aed', b'694'), (b'x-business-use-case-usage', b'{"750331057695851":[{"type":"whatsapp","call_count":1,"total_cputime":1,"total_time":1,"estimated_time_to_regain_access":0}]}'), (b'Access-Control-Allow-Origin', b'*'), (b'facebook-api-version', b'v24.0'), (b'Strict-Transport-Security', b'max-age=15552000; preload'), (b'Pragma', b'no-cache'), (b'Cache-Control', b'private, no-cache, no-store, must-revalidate'), (b'Expires', b'Sat, 01 Jan 2000 00:00:00 GMT'), (b'x-fb-request-id', b'AqId35M_VqRbiG5ICDDrdmv'), (b'x-fb-trace-id', b'HdNsjH1JFC2'), (b'x-fb-rev', b'1031193669'), (b'X-FB-Debug', b'AWwE61j+2BM1DYucOdU+mbIcihA/0Ek8ILVnsjJ/2zS0emFsk6dccom4zn/wu6vaDe/ol276hsNQc00zOLmtUw=='), (b'x-fb-server-load', b'7'), (b'Date', b'Wed, 17 Dec 2025 06:47:27 GMT'), (b'X-FB-Connection-Quality', b'EXCELLENT; q=0.9, rtt=39, rtx=0, c=10, mss=1230, tbw=4616, tp=-1, tpl=-1, uplat=1006, ullat=0'), (b'Alt-Svc', b'h3=":443"; ma=86400'), (b'Connection', b'keep-alive'), (b'Content-Length', b'206')])
+2025-12-17 12:17:27,429 | INFO     | httpx | HTTP Request: POST https://graph.facebook.com/v24.0/783146548207772/messages "HTTP/1.1 200 OK"
+2025-12-17 12:17:27,434 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'POST']>
+2025-12-17 12:17:27,434 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2025-12-17 12:17:27,435 | DEBUG    | httpcore.http11 | response_closed.started
+2025-12-17 12:17:27,435 | DEBUG    | httpcore.http11 | response_closed.complete
+2025-12-17 12:17:27,436 | INFO     | whatspy.template_service | ✅ Template sent to 919142982138: SentTemplate(id='wamid.HBgMOTE5MTQyOTgyMTM4FQIAERgSMTZBNTQ1RUM1ODM2QUIzQTFFAA==', to_user=User(wa_id='919142982138', name=None, identity_key_hash=None), from_phone_id='783146548207772', input='919142982138', status=SentTemplateStatus.ACCEPTED)
+2025-12-17 12:17:30,314 | INFO     | whatspy.campaigns | ✅ Template sent to +919142982138: SentTemplate(id='wamid.HBgMOTE5MTQyOTgyMTM4FQIAERgSMTZBNTQ1RUM1ODM2QUIzQTFFAA==', to_user=User(wa_id='919142982138', name=None, identity_key_hash=None), from_phone_id='783146548207772', input='919142982138', status=SentTemplateStatus.ACCEPTED)
+2025-12-17 12:17:31,604 | INFO     | whatspy.campaigns | 📊 Campaign ff25eee0-d379-45ef-ba58-000dcfb5cb36 completed: 2 sent, 0 failed
+2025-12-17 12:17:33,774 | INFO     | whatspy | ================================================================================
+2025-12-17 12:17:33,774 | INFO     | whatspy | 🚀 Application starting - Logging to console and logs/debug.log
+2025-12-17 12:17:33,774 | INFO     | whatspy | ================================================================================
+2025-12-17 12:17:42,268 | INFO     | whatspy.database | ✅ Database tables initialized
+2025-12-17 12:17:43,651 | INFO     | whatspy.database | ✅ Database connection successful
+2025-12-17 12:17:43,652 | INFO     | whatspy | ✅ Database initialized
+2025-12-17 12:17:43,945 | WARNING  | pywa.server | No `app_secret` provided. Signature validation will be disabled (not recommended. set `validate_updates=False` to suppress this warning)
+2025-12-17 12:17:43,947 | INFO     | pywa.server | Using FastAPI
+2025-12-17 12:17:43,948 | INFO     | whatspy.handlers | ✅ WhatsApp message handlers registered
+2025-12-17 12:17:43,948 | INFO     | whatspy.handlers | 🏢 Using tenant_id from .env: d2bcd1ee-e5c5-4c9f-bff2-aaf901d40440
+2025-12-17 12:17:43,948 | INFO     | whatspy.handlers | 📝 All incoming messages will be saved to this tenant
+2025-12-17 12:17:43,948 | INFO     | whatspy | ✅ WhatsApp client initialized
+2025-12-17 12:18:25,935 | DEBUG    | whatspy.template_service |    No parameters for template 'hello_' - template has no variables
+2025-12-17 12:18:25,936 | INFO     | whatspy.template_service | 📤 Sending template 'hello_' to 919142982138
+2025-12-17 12:18:25,936 | INFO     | whatspy.template_service |    Language: en_US
+2025-12-17 12:18:25,936 | INFO     | whatspy.template_service |    Parameters: None
+2025-12-17 12:18:25,936 | DEBUG    | pywa.api | Making request: POST /783146548207772/messages with kwargs: {'json': {'messaging_product': 'whatsapp', 'recipient_type': 'individual', 'to': '919142982138', 'type': 'template', 'template': {'name': 'hello_', 'language': {'code': 'en_US'}}}}
+2025-12-17 12:18:25,943 | DEBUG    | httpcore.connection | connect_tcp.started host='graph.facebook.com' port=443 local_address=None timeout=5.0 socket_options=None
+2025-12-17 12:18:26,013 | DEBUG    | httpcore.connection | connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x000001F07841A710>
+2025-12-17 12:18:26,013 | DEBUG    | httpcore.connection | start_tls.started ssl_context=<ssl.SSLContext object at 0x000001F078106E70> server_hostname='graph.facebook.com' timeout=5.0
+2025-12-17 12:18:26,048 | DEBUG    | httpcore.connection | start_tls.complete return_value=<httpcore._backends.sync.SyncStream object at 0x000001F07841AE50>
+2025-12-17 12:18:26,054 | DEBUG    | httpcore.http11 | send_request_headers.started request=<Request [b'POST']>
+2025-12-17 12:18:26,054 | DEBUG    | httpcore.http11 | send_request_headers.complete
+2025-12-17 12:18:26,054 | DEBUG    | httpcore.http11 | send_request_body.started request=<Request [b'POST']>
+2025-12-17 12:18:26,054 | DEBUG    | httpcore.http11 | send_request_body.complete
+2025-12-17 12:18:26,059 | DEBUG    | httpcore.http11 | receive_response_headers.started request=<Request [b'POST']>
+2025-12-17 12:18:26,637 | DEBUG    | httpcore.http11 | receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json; charset=UTF-8'), (b'Vary', b'Origin'), (b'x-fb-aed', b'694'), (b'x-business-use-case-usage', b'{"750331057695851":[{"type":"whatsapp","call_count":1,"total_cputime":1,"total_time":1,"estimated_time_to_regain_access":0}]}'), (b'Access-Control-Allow-Origin', b'*'), (b'facebook-api-version', b'v24.0'), (b'Strict-Transport-Security', b'max-age=15552000; preload'), (b'Pragma', b'no-cache'), (b'Cache-Control', b'private, no-cache, no-store, must-revalidate'), (b'Expires', b'Sat, 01 Jan 2000 00:00:00 GMT'), (b'x-fb-request-id', b'Aqnt8r8_8RpNcZFfjET44Cy'), (b'x-fb-trace-id', b'BHgwP2X7esw'), (b'x-fb-rev', b'1031196555'), (b'X-FB-Debug', b'ZJuaPyj3A6K3XTvEGu8YISotvh7URasE7NGGrrYl5snfJ5PX+TfvseqN84WtquQLouuGM8UqnJIUo5wsiB2tPA=='), (b'Date', b'Wed, 17 Dec 2025 06:48:26 GMT'), (b'X-FB-Connection-Quality', b'EXCELLENT; q=0.9, rtt=32, rtx=0, c=10, mss=1230, tbw=3481, tp=-1, tpl=-1, uplat=551, ullat=1'), (b'Alt-Svc', b'h3=":443"; ma=86400'), (b'Connection', b'keep-alive'), (b'Content-Length', b'206')])
+2025-12-17 12:18:26,637 | INFO     | httpx | HTTP Request: POST https://graph.facebook.com/v24.0/783146548207772/messages "HTTP/1.1 200 OK"
+2025-12-17 12:18:26,637 | DEBUG    | httpcore.http11 | receive_response_body.started request=<Request [b'POST']>
+2025-12-17 12:18:26,637 | DEBUG    | httpcore.http11 | receive_response_body.complete
+2025-12-17 12:18:26,637 | DEBUG    | httpcore.http11 | response_closed.started
+2025-12-17 12:18:26,643 | DEBUG    | httpcore.http11 | response_closed.complete
+2025-12-17 12:18:26,644 | INFO     | whatspy.template_service | ✅ Template sent to 919142982138: SentTemplate(id='wamid.HBgMOTE5MTQyOTgyMTM4FQIAERgSMEY3MUJGOTlGM0U2RUU3NTEyAA==', to_user=User(wa_id='919142982138', name=None, identity_key_hash=None), from_phone_id='783146548207772', input='919142982138', status=SentTemplateStatus.ACCEPTED)

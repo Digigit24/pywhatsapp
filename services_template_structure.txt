@@ -1,0 +1,39 @@
+[OK] Template: services
+   Language: en
+   Status: APPROVED
+   Category: MARKETING
+
+Components:
+
+   Component 1: HEADER
+   Header type: TEXT
+   Text: 360 degree Marketing and Software Solutions
+
+   Component 2: BODY
+   Text: We are group of young individuals , with a strong talent pool ,helping Business grow through Systems and Marketing.
+Our Expertise:
+✔ Web & App Development
+✔ Paid Ad Campaigns (CPC/CPA)
+✔ CRM / CMS / ERP Solutions
+✔ WhatsApp Automation
+✔ SEO | SMO | GMB
+✔ Video Production & Podcast Studio
+
+Contact us: +91 98228 57421
+Website: https://thedigitechsolutions.com/
+   [OK] No variables - template has fixed text
+
+   Example payload for template broadcast:
+   {
+       "campaign_name": "My Campaign",
+       "template_name": "services",
+       "template_language": "en",
+       "contact_ids": [36, 35]
+   }
+
+   Component 3: FOOTER
+   Footer: Thank You for your attention
+
+   Component 4: BUTTONS
+   Buttons (1):
+      - URL: Visit website

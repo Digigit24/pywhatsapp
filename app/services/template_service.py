@@ -317,63 +317,73 @@ class TemplateService:
         tenant_id: str,
         data: TemplateSendRequest
     ) -> Tuple[Optional[str], TemplateSendLog]:
-        """Send template message to a recipient"""
-        
+        """Send template message to a recipient using PyWa"""
+
         # Get template
         template = self.get_template_by_name(
             db, tenant_id, data.template_name, data.language.value
         )
-        
+
         if not template:
             raise ValueError(f"Template '{data.template_name}' not found")
-        
+
         if template.status != TemplateStatus.APPROVED:
             raise ValueError(f"Template '{data.template_name}' is not approved (status: {template.status})")
-        
+
         message_id = None
         error_message = None
-        
+
         # Send via WhatsApp
         if self.wa:
             try:
-                # Build parameters
-                if data.components:
-                    # Use provided components
-                    params = data.components
-                elif data.parameters:
-                    # Convert simple parameters to component format
-                    params = [{
-                        "type": "body",
-                        "parameters": [
-                            {"type": "text", "text": value}
-                            for value in data.parameters.values()
-                        ]
-                    }]
-                else:
-                    params = []
-                
-                # Send template
+                from pywa.types.templates import (
+                    TemplateLanguage as PyWaLanguage,
+                    BodyText,
+                    HeaderText
+                )
+
+                # Map language string to PyWa enum
+                language_map = {
+                    "en": PyWaLanguage.ENGLISH,
+                    "en_US": PyWaLanguage.ENGLISH_US,
+                    "en_GB": PyWaLanguage.ENGLISH_UK,
+                    "hi": PyWaLanguage.HINDI,
+                    "es": PyWaLanguage.SPANISH,
+                    "fr": PyWaLanguage.FRENCH,
+                }
+
+                pywa_language = language_map.get(data.language.value, PyWaLanguage.ENGLISH_US)
+
+                # Build PyWa parameters from template components and user data
+                params = self._build_pywa_params(template, data)
+
+                log.info(f"📤 Sending template '{data.template_name}' to {data.to}")
+                log.info(f"   Language: {pywa_language}")
+                log.info(f"   Parameters: {params}")
+
                 response = self.wa.send_template(
                     to=data.to,
-                    template=data.template_name,
-                    language=data.language.value,
-                    components=params
+                    name=data.template_name,
+                    language=pywa_language,
+                    params=params  # List of PyWa parameter objects or None
                 )
-                
+
                 message_id = str(response) if response else None
-                log.info(f"✅ Template '{data.template_name}' sent to {data.to}: {message_id}")
-                
+                log.info(f"✅ Template sent to {data.to}: {message_id}")
+
                 # Update usage count
                 template.usage_count += 1
                 template.last_used_at = datetime.utcnow().isoformat()
-                
+
                 # Save as message
                 self._save_template_message(
                     db, tenant_id, data.to, data.template_name, message_id
                 )
-                
+
             except Exception as e:
                 log.error(f"❌ Failed to send template: {e}")
+                import traceback
+                log.error(traceback.format_exc())
                 error_message = str(e)
         
         # Log send
@@ -695,6 +705,68 @@ class TemplateService:
     # ────────────────────────────────────────────
     # Helper Methods
     # ────────────────────────────────────────────
+
+    def _build_pywa_params(
+        self,
+        template: WhatsAppTemplate,
+        data: TemplateSendRequest
+    ) -> Optional[List[Any]]:
+        """
+        Build PyWa parameter objects from template components and user data.
+
+        For templates WITHOUT variables (like "services"): returns None
+        For templates WITH variables: builds PyWa BodyText/HeaderText parameter objects
+
+        WhatsApp templates use positional placeholders: {{1}}, {{2}}, {{3}}
+        User provides parameters as: {"1": "value1", "2": "value2"}
+        """
+        import re
+
+        # If no parameters provided, template has no variables
+        if not data.parameters or not template.components:
+            log.debug(f"   No parameters for template '{template.name}' - template has no variables")
+            return None
+
+        try:
+            from pywa.types.templates import BodyText, HeaderText
+
+            params = []
+
+            for component in template.components:
+                comp_type = component.get('type', '').upper()
+
+                if comp_type in ('HEADER', 'BODY'):
+                    text = component.get('text', '')
+                    if not text:
+                        continue
+
+                    # Find all variables in format {{1}}, {{2}}, etc.
+                    variables = re.findall(r'\{\{(\d+)\}\}', text)
+
+                    if variables:
+                        # Build kwargs for PyWa params method
+                        # Convert {"1": "John", "2": "123"} to {param1="John", param2="123"}
+                        kwargs = {}
+                        for var_num in sorted(set(variables)):  # Remove duplicates and sort
+                            if var_num in data.parameters:
+                                kwargs[f'param{var_num}'] = str(data.parameters[var_num])
+                            else:
+                                log.warning(f"   Missing parameter for {{{{ {var_num} }}}} in {comp_type}")
+
+                        if kwargs:
+                            if comp_type == 'HEADER':
+                                params.append(HeaderText.params(**kwargs))
+                                log.debug(f"   Header params: {kwargs}")
+                            else:  # BODY
+                                params.append(BodyText.params(**kwargs))
+                                log.debug(f"   Body params: {kwargs}")
+
+            return params if params else None
+
+        except Exception as e:
+            log.error(f"Failed to build PyWa params: {e}")
+            # Fall back to None for templates without params
+            return None
 
     def _convert_components_to_pywa(self, components: List[Dict]) -> List[Any]:
         """Convert component dict to PyWa component objects"""
